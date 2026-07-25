@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Laboratorio bilingüe para practicar Java escribiendo código real."
+    />
+    <title>Java Werkstatt</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#editor">Saltar al editor</a>
+
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Java Werkstatt, inicio">
+        <span class="brand-mark" aria-hidden="true">J_</span>
+        <span>
+          <strong>Java Werkstatt</strong>
+          <small data-i18n="brandTagline">Laboratorio de código</small>
+        </span>
+      </a>
+
+      <div class="header-tools">
+        <div class="language-switch" role="group" aria-label="Idioma / Sprache">
+          <button class="language-button" type="button" data-language="es" aria-pressed="true">
+            ES
+          </button>
+          <button class="language-button" type="button" data-language="de" aria-pressed="false">
+            DE
+          </button>
+        </div>
+        <button
+          id="themeToggle"
+          class="theme-toggle"
+          type="button"
+          aria-pressed="false"
+          aria-label="Cambiar a modo oscuro"
+        >
+          <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+          <span data-i18n="themeToggle">Modo oscuro</span>
+        </button>
+        <div class="xp-display" aria-label="Experiencia">
+          <span>XP</span>
+          <strong id="xp">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <main id="workspace" class="workspace">
+      <aside id="missionRail" class="mission-rail" aria-label="Ruta de aprendizaje">
+        <div class="rail-heading">
+          <p class="eyebrow" data-i18n="courseLabel">Ruta práctica</p>
+          <h1 data-i18n="courseTitle">Java desde los cimientos</h1>
+          <p data-i18n="courseIntro">
+            36 misiones de EF a Q2. Escribís, verificás y entendés por qué funciona.
+          </p>
+        </div>
+
+        <nav aria-label="Misiones">
+          <ol id="missionList" class="mission-list"></ol>
+        </nav>
+
+        <div class="storage-note">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-i18n="storageNote">Progreso guardado en este navegador</span>
+        </div>
+      </aside>
+
+      <section class="lab" aria-labelledby="missionTitle">
+        <div class="mission-header">
+          <div>
+            <div class="mission-meta">
+              <span id="missionNumber">Misión 01</span>
+              <span id="difficulty" class="difficulty"></span>
+              <span id="missionXp"></span>
+            </div>
+            <h2 id="missionTitle"></h2>
+            <p id="objective" class="objective"></p>
+          </div>
+
+          <div class="progress-orbit" aria-label="Progreso">
+            <svg viewBox="0 0 44 44" aria-hidden="true">
+              <circle class="orbit-track" cx="22" cy="22" r="18"></circle>
+              <circle id="orbitValue" class="orbit-value" cx="22" cy="22" r="18"></circle>
+            </svg>
+            <span id="progressValue">0/36</span>
+          </div>
+        </div>
+
+        <div class="brief">
+          <p class="brief-label" data-i18n="taskLabel">Tu tarea</p>
+          <p id="prompt"></p>
+          <div class="concept-line">
+            <span data-i18n="conceptLabel">Concepto</span>
+            <strong id="concept"></strong>
+          </div>
+        </div>
+
+        <div id="editorPanel" class="editor-panel">
+          <div class="editor-toolbar" role="toolbar" aria-label="Herramientas del editor">
+            <button
+              id="sidebarToggle"
+              class="editor-tool-button"
+              type="button"
+              aria-controls="missionRail"
+              aria-expanded="true"
+              aria-label="Ocultar ruta de misiones"
+              title="Ocultar ruta de misiones"
+            >
+              <span aria-hidden="true">☰</span>
+              <span data-i18n="sidebarHide">Ocultar ruta</span>
+            </button>
+            <button
+              id="focusToggle"
+              class="editor-tool-button editor-tool-button-primary"
+              type="button"
+              aria-controls="editorPanel"
+              aria-pressed="false"
+              aria-label="Activar modo enfoque del editor"
+              title="Activar modo enfoque del editor"
+            >
+              <span aria-hidden="true">⛶</span>
+              <span data-i18n="focusEnter">Modo enfoque</span>
+            </button>
+            <span class="editor-toolbar-hint" data-i18n="editorToolbarHint">Esc sale del modo enfoque · los atajos del editor se mantienen</span>
+          </div>
+
+          <div class="ide-shell">
+            <div class="ide-bar">
+            <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <span id="fileName">Main.java</span>
+            <span class="validation-badge" data-i18n="localValidation">
+              Validación estructural local
+            </span>
+          </div>
+
+          <div class="code-context" aria-label="Contexto del archivo">
+            <pre id="codeBefore"></pre>
+          </div>
+
+          <div class="editor-row">
+            <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
+            <div class="editor-input-wrap">
+              <textarea
+                id="editor"
+                rows="7"
+                spellcheck="false"
+                autocomplete="off"
+                autocapitalize="off"
+                aria-describedby="editorHelp diagnosticsNotice"
+                aria-autocomplete="list"
+                aria-controls="completionList"
+                aria-expanded="false"
+              ></textarea>
+              <div id="completionPopup" class="completion-popup" hidden>
+                <div class="completion-heading">
+                  <span data-i18n="completionTitle">Completar código</span>
+                  <kbd>Tab ↵</kbd>
+                </div>
+                <ul id="completionList" role="listbox" aria-label="Sugerencias de código"></ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="code-context code-context-after">
+            <pre id="codeAfter"></pre>
+          </div>
+
+            <div class="ide-status">
+              <span>Java · UTF-8</span>
+              <span id="editorHelp" data-i18n="shortcut">F5 para comprobar · Tab expande plantillas · ⌥⇧↓ duplica</span>
+            </div>
+          </div>
+        </div>
+
+        <section class="diagnostics-card" aria-labelledby="diagnosticsTitle">
+          <div class="diagnostics-heading">
+            <div>
+              <p class="eyebrow" data-i18n="diagnosticsLabel">Asistencia local</p>
+              <h3 id="diagnosticsTitle" data-i18n="diagnosticsTitle">Diagnósticos e indentación</h3>
+            </div>
+            <button id="formatButton" class="button button-secondary button-compact" type="button" data-i18n="format">
+              Formatear a 4 espacios
+            </button>
+          </div>
+          <p id="diagnosticsNotice" class="heuristic-note" data-i18n="diagnosticsNotice">
+            Avisos heurísticos locales: orientan, pero no compilan ni garantizan Java válido.
+          </p>
+          <ol id="diagnosticsList" class="diagnostics-list" aria-live="polite"></ol>
+        </section>
+
+        <section class="progress-card" aria-labelledby="progressTitle">
+          <div class="progress-heading">
+            <div>
+              <p class="eyebrow" data-i18n="progressLabel">Aprendizaje transparente</p>
+              <h3 id="progressTitle" data-i18n="progressTitle">Tu progreso</h3>
+            </div>
+            <strong id="masteryValue">0%</strong>
+          </div>
+          <p id="masteryExplanation" class="heuristic-note"></p>
+          <div id="progressStats" class="progress-stats"></div>
+          <div id="progressInsights" class="progress-insights"></div>
+        </section>
+
+        <section class="live-template-help" aria-labelledby="liveTemplateTitle">
+          <div class="template-copy">
+            <p class="eyebrow" data-i18n="liveTemplatesLabel">Live Templates</p>
+            <h3 id="liveTemplateTitle" data-i18n="liveTemplatesTitle">Plantillas Java rápidas</h3>
+            <p data-i18n="liveTemplatesIntro">
+              Simulación educativa local inspirada en Live Templates de IntelliJ: abreviatura + Tab dentro del editor.
+            </p>
+          </div>
+          <div class="template-list-wrap">
+            <p class="template-list-title" data-i18n="liveTemplatesAvailable">Disponibles</p>
+            <ul id="liveTemplateList" class="template-list" aria-label="Live Templates Java"></ul>
+          </div>
+        </section>
+
+        <section class="shortcut-help" aria-labelledby="shortcutHelpTitle">
+          <div>
+            <p class="eyebrow" data-i18n="shortcutHelpLabel">Atajos IDEA</p>
+            <h3 id="shortcutHelpTitle" data-i18n="shortcutHelpTitle">Teclado productivo</h3>
+            <p data-i18n="shortcutHelpIntro">
+              Atajos locales inspirados en IntelliJ IDEA. No compilan Java real.
+            </p>
+          </div>
+          <dl class="shortcut-grid">
+            <div><dt><kbd>F5</kbd></dt><dd data-i18n="shortcutCheck">Comprobar estructura</dd></div>
+            <div><dt><kbd>⌥/Alt</kbd> + <kbd>Enter</kbd></dt><dd data-i18n="shortcutHint">Pedir pista</dd></div>
+            <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>/</kbd></dt><dd data-i18n="shortcutComment">Comentar/descomentar</dd></div>
+            <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>D</kbd> / <kbd>⌥/Alt</kbd> + <kbd>⇧</kbd> + <kbd>↓</kbd></dt><dd data-i18n="shortcutDuplicate">Duplicar línea o selección</dd></div>
+            <div><dt><kbd>⌥/Alt</kbd> + <kbd>↑/↓</kbd></dt><dd data-i18n="shortcutMoveLine">Subir/bajar línea o bloque</dd></div>
+            <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>L</kbd></dt><dd data-i18n="shortcutClear">Limpiar editor con foco</dd></div>
+            <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>←/→</kbd></dt><dd data-i18n="shortcutNavigate">Misión anterior/siguiente</dd></div>
+            <div><dt><kbd>Esc</kbd></dt><dd data-i18n="shortcutEscape">Salir de enfoque, cerrar feedback o volver al editor</dd></div>
+          </dl>
+        </section>
+
+        <div class="action-row">
+          <button id="checkButton" class="button button-primary" type="button">
+            <span data-i18n="check">Comprobar estructura</span>
+            <kbd>F5</kbd>
+          </button>
+          <button id="hintButton" class="button button-secondary" type="button">
+            <span data-i18n="hint">Pedir pista</span>
+            <small id="hintCost">−5 XP</small>
+          </button>
+          <button id="solutionButton" class="button button-text" type="button">
+            <span data-i18n="reveal">Ver solución</span>
+            <small>−15 XP</small>
+          </button>
+          <button id="nextButton" class="button button-next" type="button" disabled>
+            <span data-i18n="next">Siguiente misión</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+
+        <section id="feedbackPanel" class="feedback-panel" aria-live="polite" hidden>
+          <div id="feedbackIcon" class="feedback-icon" aria-hidden="true"></div>
+          <div>
+            <strong id="feedbackTitle"></strong>
+            <p id="feedbackMessage"></p>
+            <div id="explanation" class="explanation" hidden></div>
+          </div>
+        </section>
+
+        <section id="hintPanel" class="hint-panel" aria-live="polite" hidden>
+          <div class="hint-heading">
+            <strong data-i18n="hintTitle">Pista del mentor</strong>
+            <span id="hintLevel"></span>
+          </div>
+          <p id="hintText"></p>
+        </section>
+
+        <button id="resetButton" class="reset-button" type="button" data-i18n="reset">
+          Reiniciar todo el progreso
+        </button>
+      </section>
+    </main>
+
+    <script src="game.js?v=9"></script>
+  </body>
+</html>
