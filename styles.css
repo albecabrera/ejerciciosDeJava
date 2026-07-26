@@ -36,6 +36,7 @@
   --hint-ink: #654514;
   --grid-line: rgba(47, 93, 116, 0.055);
   --white: #fff;
+  --button-ink: #fff;
   --shadow: 0 28px 70px rgba(32, 41, 45, 0.15);
   --radius: 18px;
   --sans: "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
@@ -43,42 +44,43 @@
 }
 
 :root[data-theme="dark"] {
-  --ink: #edf3f5;
-  --paper: #0b1115;
-  --paper-deep: #1a2a32;
-  --panel: #162a33;
-  --panel-soft: rgba(25, 45, 55, 0.9);
-  --panel-hover: rgba(62, 94, 108, 0.56);
-  --header-bg: rgba(14, 21, 25, 0.92);
-  --rail-bg: rgba(18, 29, 35, 0.8);
-  --java-blue: #8bb9cc;
-  --java-deep: #d7f3fb;
-  --copper: #e78356;
-  --copper-soft: rgba(231, 131, 86, 0.18);
-  --copper-ink: #ffd5c0;
-  --mint: #67d3b7;
-  --warning: #f4c36d;
-  --error: #ff8d86;
-  --muted: #c1cdd2;
-  --muted-strong: #e0e8eb;
-  --line: #405660;
-  --active-line: #41606d;
-  --code: #0a1014;
-  --code-panel: #101a20;
-  --code-row: #060b0e;
-  --code-line: #20313a;
-  --code-muted: #8ba0aa;
-  --code-text: #f5fbff;
-  --feedback-bg: rgba(165, 58, 55, 0.14);
-  --feedback-line: rgba(255, 141, 134, 0.44);
-  --feedback-ink: #ffd0cc;
-  --success-bg: rgba(47, 122, 103, 0.2);
-  --success-line: rgba(103, 211, 183, 0.45);
-  --success-ink: #c8fff1;
-  --hint-bg: rgba(155, 93, 16, 0.18);
-  --hint-line: rgba(244, 195, 109, 0.42);
-  --hint-ink: #ffe6b3;
-  --grid-line: rgba(139, 185, 204, 0.07);
+  --ink: #edf5f8;
+  --paper: #080d11;
+  --paper-deep: #14242b;
+  --panel: #172c35;
+  --panel-soft: rgba(28, 51, 61, 0.96);
+  --panel-hover: rgba(64, 105, 120, 0.62);
+  --header-bg: rgba(8, 14, 18, 0.97);
+  --rail-bg: rgba(15, 29, 36, 0.96);
+  --java-blue: #a8e0f2;
+  --java-deep: #effaff;
+  --copper: #ffad83;
+  --copper-soft: rgba(255, 173, 131, 0.2);
+  --copper-ink: #2d160c;
+  --mint: #7de8c9;
+  --warning: #ffd37d;
+  --error: #ffaaa5;
+  --muted: #c9d9df;
+  --muted-strong: #f1f8fa;
+  --line: #5c7782;
+  --active-line: #83b5c6;
+  --code: #070c10;
+  --code-panel: #0e191f;
+  --code-row: #05090c;
+  --code-line: #2d4854;
+  --code-muted: #9fb8c1;
+  --code-text: #f8fdff;
+  --feedback-bg: rgba(255, 105, 96, 0.18);
+  --feedback-line: rgba(255, 170, 165, 0.72);
+  --feedback-ink: #ffe4e1;
+  --success-bg: rgba(75, 190, 155, 0.22);
+  --success-line: rgba(125, 232, 201, 0.7);
+  --success-ink: #d8fff4;
+  --hint-bg: rgba(255, 190, 70, 0.2);
+  --hint-line: rgba(255, 211, 125, 0.72);
+  --hint-ink: #fff0c8;
+  --grid-line: rgba(168, 224, 242, 0.09);
+  --button-ink: #071014;
   --shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
 }
 * {
@@ -211,7 +213,7 @@ a:focus-visible {
 
 .language-button[aria-pressed="true"] {
   background: var(--java-deep);
-  color: var(--white);
+  color: var(--button-ink);
 }
 
 
@@ -1085,7 +1087,7 @@ kbd {
 .button-primary {
   border: 1px solid var(--java-deep);
   background: var(--java-deep);
-  color: var(--white);
+  color: var(--button-ink);
   box-shadow: 0 8px 18px rgba(23, 55, 71, 0.2);
 }
 
@@ -1104,7 +1106,7 @@ kbd {
   margin-left: auto;
   border: 1px solid var(--copper);
   background: var(--copper);
-  color: var(--white);
+  color: var(--button-ink);
 }
 
 .button:disabled {
@@ -1482,7 +1484,7 @@ kbd {
 }
 
 .completion-popup li[aria-selected="true"] {
-  color: var(--white);
+  color: var(--button-ink);
   background: var(--java-blue);
 }
 

@@ -32,6 +32,10 @@ php tools/create-teacher.php "Nombre Docente" docente@example.com "una-clave-seg
 
 6. Abrí `http://localhost/java-werkstatt/`. No uses `python3 -m http.server` si querés login, clases, persistencia o compilación real.
 
+### Docker XAMPP local
+
+En tu stack `xampp-docker`, la app queda montada en `~/xampp-data/htdocs/java-werkstatt` y aparece en el panel de `http://localhost:8080/` como sitio PHP. El frontend se abre desde `http://localhost/java-werkstatt/`; el puerto `8080` es el panel, no el Apache que sirve los sitios. La base `java_werkstatt` usa el host interno `mariadb`.
+
 Para producción: HTTPS obligatorio, `session_secure=true`, credenciales fuera del repositorio y usuario MySQL con permisos mínimos.
 
 Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente, aunque un servidor local evita restricciones particulares de algunos navegadores.

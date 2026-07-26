@@ -1,0 +1,13 @@
+{
+  "cms": "PHP",
+  "icon": "☕",
+  "urls": {
+    "frontend": "http://localhost/java-werkstatt"
+  },
+  "db": {
+    "name": "java_werkstatt",
+    "host": "mariadb",
+    "user": "root",
+    "password": ""
+  }
+}
