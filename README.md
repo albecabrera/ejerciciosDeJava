@@ -1,13 +1,21 @@
 # Java Werkstatt
 
-Laboratorio estático, bilingüe (ES/DE) y sin dependencias para practicar fundamentos de informática mediante Java. La aplicación funciona enteramente en el navegador: no envía código, respuestas ni progreso a ningún servidor.
+Laboratorio bilingüe (ES/DE) para practicar fundamentos de informática mediante Java. El frontend sigue siendo liviano y dependency-free; opcionalmente puede conectarse a un backend PHP local para compilar con el `javac` instalado.
 
 ## Ejecutar
 
 Desde la raíz del proyecto:
 
+Frontend local sin compilador real:
+
 ```bash
 python3 -m http.server 8000
+```
+
+Modo recomendado con compilación real vía PHP:
+
+```bash
+php -S 127.0.0.1:8000 -t .
 ```
 
 Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente, aunque un servidor local evita restricciones particulares de algunos navegadores.
@@ -27,6 +35,8 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Consola educativa dentro del IDE: F5 muestra el comando, diagnósticos por línea y un resultado simulado sin fingir que ejecuta `javac`.
 - Documentación contextual visible por misión, con enlaces directos a `dev.java` y Oracle Java Tutorials/API.
 - Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
+- **Compilación real opcional:** al pulsar F5, `api/compile.php` envía el código al `javac` local, devuelve errores con línea/severidad y limpia el espacio temporal al terminar. Si PHP no está disponible, la app conserva el modo heurístico y lo indica.
+- **Panel docente local:** resumen de misiones, intentos, precisión y pendientes; filtro EF/Q1/Q2 y exportación CSV/JSON. No inventa una clase ni sincroniza datos sin una cuenta/backend de identidad.
 
 ## Atajos
 
@@ -59,10 +69,25 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `index.html`: shell SPA y semántica accesible.
 - `styles.css`: tokens visuales, temas, layouts responsive, editor, popup, diagnósticos y progreso.
 - `game.js`: catálogo curricular, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
-- La consola y el autocompletado funcionan sin dependencias; la salida de F5 es deliberadamente educativa y simulada.
+- `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en un directorio temporal aislado y devuelve diagnósticos JSON.
+- `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre y autocierre de pares.
+- `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
+- Con PHP activo, F5 usa `javac` real; sin PHP, la consola vuelve a la validación local y lo comunica.
 - `localStorage`: progreso y preferencias. La carga filtra IDs desconocidos y completa campos nuevos con valores seguros.
 
-No se usa Monaco, CodeMirror, frameworks, paquetes ni servicios externos.
+El frontend no usa Monaco ni CodeMirror. Playwright es una dependencia exclusiva de testing; PHP no requiere framework.
+
+### Tests Playwright
+
+Instalá las dependencias de desarrollo y ejecutá los smoke tests:
+
+```bash
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
+
+Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`.
 
 ## Currículo NRW GOSt
 
@@ -78,11 +103,17 @@ Fuentes:
 - [Ejemplo de SiLP GOSt Informatik (secuencia orientativa)](https://lehrplannavigator.nrw.de/system/files/media/document/file/silp_gost_if.pdf)
 - [Documentación Zentralabitur Informatik GK/LK](https://lehrplannavigator.nrw.de/system/files/media/document/file/dokumentation_za-if_gk-lk_ab_2018_2021_12_22.pdf)
 
+## Compilación y seguridad
+
+`api/compile.php` acepta únicamente `POST` JSON, limita el código a 48 KB, rechaza nombres de archivo inseguros, usa `-proc:none`, fuerza un locale estable para diagnósticos, impone un timeout de 8 segundos y elimina los artefactos temporales. Los snippets se envuelven en una clase educativa; las clases y métodos se compilan en sus respectivos modos.
+
+Esto **no es un sandbox de producción**: ejecutar Java arbitrario en el mismo servidor puede consumir recursos o intentar acceder al sistema. Para un aula multiusuario, ejecutá el compilador dentro de un contenedor sin red, con usuario sin privilegios, límites de CPU/memoria y filesystem efímero. La versión incluida está pensada para desarrollo local o servidor de confianza.
+
 ## Validación, límites y privacidad
 
-La validación es **honestamente heurística**: expresiones regulares y análisis léxico local revisan estructuras esperadas, no la semántica completa del lenguaje. Los diagnósticos intentan ignorar strings y comentarios, pero pueden producir falsos positivos o negativos. El formateador solo normaliza indentación guiada por llaves.
+La validación local es **honestamente heurística**: expresiones regulares y análisis léxico revisan estructuras esperadas, no la semántica completa del lenguaje. Los diagnósticos locales intentan ignorar strings y comentarios, pero pueden producir falsos positivos o negativos. Cuando el backend PHP está conectado, el diagnóstico de compilación proviene de `javac`; aun así, que compile no demuestra que la solución cumpla el objetivo didáctico de la misión.
 
-**No existe un compilador Java real en esta app.** Una respuesta aceptada todavía puede no compilar, y una solución válida escrita de otra manera puede ser rechazada. Para verificar Java de verdad, usá `javac`, un IDE o un entorno de pruebas.
+Sin PHP, no existe un compilador Java real en el navegador. Una respuesta aceptada todavía puede no compilar, y una solución válida escrita de otra manera puede ser rechazada por las reglas educativas de la misión.
 
 Todo se procesa en el navegador. No hay cuentas, telemetría, analytics ni sincronización. Borrar los datos del sitio o usar «Reiniciar todo el progreso» elimina el avance local.
 

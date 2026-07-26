@@ -45,6 +45,10 @@
           <span>XP</span>
           <strong id="xp">0</strong>
         </div>
+        <button id="teacherToggle" class="teacher-toggle" type="button" aria-expanded="false" aria-controls="teacherPanel">
+          <span aria-hidden="true">▦</span>
+          <span data-i18n="teacherToggle">Panel docente</span>
+        </button>
       </div>
     </header>
 
@@ -229,6 +233,32 @@
           <div id="progressInsights" class="progress-insights"></div>
         </section>
 
+        <section id="teacherPanel" class="teacher-panel" aria-labelledby="teacherTitle" hidden>
+          <div class="teacher-heading">
+            <div>
+              <p class="eyebrow" data-i18n="teacherToggle">Panel docente</p>
+              <h3 id="teacherTitle" data-i18n="teacherTitle">Panel docente</h3>
+            </div>
+            <div class="teacher-actions">
+              <button id="teacherExport" class="button button-secondary button-compact" type="button" data-i18n="teacherExport">Exportar CSV</button>
+              <button id="teacherExportJson" class="button button-text button-compact" type="button" data-i18n="teacherExportJson">Exportar JSON</button>
+            </div>
+          </div>
+          <p class="teacher-intro" data-i18n="teacherIntro">Resumen local del grupo o alumno en este navegador. Exportá los datos para analizarlos o compartirlos.</p>
+          <p class="heuristic-note" data-i18n="teacherLocalNote">Sin cuentas ni telemetría: este panel solo ve el progreso guardado en este navegador.</p>
+          <div id="teacherStats" class="teacher-stats"></div>
+          <label class="teacher-filter">
+            <span data-i18n="teacherStage">Nivel</span>
+            <select id="teacherStageFilter" aria-label="Filtrar por nivel">
+              <option value="all" data-i18n="teacherAllStages">Todos los niveles</option>
+              <option value="EF">EF</option>
+              <option value="Q1">Q1</option>
+              <option value="Q2">Q2</option>
+            </select>
+          </label>
+          <ul id="teacherPracticeList" class="teacher-practice-list"></ul>
+        </section>
+
         <details class="collapsible-card live-template-help">
           <summary data-i18n="liveTemplatesSummary">Live Templates · Plantillas Java rápidas</summary>
           <div class="details-content">
@@ -311,6 +341,6 @@
       </section>
     </main>
 
-    <script src="game.js?v=10"></script>
+    <script src="game.js?v=11"></script>
   </body>
 </html>

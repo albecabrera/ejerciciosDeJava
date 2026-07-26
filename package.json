@@ -1,0 +1,14 @@
+{
+  "name": "java-werkstatt",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Playwright smoke tests for Java Werkstatt",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

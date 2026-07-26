@@ -5,6 +5,7 @@ const EDITOR_PREFS_STORAGE_KEY = "java-werkstatt-editor-prefs";
 const BASE_XP = 30;
 const HINT_COST = 5;
 const SOLUTION_COST = 15;
+const COMPILER_API_URL = "api/compile.php";
 
 const ui = {
   es: {
@@ -58,6 +59,25 @@ const ui = {
     consoleError: "Hay errores · revisá los diagnósticos",
     consolePlaceholder: "La salida de F5 aparecerá acá.",
     consoleHint: "Salida educativa simulada: esta app no ejecuta javac en el navegador.",
+    compilerOnline: "Compilador PHP conectado",
+    compilerOffline: "Compilador PHP no disponible · modo local",
+    compilerConnecting: "Conectando con javac…",
+    compilerSuccess: "Compilación real aceptada",
+    compilerError: "javac encontró errores",
+    compilerHint: "Compilación realizada en PHP; por seguridad, la app no ejecuta el programa.",
+    teacherToggle: "Panel docente",
+    teacherTitle: "Panel docente",
+    teacherIntro: "Resumen local del grupo o alumno en este navegador. Exportá los datos para analizarlos o compartirlos.",
+    teacherLocalNote: "Sin cuentas ni telemetría: este panel solo ve el progreso guardado en este navegador.",
+    teacherSolved: "Misiones resueltas",
+    teacherAttempts: "Intentos",
+    teacherAccuracy: "Precisión",
+    teacherNeedsPractice: "Para seguir practicando",
+    teacherStage: "Nivel",
+    teacherAllStages: "Todos los niveles",
+    teacherExport: "Exportar CSV",
+    teacherExportJson: "Exportar JSON",
+    teacherNoPractice: "Todavía no hay misiones pendientes.",
     shortcutHelpLabel: "Atajos IDEA",
     shortcutHelpTitle: "Teclado productivo",
     shortcutHelpIntro:
@@ -166,6 +186,25 @@ const ui = {
     consoleError: "Fehler gefunden · Diagnosen prüfen",
     consolePlaceholder: "Die F5-Ausgabe erscheint hier.",
     consoleHint: "Lehrreiche simulierte Ausgabe: Diese App führt javac nicht im Browser aus.",
+    compilerOnline: "PHP-Compiler verbunden",
+    compilerOffline: "PHP-Compiler nicht verfügbar · lokaler Modus",
+    compilerConnecting: "Verbindung zu javac…",
+    compilerSuccess: "Echte Kompilierung akzeptiert",
+    compilerError: "javac hat Fehler gefunden",
+    compilerHint: "Kompilierung über PHP; aus Sicherheitsgründen wird das Programm nicht ausgeführt.",
+    teacherToggle: "Lehrkräfte-Panel",
+    teacherTitle: "Lehrkräfte-Panel",
+    teacherIntro: "Lokale Übersicht für Gruppe oder Lernende in diesem Browser. Daten können exportiert werden.",
+    teacherLocalNote: "Keine Konten und keine Telemetrie: Dieses Panel sieht nur den Fortschritt dieses Browsers.",
+    teacherSolved: "Gelöste Missionen",
+    teacherAttempts: "Versuche",
+    teacherAccuracy: "Trefferquote",
+    teacherNeedsPractice: "Weiter üben",
+    teacherStage: "Stufe",
+    teacherAllStages: "Alle Stufen",
+    teacherExport: "CSV exportieren",
+    teacherExportJson: "JSON exportieren",
+    teacherNoPractice: "Noch keine offenen Missionen.",
     shortcutHelpLabel: "IDEA-Kürzel",
     shortcutHelpTitle: "Produktive Tastatur",
     shortcutHelpIntro:
@@ -1281,6 +1320,13 @@ const elements = {
   liveTemplateList: document.querySelector("#liveTemplateList"),
   consoleStatus: document.querySelector("#consoleStatus"),
   consoleOutput: document.querySelector("#consoleOutput"),
+  teacherToggle: document.querySelector("#teacherToggle"),
+  teacherPanel: document.querySelector("#teacherPanel"),
+  teacherStats: document.querySelector("#teacherStats"),
+  teacherPracticeList: document.querySelector("#teacherPracticeList"),
+  teacherStageFilter: document.querySelector("#teacherStageFilter"),
+  teacherExport: document.querySelector("#teacherExport"),
+  teacherExportJson: document.querySelector("#teacherExportJson"),
 };
 
 const OFFICIAL_DOCS = [
@@ -1595,6 +1641,8 @@ function translateInterface() {
   elements.masteryValue?.setAttribute("aria-label", t("masteryAria"));
   elements.completionList?.setAttribute("aria-label", t("suggestionsAria"));
   elements.liveTemplateList?.setAttribute("aria-label", t("templatesAria"));
+  elements.teacherToggle?.setAttribute("aria-label", t("teacherToggle"));
+  elements.teacherStageFilter?.setAttribute("aria-label", t("teacherStage"));
   elements.freePracticeToggle?.setAttribute("aria-pressed", String(Boolean(state.freePractice)));
   if (elements.freePracticeToggle) {
     const label = elements.freePracticeToggle.querySelector("[data-i18n]");
@@ -1610,6 +1658,7 @@ function translateInterface() {
   elements.editor.placeholder = t("editorPlaceholder");
   applyTheme(state.theme);
   applyEditorPrefs();
+  renderTeacherPanel();
 }
 
 function applyEditorPrefs() {
@@ -1806,6 +1855,97 @@ function renderProgress() {
     bars.append(row);
   });
   elements.progressInsights.append(summary, bars);
+  renderTeacherPanel();
+}
+
+function getTeacherRows() {
+  const filter = elements.teacherStageFilter?.value || "all";
+  return missions
+    .filter((mission) => filter === "all" || mission.stage === filter)
+    .map((mission) => ({
+      stage: mission.stage,
+      mission: getMissionText(mission).short,
+      attempts: Number(state.attempts[mission.id] || 0),
+      solved: state.solved.includes(mission.id),
+      hints: Number(state.hintsUsed[mission.id] || 0),
+      xp: state.solved.includes(mission.id) ? mission.xp : 0,
+    }));
+}
+
+function renderTeacherPanel() {
+  if (!elements.teacherPanel || !elements.teacherStats || !elements.teacherPracticeList) return;
+  const rows = getTeacherRows();
+  const allRows = missions.map((mission) => ({
+    attempts: Number(state.attempts[mission.id] || 0),
+    solved: state.solved.includes(mission.id),
+  }));
+  const attempts = allRows.reduce((sum, row) => sum + row.attempts, 0);
+  const solved = allRows.filter((row) => row.solved).length;
+  const correct = allRows.filter((row) => row.solved).reduce((sum, row) => sum + 1, 0);
+  const accuracy = attempts ? Math.round((correct / attempts) * 100) : 0;
+  const stats = [
+    [t("teacherSolved"), `${solved}/${missions.length}`],
+    [t("teacherAttempts"), attempts],
+    [t("teacherAccuracy"), `${accuracy}%`],
+    [t("teacherNeedsPractice"), missions.length - solved],
+  ];
+  elements.teacherStats.replaceChildren(...stats.map(([label, value]) => {
+    const item = document.createElement("div");
+    item.className = "teacher-stat";
+    const strong = document.createElement("strong");
+    strong.textContent = String(value);
+    const caption = document.createElement("span");
+    caption.textContent = label;
+    item.append(strong, caption);
+    return item;
+  }));
+  const pending = rows.filter((row) => !row.solved).slice(0, 8);
+  elements.teacherPracticeList.replaceChildren();
+  if (!pending.length) {
+    const empty = document.createElement("li");
+    empty.textContent = t("teacherNoPractice");
+    elements.teacherPracticeList.append(empty);
+    return;
+  }
+  pending.forEach((row) => {
+    const item = document.createElement("li");
+    item.innerHTML = `<span>${row.stage} · ${row.mission}</span><small>${row.attempts} ${t("teacherAttempts").toLowerCase()}</small>`;
+    elements.teacherPracticeList.append(item);
+  });
+}
+
+function buildTeacherExport() {
+  return getTeacherRows().map((row) => ({
+    nivel: row.stage,
+    mision: row.mission,
+    intentos: row.attempts,
+    resuelta: row.solved,
+    pistas: row.hints,
+    xp: row.xp,
+  }));
+}
+
+function downloadFile(name, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function exportTeacherCsv() {
+  const rows = buildTeacherExport();
+  const header = Object.keys(rows[0] || { nivel: "", mision: "", intentos: "", resuelta: "", pistas: "", xp: "" });
+  const csv = [header, ...rows.map((row) => header.map((key) => `"${String(row[key]).replaceAll('"', '""')}"`))]
+    .map((row) => row.join(","))
+    .join("\n");
+  downloadFile("java-werkstatt-progreso.csv", `\ufeff${csv}`, "text/csv;charset=utf-8");
+}
+
+function exportTeacherJson() {
+  downloadFile("java-werkstatt-progreso.json", JSON.stringify({ exportedAt: new Date().toISOString(), rows: buildTeacherExport() }, null, 2), "application/json;charset=utf-8");
 }
 
 function renderMission(options = {}) {
@@ -1877,6 +2017,39 @@ function renderConsoleResult(mission, answer, structuralError = "") {
   setConsole(t("consoleSuccess"), `> javac ${mission.file}\n✓ 0 errores estructurales\n✓ ${getMissionText(mission).title}\n\n${t("consoleHint")}`);
 }
 
+function detectCompileMode(source) {
+  if (/\b(public\s+)?(abstract\s+|final\s+)?(class|interface|enum|record)\b/.test(source)) return "source";
+  if (/\b(?:public\s+|private\s+|protected\s+)?(?:static\s+)?[\w<>\[\]]+\s+\w+\s*\([^;{}]*\)\s*\{/.test(source)) return "member";
+  return "snippet";
+}
+
+async function compileWithBackend(mission, answer) {
+  if (!window.fetch) return { available: false };
+  const source = [mission.contextBefore, answer, mission.contextAfter].filter(Boolean).join("\n");
+  const mode = detectCompileMode(source);
+  try {
+    const response = await fetch(COMPILER_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ source, fileName: mission.file, mode }),
+    });
+    const payload = await response.json();
+    if (!response.ok && response.status !== 408) return { available: false };
+    return { available: true, ...payload };
+  } catch {
+    return { available: false };
+  }
+}
+
+function renderRealCompilerResult(mission, result) {
+  if (!result.available) return;
+  const header = `> javac ${mission.file} [${result.mode || "source"}]`;
+  const output = result.ok
+    ? `${header}\n✓ ${t("compilerSuccess")} · ${result.durationMs || 0} ms\n✓ ${getMissionText(mission).title}\n\n${t("compilerHint")}`
+    : `${header}\n✕ ${t("compilerError")}\n${(result.diagnostics || []).map((item) => `L${item.line} [${item.severity.toUpperCase()}] ${item.message}`).join("\n") || result.rawOutput || result.error}\n\n${t("compilerHint")}`;
+  setConsole(result.ok ? t("compilerSuccess") : t("compilerError"), output);
+}
+
 function showSuccess(wasAlreadySolved = false) {
   const mission = missions[state.current];
   const text = getMissionText(mission);
@@ -1890,7 +2063,7 @@ function showSuccess(wasAlreadySolved = false) {
   elements.nextButton.disabled = false;
 }
 
-function checkAnswer() {
+async function checkAnswer() {
   const mission = missions[state.current];
   const answer = elements.editor.value;
   setConsole(t("consoleChecking"), `> javac ${mission.file}\n… ${t("consoleChecking")}`);
@@ -1902,6 +2075,22 @@ function checkAnswer() {
     renderConsoleResult(mission, answer, t("emptyMessage"));
     saveState();
     return;
+  }
+
+  setConsole(t("compilerConnecting"), `> javac ${mission.file}\n… ${t("compilerConnecting")}`);
+  const compiler = await compileWithBackend(mission, answer);
+  if (compiler.available) {
+    renderRealCompilerResult(mission, compiler);
+    if (!compiler.ok) {
+      const firstDiagnostic = compiler.diagnostics?.[0];
+      showFeedback("error", t("compilerError"), firstDiagnostic
+        ? `Línea ${firstDiagnostic.line}: ${firstDiagnostic.message}`
+        : compiler.error || t("consoleError"));
+      saveState();
+      return;
+    }
+  } else {
+    setConsole(t("compilerOffline"), `> javac ${mission.file}\n… ${t("compilerOffline")}\n\n${t("consoleHint")}`);
   }
 
   const structuralError =
@@ -1930,7 +2119,7 @@ function checkAnswer() {
     113.1 - (113.1 * state.solved.length) / missions.length,
   );
   showSuccess(alreadySolved);
-  renderConsoleResult(mission, answer);
+  if (!compiler.available) renderConsoleResult(mission, answer);
   renderProgress();
 }
 
@@ -2620,6 +2809,16 @@ elements.sidebarToggle?.addEventListener("click", () => {
 elements.freePracticeToggle?.addEventListener("click", () => {
   setFreePractice(!state.freePractice);
 });
+
+elements.teacherToggle?.addEventListener("click", () => {
+  const open = elements.teacherPanel.hidden;
+  elements.teacherPanel.hidden = !open;
+  elements.teacherToggle.setAttribute("aria-expanded", String(open));
+  if (open) renderTeacherPanel();
+});
+elements.teacherStageFilter?.addEventListener("change", renderTeacherPanel);
+elements.teacherExport?.addEventListener("click", exportTeacherCsv);
+elements.teacherExportJson?.addEventListener("click", exportTeacherJson);
 
 elements.focusToggle?.addEventListener("click", () => {
   setFocusMode(!state.editorPrefs?.focusMode);
