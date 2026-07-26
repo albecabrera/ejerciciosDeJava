@@ -33,3 +33,4 @@ bin/
 playwright-report/
 test-results/
 node_modules/
+config/config.php

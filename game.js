@@ -78,6 +78,23 @@ const ui = {
     teacherExport: "Exportar CSV",
     teacherExportJson: "Exportar JSON",
     teacherNoPractice: "Todavía no hay misiones pendientes.",
+    accountTitle: "Cuenta central",
+    accountLogin: "Iniciar sesión",
+    accountRegister: "Crear cuenta",
+    accountLogout: "Cerrar sesión",
+    accountName: "Nombre",
+    accountEmail: "Email",
+    accountPassword: "Contraseña",
+    accountOffline: "Modo local: configurá PHP y MySQL para sincronizar.",
+    accountConnected: "Sincronización central activa",
+    accountStudent: "Estudiante",
+    accountTeacher: "Docente",
+    classSelect: "Clase",
+    classNone: "Sin clase seleccionada",
+    className: "Nombre de clase",
+    classCode: "Código de acceso",
+    classCreate: "Crear clase",
+    classJoin: "Unirse",
     shortcutHelpLabel: "Atajos IDEA",
     shortcutHelpTitle: "Teclado productivo",
     shortcutHelpIntro:
@@ -205,6 +222,23 @@ const ui = {
     teacherExport: "CSV exportieren",
     teacherExportJson: "JSON exportieren",
     teacherNoPractice: "Noch keine offenen Missionen.",
+    accountTitle: "Zentrales Konto",
+    accountLogin: "Anmelden",
+    accountRegister: "Konto erstellen",
+    accountLogout: "Abmelden",
+    accountName: "Name",
+    accountEmail: "E-Mail",
+    accountPassword: "Passwort",
+    accountOffline: "Lokaler Modus: PHP und MySQL für Synchronisierung einrichten.",
+    accountConnected: "Zentrale Synchronisierung aktiv",
+    accountStudent: "Lernende",
+    accountTeacher: "Lehrkraft",
+    classSelect: "Klasse",
+    classNone: "Keine Klasse ausgewählt",
+    className: "Klassenname",
+    classCode: "Zugangscode",
+    classCreate: "Klasse erstellen",
+    classJoin: "Beitreten",
     shortcutHelpLabel: "IDEA-Kürzel",
     shortcutHelpTitle: "Produktive Tastatur",
     shortcutHelpIntro:
@@ -1327,6 +1361,22 @@ const elements = {
   teacherStageFilter: document.querySelector("#teacherStageFilter"),
   teacherExport: document.querySelector("#teacherExport"),
   teacherExportJson: document.querySelector("#teacherExportJson"),
+  authToggle: document.querySelector("#authToggle"),
+  authToggleLabel: document.querySelector("#authToggleLabel"),
+  authPanel: document.querySelector("#authPanel"),
+  authStatus: document.querySelector("#authStatus"),
+  authForm: document.querySelector("#authForm"),
+  authName: document.querySelector("#authName"),
+  authEmail: document.querySelector("#authEmail"),
+  authPassword: document.querySelector("#authPassword"),
+  loginButton: document.querySelector("#loginButton"),
+  registerButton: document.querySelector("#registerButton"),
+  logoutButton: document.querySelector("#logoutButton"),
+  classSelect: document.querySelector("#classSelect"),
+  createClassForm: document.querySelector("#createClassForm"),
+  className: document.querySelector("#className"),
+  joinClassForm: document.querySelector("#joinClassForm"),
+  joinCode: document.querySelector("#joinCode"),
 };
 
 const OFFICIAL_DOCS = [
@@ -1599,13 +1649,132 @@ function loadState() {
 }
 
 let state = loadState();
+let cloudSession = { configured: false, user: null, csrf: "", syncTimer: null, registerMode: false, classes: [] };
 
-function saveState() {
+async function cloudRequest(path, options = {}) {
+  const response = await fetch(path, {
+    credentials: "same-origin",
+    ...options,
+    headers: { Accept: "application/json", ...(options.body ? { "Content-Type": "application/json" } : {}), ...(options.headers || {}) },
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body.ok === false) throw new Error(body.error || `HTTP ${response.status}`);
+  return body;
+}
+
+function queueCloudSync() {
+  if (!cloudSession.user || !cloudSession.csrf) return;
+  clearTimeout(cloudSession.syncTimer);
+  cloudSession.syncTimer = setTimeout(syncCloudProgress, 450);
+}
+
+async function syncCloudProgress() {
+  if (!cloudSession.user || !cloudSession.csrf) return;
+  const missionsPayload = missions.map((mission) => ({
+    missionId: mission.id,
+    answer: state.answers[mission.id] || "",
+    attempts: state.attempts[mission.id] || 0,
+    correctAttempts: state.correctAttempts[mission.id] || 0,
+    hintsUsed: state.hintsUsed[mission.id] || 0,
+    solutionShown: Boolean(state.solutionShown[mission.id]),
+    solved: state.solved.includes(mission.id),
+  }));
+  try {
+    await cloudRequest("api/progress.php", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: JSON.stringify({ missions: missionsPayload }) });
+  } catch {
+    elements.authStatus.textContent = t("accountOffline");
+  }
+}
+
+function mergeCloudProgress(progress) {
+  if (!Array.isArray(progress)) return;
+  progress.forEach((row) => {
+    const id = String(row.mission_id || "");
+    if (!missions.some((mission) => mission.id === id)) return;
+    if (typeof row.answer === "string") state.answers[id] = row.answer;
+    state.attempts[id] = Math.max(Number(state.attempts[id] || 0), Number(row.attempts || 0));
+    state.correctAttempts[id] = Math.max(Number(state.correctAttempts[id] || 0), Number(row.correct_attempts || 0));
+    state.hintsUsed[id] = Math.max(Number(state.hintsUsed[id] || 0), Number(row.hints_used || 0));
+    state.solutionShown[id] = Boolean(state.solutionShown[id] || Number(row.solution_shown));
+    if (row.solved_at && !state.solved.includes(id)) state.solved.push(id);
+  });
+  saveState(false);
+}
+
+function renderAccount() {
+  const user = cloudSession.user;
+  elements.authToggleLabel.textContent = user ? user.name : t("accountLogin");
+  elements.authStatus.textContent = user ? `${t("accountConnected")} · ${user.name} (${user.role === "teacher" ? t("accountTeacher") : t("accountStudent")})` : t("accountOffline");
+  elements.authName.hidden = !cloudSession.registerMode || Boolean(user);
+  elements.loginButton.hidden = Boolean(user);
+  elements.registerButton.hidden = Boolean(user);
+  elements.logoutButton.hidden = !user;
+  elements.loginButton.textContent = cloudSession.registerMode ? t("accountRegister") : t("accountLogin");
+  elements.registerButton.textContent = cloudSession.registerMode ? t("accountLogin") : t("accountRegister");
+  elements.authEmail.disabled = Boolean(user);
+  elements.authPassword.disabled = Boolean(user);
+  elements.classSelect.disabled = !user;
+  elements.className.disabled = !user;
+  elements.joinCode.disabled = !user;
+  renderClasses();
+}
+
+function renderClasses() {
+  if (!elements.classSelect) return;
+  const selected = elements.classSelect.value;
+  elements.classSelect.replaceChildren();
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = t("classNone");
+  elements.classSelect.append(empty);
+  cloudSession.classes.forEach((item) => {
+    const option = document.createElement("option");
+    option.value = String(item.id);
+    option.textContent = `${item.name} · ${item.join_code}`;
+    elements.classSelect.append(option);
+  });
+  elements.classSelect.value = selected;
+}
+
+async function loadClasses() {
+  if (!cloudSession.user) return;
+  try {
+    const result = await cloudRequest("api/classes.php?action=list");
+    cloudSession.classes = Array.isArray(result.classes) ? result.classes : [];
+    renderClasses();
+  } catch {
+    cloudSession.classes = [];
+    renderClasses();
+  }
+}
+
+async function initCloud() {
+  try {
+    const result = await cloudRequest("api/auth.php?action=me");
+    cloudSession.configured = result.configured !== false;
+    cloudSession.user = result.user || null;
+    cloudSession.csrf = result.csrf || "";
+    renderAccount();
+    if (cloudSession.user) {
+      const progress = await cloudRequest("api/progress.php");
+      mergeCloudProgress(progress.progress);
+      await loadClasses();
+      renderMission({ silent: true });
+      queueCloudSync();
+    }
+  } catch {
+    cloudSession.configured = false;
+    renderAccount();
+  }
+}
+
+function saveState(sync = true) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
     document.querySelector(".status-dot")?.classList.add("storage-error");
   }
+  if (sync) queueCloudSync();
 }
 
 function t(key) {
@@ -1652,6 +1821,10 @@ function translateInterface() {
     const value = t(element.dataset.i18n);
     if (typeof value === "string") element.textContent = value;
   });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const value = t(element.dataset.i18nPlaceholder);
+    if (typeof value === "string") element.placeholder = value;
+  });
   document.querySelectorAll(".language-button").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.language === state.language));
   });
@@ -1659,6 +1832,7 @@ function translateInterface() {
   applyTheme(state.theme);
   applyEditorPrefs();
   renderTeacherPanel();
+  renderAccount();
 }
 
 function applyEditorPrefs() {
@@ -2820,6 +2994,74 @@ elements.teacherStageFilter?.addEventListener("change", renderTeacherPanel);
 elements.teacherExport?.addEventListener("click", exportTeacherCsv);
 elements.teacherExportJson?.addEventListener("click", exportTeacherJson);
 
+elements.authToggle?.addEventListener("click", () => {
+  const open = elements.authPanel.hidden;
+  elements.authPanel.hidden = !open;
+  elements.authToggle.setAttribute("aria-expanded", String(open));
+  if (open) renderAccount();
+});
+
+elements.registerButton?.addEventListener("click", () => {
+  cloudSession.registerMode = !cloudSession.registerMode;
+  renderAccount();
+  elements.authName.focus();
+});
+
+elements.authForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (cloudSession.user) return;
+  const action = cloudSession.registerMode ? "register" : "login";
+  try {
+    const result = await cloudRequest(`api/auth.php?action=${action}`, {
+      method: "POST",
+      body: JSON.stringify({ name: elements.authName.value, email: elements.authEmail.value, password: elements.authPassword.value }),
+    });
+    cloudSession.user = result.user;
+    cloudSession.csrf = result.csrf || "";
+    cloudSession.registerMode = false;
+    renderAccount();
+    const progress = await cloudRequest("api/progress.php");
+    mergeCloudProgress(progress.progress);
+    await loadClasses();
+    renderMission({ silent: true });
+    queueCloudSync();
+  } catch (error) {
+    elements.authStatus.textContent = error.message;
+  }
+});
+
+elements.logoutButton?.addEventListener("click", async () => {
+  try {
+    await cloudRequest("api/auth.php?action=logout", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: "{}" });
+  } catch {
+    // La sesión local se limpia aunque el servidor ya no responda.
+  }
+  cloudSession = { configured: cloudSession.configured, user: null, csrf: "", syncTimer: null, registerMode: false, classes: [] };
+  renderAccount();
+});
+
+elements.createClassForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    await cloudRequest("api/classes.php?action=create", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: JSON.stringify({ name: elements.className.value }) });
+    elements.className.value = "";
+    await loadClasses();
+  } catch (error) {
+    elements.authStatus.textContent = error.message;
+  }
+});
+
+elements.joinClassForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    await cloudRequest("api/classes.php?action=join", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: JSON.stringify({ joinCode: elements.joinCode.value }) });
+    elements.joinCode.value = "";
+    await loadClasses();
+  } catch (error) {
+    elements.authStatus.textContent = error.message;
+  }
+});
+
 elements.focusToggle?.addEventListener("click", () => {
   setFocusMode(!state.editorPrefs?.focusMode);
 });
@@ -2829,3 +3071,5 @@ document.addEventListener("webkitfullscreenchange", syncFocusModeWithFullscreen)
 
 renderLiveTemplates();
 renderMission();
+renderAccount();
+initCloud();

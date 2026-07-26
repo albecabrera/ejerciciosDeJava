@@ -49,6 +49,24 @@
           <span aria-hidden="true">▦</span>
           <span data-i18n="teacherToggle">Panel docente</span>
         </button>
+        <button id="authToggle" class="teacher-toggle" type="button" aria-expanded="false" aria-controls="authPanel">
+          <span aria-hidden="true">◎</span>
+          <span id="authToggleLabel" data-i18n="accountLogin">Iniciar sesión</span>
+        </button>
+        <section id="authPanel" class="auth-panel" aria-label="Cuenta" hidden>
+          <strong data-i18n="accountTitle">Cuenta central</strong>
+          <p id="authStatus" class="auth-status" data-i18n="accountOffline">Modo local: configurá PHP y MySQL para sincronizar.</p>
+          <form id="authForm" class="auth-form">
+            <input id="authName" type="text" autocomplete="name" placeholder="Nombre" data-i18n-placeholder="accountName" hidden />
+            <input id="authEmail" type="email" autocomplete="email" placeholder="Email" data-i18n-placeholder="accountEmail" required />
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="Contraseña" data-i18n-placeholder="accountPassword" minlength="8" required />
+            <div class="auth-actions">
+              <button id="loginButton" class="button button-primary button-compact" type="submit" data-i18n="accountLogin">Iniciar sesión</button>
+              <button id="registerButton" class="button button-text button-compact" type="button" data-i18n="accountRegister">Crear cuenta</button>
+              <button id="logoutButton" class="button button-text button-compact" type="button" data-i18n="accountLogout" hidden>Cerrar sesión</button>
+            </div>
+          </form>
+        </section>
       </div>
     </header>
 
@@ -246,6 +264,11 @@
           </div>
           <p class="teacher-intro" data-i18n="teacherIntro">Resumen local del grupo o alumno en este navegador. Exportá los datos para analizarlos o compartirlos.</p>
           <p class="heuristic-note" data-i18n="teacherLocalNote">Sin cuentas ni telemetría: este panel solo ve el progreso guardado en este navegador.</p>
+          <div class="class-tools">
+            <label><span data-i18n="classSelect">Clase</span><select id="classSelect"><option value="" data-i18n="classNone">Sin clase seleccionada</option></select></label>
+            <form id="createClassForm" class="class-inline"><input id="className" type="text" placeholder="Nombre de clase" data-i18n-placeholder="className" maxlength="120" /><button class="button button-secondary button-compact" type="submit" data-i18n="classCreate">Crear clase</button></form>
+            <form id="joinClassForm" class="class-inline"><input id="joinCode" type="text" placeholder="Código" data-i18n-placeholder="classCode" maxlength="8" /><button class="button button-text button-compact" type="submit" data-i18n="classJoin">Unirse</button></form>
+          </div>
           <div id="teacherStats" class="teacher-stats"></div>
           <label class="teacher-filter">
             <span data-i18n="teacherStage">Nivel</span>

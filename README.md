@@ -18,6 +18,22 @@ Modo recomendado con compilación real vía PHP:
 php -S 127.0.0.1:8000 -t .
 ```
 
+### XAMPP local
+
+1. Copiá el proyecto a `xampp/htdocs/java-werkstatt`.
+2. Iniciá **Apache** y **MySQL** desde el panel de XAMPP.
+3. En phpMyAdmin, ejecutá `database/schema.sql`.
+4. Copiá `config/config.example.php` como `config/config.php` y ajustá el DSN y las credenciales.
+5. Creá el primer docente desde una terminal:
+
+```bash
+php tools/create-teacher.php "Nombre Docente" docente@example.com "una-clave-segura"
+```
+
+6. Abrí `http://localhost/java-werkstatt/`. No uses `python3 -m http.server` si querés login, clases, persistencia o compilación real.
+
+Para producción: HTTPS obligatorio, `session_secure=true`, credenciales fuera del repositorio y usuario MySQL con permisos mínimos.
+
 Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente, aunque un servidor local evita restricciones particulares de algunos navegadores.
 
 ## Qué incluye
@@ -37,6 +53,7 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
 - **Compilación real opcional:** al pulsar F5, `api/compile.php` envía el código al `javac` local, devuelve errores con línea/severidad y limpia el espacio temporal al terminar. Si PHP no está disponible, la app conserva el modo heurístico y lo indica.
 - **Panel docente local:** resumen de misiones, intentos, precisión y pendientes; filtro EF/Q1/Q2 y exportación CSV/JSON. No inventa una clase ni sincroniza datos sin una cuenta/backend de identidad.
+- **Cuentas y clases centralizadas:** estudiantes y docentes con sesiones PHP, clases con código de acceso y progreso sincronizado por usuario en MySQL.
 
 ## Atajos
 
@@ -70,10 +87,18 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `styles.css`: tokens visuales, temas, layouts responsive, editor, popup, diagnósticos y progreso.
 - `game.js`: catálogo curricular, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
 - `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en un directorio temporal aislado y devuelve diagnósticos JSON.
+- `api/auth.php`: registro, login, logout, sesiones y roles student/teacher/admin.
+- `api/classes.php`: creación de clases docente, unión por código y consulta de miembros/progreso.
+- `api/progress.php`: sincronización centralizada del progreso con upsert transaccional.
+- `api/bootstrap.php`: PDO, sesión HttpOnly/SameSite, respuestas JSON y protección CSRF.
+- `database/schema.sql`: esquema MySQL para usuarios, clases, miembros y progreso.
+- `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
 - `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre y autocierre de pares.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
 - Con PHP activo, F5 usa `javac` real; sin PHP, la consola vuelve a la validación local y lo comunica.
 - `localStorage`: progreso y preferencias. La carga filtra IDs desconocidos y completa campos nuevos con valores seguros.
+
+`localStorage` queda como caché offline y fallback; con una sesión activa, `api/progress.php` sincroniza las respuestas con MySQL. El registro público siempre crea estudiantes: los docentes se crean por CLI o por un flujo administrativo.
 
 El frontend no usa Monaco ni CodeMirror. Playwright es una dependencia exclusiva de testing; PHP no requiere framework.
 
@@ -115,7 +140,7 @@ La validación local es **honestamente heurística**: expresiones regulares y an
 
 Sin PHP, no existe un compilador Java real en el navegador. Una respuesta aceptada todavía puede no compilar, y una solución válida escrita de otra manera puede ser rechazada por las reglas educativas de la misión.
 
-Todo se procesa en el navegador. No hay cuentas, telemetría, analytics ni sincronización. Borrar los datos del sitio o usar «Reiniciar todo el progreso» elimina el avance local.
+Sin backend configurado, todo se procesa en el navegador. Con backend, las cuentas, clases y progreso se almacenan en MySQL; no se agrega telemetría ni analytics. Borrar los datos del sitio elimina el caché local, pero no el progreso central.
 
 ### Fórmula de dominio estimado
 
