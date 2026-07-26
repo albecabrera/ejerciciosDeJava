@@ -23,9 +23,18 @@ const ui = {
     courseLabel: "Ruta práctica",
     courseTitle: "Java desde los cimientos",
     courseIntro: "36 misiones de EF a Q2. Escribís, verificás y entendés por qué funciona.",
+    freePractice: "Practicar cualquier misión",
+    freePracticeOn: "Modo libre activo",
     storageNote: "Progreso guardado en este navegador",
     taskLabel: "Tu tarea",
     conceptLabel: "Concepto",
+    docsLabel: "Documentación oficial",
+    docsTitle: "¿Querés profundizar?",
+    docsBadge: "Java SE",
+    docsIntro: "Consultá sintaxis, ejemplos y API directamente en las fuentes oficiales. Los enlaces se adaptan a esta misión.",
+    docsAria: "Documentación oficial relacionada",
+    docsOpen: "Abrir documentación oficial",
+    docsSource: "Fuente oficial",
     localValidation: "Validación estructural local",
     shortcut: "F5 para comprobar · Tab expande plantillas · ⌥⇧↓ duplica",
     themeToggle: "Modo oscuro",
@@ -42,6 +51,13 @@ const ui = {
     focusEnterAria: "Activar modo enfoque del editor",
     focusExitAria: "Salir del modo enfoque del editor",
     editorToolbarHint: "Esc sale del modo enfoque · los atajos del editor se mantienen",
+    consoleTitle: "Consola del editor",
+    consoleReady: "Lista para F5",
+    consoleChecking: "Comprobando estructura…",
+    consoleSuccess: "Estructura aceptada · salida simulada",
+    consoleError: "Hay errores · revisá los diagnósticos",
+    consolePlaceholder: "La salida de F5 aparecerá acá.",
+    consoleHint: "Salida educativa simulada: esta app no ejecuta javac en el navegador.",
     shortcutHelpLabel: "Atajos IDEA",
     shortcutHelpTitle: "Teclado productivo",
     shortcutHelpIntro:
@@ -54,6 +70,8 @@ const ui = {
     shortcutClear: "Limpiar editor cuando tiene foco",
     shortcutNavigate: "Navegar misión anterior/siguiente si está disponible",
     shortcutEscape: "Salir de enfoque, cerrar feedback o devolver foco al editor",
+    liveTemplatesSummary: "Live Templates · Plantillas Java rápidas",
+    shortcutSummary: "IDEA-Kürzel · Atajos de teclado",
     liveTemplatesLabel: "Live Templates",
     liveTemplatesTitle: "Plantillas Java rápidas",
     liveTemplatesIntro:
@@ -113,9 +131,18 @@ const ui = {
     courseLabel: "Praxispfad",
     courseTitle: "Java vom Fundament an",
     courseIntro: "36 Missionen von EF bis Q2. Du schreibst, prüfst und verstehst, warum es funktioniert.",
+    freePractice: "Jede Mission frei üben",
+    freePracticeOn: "Freier Modus aktiv",
     storageNote: "Fortschritt in diesem Browser gespeichert",
     taskLabel: "Deine Aufgabe",
     conceptLabel: "Konzept",
+    docsLabel: "Offizielle Dokumentation",
+    docsTitle: "Möchtest du tiefer einsteigen?",
+    docsBadge: "Java SE",
+    docsIntro: "Lies Syntax, Beispiele und API direkt in den offiziellen Quellen. Die Links passen sich an diese Mission an.",
+    docsAria: "Verwandte offizielle Dokumentation",
+    docsOpen: "Offizielle Dokumentation öffnen",
+    docsSource: "Offizielle Quelle",
     localValidation: "Lokale Strukturprüfung",
     shortcut: "F5 zum Prüfen · Tab erweitert Vorlagen · ⌥⇧↓ dupliziert",
     themeToggle: "Dunkelmodus",
@@ -132,6 +159,13 @@ const ui = {
     focusEnterAria: "Fokusmodus des Editors aktivieren",
     focusExitAria: "Fokusmodus des Editors beenden",
     editorToolbarHint: "Esc beendet den Fokusmodus · Editor-Kürzel bleiben aktiv",
+    consoleTitle: "Editor-Konsole",
+    consoleReady: "Bereit für F5",
+    consoleChecking: "Struktur wird geprüft…",
+    consoleSuccess: "Struktur akzeptiert · simulierte Ausgabe",
+    consoleError: "Fehler gefunden · Diagnosen prüfen",
+    consolePlaceholder: "Die F5-Ausgabe erscheint hier.",
+    consoleHint: "Lehrreiche simulierte Ausgabe: Diese App führt javac nicht im Browser aus.",
     shortcutHelpLabel: "IDEA-Kürzel",
     shortcutHelpTitle: "Produktive Tastatur",
     shortcutHelpIntro:
@@ -144,6 +178,8 @@ const ui = {
     shortcutClear: "Editor leeren, wenn er fokussiert ist",
     shortcutNavigate: "Vorherige/nächste Mission öffnen, wenn verfügbar",
     shortcutEscape: "Fokusmodus beenden, Feedback schließen oder Fokus zurück zum Editor",
+    liveTemplatesSummary: "Live Templates · Schnelle Java-Vorlagen",
+    shortcutSummary: "IDEA-Kürzel · Tastaturkürzel",
     liveTemplatesLabel: "Live Templates",
     liveTemplatesTitle: "Schnelle Java-Vorlagen",
     liveTemplatesIntro:
@@ -1205,6 +1241,7 @@ const elements = {
   objective: document.querySelector("#objective"),
   prompt: document.querySelector("#prompt"),
   concept: document.querySelector("#concept"),
+  docsLinks: document.querySelector("#docsLinks"),
   fileName: document.querySelector("#fileName"),
   codeBefore: document.querySelector("#codeBefore"),
   codeAfter: document.querySelector("#codeAfter"),
@@ -1237,11 +1274,94 @@ const elements = {
   themeToggle: document.querySelector("#themeToggle"),
   workspace: document.querySelector("#workspace"),
   missionRail: document.querySelector("#missionRail"),
+  freePracticeToggle: document.querySelector("#freePracticeToggle"),
   editorPanel: document.querySelector("#editorPanel"),
   sidebarToggle: document.querySelector("#sidebarToggle"),
   focusToggle: document.querySelector("#focusToggle"),
   liveTemplateList: document.querySelector("#liveTemplateList"),
+  consoleStatus: document.querySelector("#consoleStatus"),
+  consoleOutput: document.querySelector("#consoleOutput"),
 };
+
+const OFFICIAL_DOCS = [
+  {
+    id: "basics",
+    terms: ["variable", "tipo", "string", "int", "declaración", "grundlagen", "variable"],
+    es: { title: "Java Language Basics", description: "Tipos, variables, operadores y sintaxis esencial." },
+    de: { title: "Java Language Basics", description: "Typen, Variablen, Operatoren und grundlegende Syntax." },
+    url: "https://dev.java/learn/language-basics/",
+  },
+  {
+    id: "control-flow",
+    terms: ["condicional", "bucle", "for", "while", "control", "schleife", "bedingung"],
+    es: { title: "Control de flujo", description: "Sintaxis y ejemplos de if, for, while y switch." },
+    de: { title: "Kontrollfluss", description: "Syntax und Beispiele für if, for, while und switch." },
+    url: "https://dev.java/learn/language-basics/controlling-flow/",
+  },
+  {
+    id: "for",
+    terms: ["bucle for", "for-schleife", "iteración", "recorrido"],
+    es: { title: "Sentencia for", description: "La sintaxis del bucle for con ejemplos oficiales." },
+    de: { title: "for-Schleife", description: "Syntax der for-Schleife mit offiziellen Beispielen." },
+    url: "https://docs.oracle.com/javase/tutorial/java/nutsandbolts/for.html",
+  },
+  {
+    id: "classes",
+    terms: ["clase", "constructor", "objeto", "poo", "herencia", "polimorfismo", "klasse", "objekt"],
+    es: { title: "Clases y objetos", description: "Cómo modelar clases, objetos, herencia e interfaces." },
+    de: { title: "Klassen und Objekte", description: "Klassen, Objekte, Vererbung und Interfaces modellieren." },
+    url: "https://dev.java/learn/classes-objects/",
+  },
+  {
+    id: "collections",
+    terms: ["lista", "array", "stack", "queue", "map", "colección", "sammlung", "liste"],
+    es: { title: "Collections Framework", description: "Guía de arrays y colecciones de la biblioteca Java." },
+    de: { title: "Collections Framework", description: "Arrays und Collections der Java-Bibliothek." },
+    url: "https://dev.java/learn/api/collections-framework/",
+  },
+  {
+    id: "exceptions",
+    terms: ["error", "debug", "excepción", "try", "catch", "exception", "fehler"],
+    es: { title: "Excepciones", description: "Entender y manejar errores con try, catch y finally." },
+    de: { title: "Exceptions", description: "Fehler mit try, catch und finally verstehen und behandeln." },
+    url: "https://dev.java/learn/exceptions/",
+  },
+  {
+    id: "api",
+    terms: ["api", "método", "string", "integer", "hashmap", "arraylist"],
+    es: { title: "Java SE API", description: "Referencia oficial de clases, métodos y tipos." },
+    de: { title: "Java SE API", description: "Offizielle Referenz für Klassen, Methoden und Typen." },
+    url: "https://docs.oracle.com/en/java/javase/21/docs/api/index.html",
+  },
+];
+
+function renderDocumentation(mission = missions[state.current]) {
+  if (!elements.docsLinks || !mission) return;
+  const text = getMissionText(mission);
+  const haystack = [text.title, text.objective, text.prompt, text.concept, mission.field].join(" ").toLowerCase();
+  const selected = OFFICIAL_DOCS.filter((resource) => resource.terms.some((term) => haystack.includes(term)))
+    .slice(0, 3);
+  const resources = selected.length ? selected : OFFICIAL_DOCS.slice(0, 2);
+  elements.docsLinks.replaceChildren(...resources.map((resource) => {
+    const copy = resource[state.language];
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = resource.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", `${copy.title}: ${t("docsOpen")}`);
+    const title = document.createElement("strong");
+    title.textContent = copy.title;
+    const description = document.createElement("span");
+    description.textContent = copy.description;
+    const source = document.createElement("small");
+    source.textContent = `${t("docsSource")} · dev.java / Oracle`;
+    link.append(title, description, source);
+    item.append(link);
+    return item;
+  }));
+  elements.docsLinks.setAttribute("aria-label", t("docsAria"));
+}
 
 function getStoredEditorPrefs() {
   try {
@@ -1326,6 +1446,7 @@ function createDefaultState(language = "es") {
     language,
     theme: getInitialTheme(),
     current: 0,
+    freePractice: false,
     xp: 0,
     solved: [],
     answers: {},
@@ -1382,7 +1503,8 @@ function normalizeState(stored) {
     ...defaults,
     language: stored?.language === "de" ? "de" : "es",
     theme: stored?.theme === "light" || stored?.theme === "dark" ? stored.theme : getInitialTheme(),
-    current: Math.min(requestedCurrent, highestUnlocked),
+    current: Math.min(requestedCurrent, stored?.freePractice === true ? missions.length - 1 : highestUnlocked),
+    freePractice: stored?.freePractice === true,
     xp: Number.isFinite(xpValue) ? Math.max(0, Math.trunc(xpValue)) : 0,
     solved,
     answers: sanitizeMissionMap(stored?.answers ?? stored?.codeByMission, (value) => typeof value === "string" ? value : undefined),
@@ -1456,7 +1578,7 @@ function getMissionText(mission = missions[state.current]) {
 }
 
 function isUnlocked(index) {
-  return index === 0 || state.solved.includes(missions[index - 1].id);
+  return state.freePractice || index === 0 || state.solved.includes(missions[index - 1].id);
 }
 
 function translateInterface() {
@@ -1473,6 +1595,11 @@ function translateInterface() {
   elements.masteryValue?.setAttribute("aria-label", t("masteryAria"));
   elements.completionList?.setAttribute("aria-label", t("suggestionsAria"));
   elements.liveTemplateList?.setAttribute("aria-label", t("templatesAria"));
+  elements.freePracticeToggle?.setAttribute("aria-pressed", String(Boolean(state.freePractice)));
+  if (elements.freePracticeToggle) {
+    const label = elements.freePracticeToggle.querySelector("[data-i18n]");
+    if (label) label.textContent = state.freePractice ? t("freePracticeOn") : t("freePractice");
+  }
   document.querySelectorAll("[data-i18n]").forEach((element) => {
     const value = t(element.dataset.i18n);
     if (typeof value === "string") element.textContent = value;
@@ -1525,6 +1652,13 @@ function setSidebarCollapsed(collapsed) {
   };
   applyEditorPrefs();
   saveEditorPrefs();
+}
+
+function setFreePractice(enabled) {
+  state.freePractice = Boolean(enabled);
+  saveState();
+  translateInterface();
+  renderMissionList();
 }
 
 async function setFocusMode(enabled, options = {}) {
@@ -1611,7 +1745,10 @@ function updateLineNumbers(diagnosticLines = new Set()) {
   elements.lineNumbers.replaceChildren(...Array.from({ length: lineCount }, (_, index) => {
     const line = document.createElement("span");
     line.textContent = String(index + 1);
-    if (diagnosticLines.has(index + 1)) line.className = "has-diagnostic";
+    if (diagnosticLines.has(index + 1)) {
+      line.className = `has-diagnostic diagnostic-${diagnosticLines.get?.(index + 1) || "warning"}`;
+      line.dataset.severity = diagnosticLines.get?.(index + 1) || "warning";
+    }
     return line;
   }));
 }
@@ -1688,10 +1825,12 @@ function renderMission(options = {}) {
   elements.objective.textContent = text.objective;
   elements.prompt.textContent = text.prompt;
   elements.concept.textContent = text.concept;
+  renderDocumentation(mission);
   elements.fileName.textContent = mission.file;
   elements.codeBefore.textContent = mission.contextBefore;
   elements.codeAfter.textContent = mission.contextAfter;
   elements.editor.value = state.answers[mission.id] || "";
+  setConsole(t("consoleReady"), t("consolePlaceholder"));
   elements.progressValue.textContent = `${completedCount}/${missions.length}`;
   elements.orbitValue.style.strokeDashoffset = String(
     113.1 - (113.1 * completedCount) / missions.length,
@@ -1720,6 +1859,24 @@ function showFeedback(kind, title, message) {
   elements.feedbackMessage.textContent = message;
 }
 
+function setConsole(status, output) {
+  if (!elements.consoleStatus || !elements.consoleOutput) return;
+  elements.consoleStatus.textContent = status;
+  elements.consoleOutput.replaceChildren(document.createTextNode(output));
+}
+
+function renderConsoleResult(mission, answer, structuralError = "") {
+  const diagnostics = analyzeCode(answer);
+  if (structuralError) {
+    const lines = diagnostics.length
+      ? diagnostics.map((item) => `L${item.line} [${item.severity.toUpperCase()}] ${item.message}`).join("\n")
+      : `INFO ${structuralError}`;
+    setConsole(t("consoleError"), `> javac ${mission.file}\n✕ ${lines}\n\n${t("consoleHint")}`);
+    return;
+  }
+  setConsole(t("consoleSuccess"), `> javac ${mission.file}\n✓ 0 errores estructurales\n✓ ${getMissionText(mission).title}\n\n${t("consoleHint")}`);
+}
+
 function showSuccess(wasAlreadySolved = false) {
   const mission = missions[state.current];
   const text = getMissionText(mission);
@@ -1736,11 +1893,13 @@ function showSuccess(wasAlreadySolved = false) {
 function checkAnswer() {
   const mission = missions[state.current];
   const answer = elements.editor.value;
+  setConsole(t("consoleChecking"), `> javac ${mission.file}\n… ${t("consoleChecking")}`);
   state.answers[mission.id] = answer;
   state.attempts[mission.id] = Number(state.attempts[mission.id] || 0) + 1;
 
   if (!clean(answer)) {
     showFeedback("error", t("emptyTitle"), t("emptyMessage"));
+    renderConsoleResult(mission, answer, t("emptyMessage"));
     saveState();
     return;
   }
@@ -1751,6 +1910,7 @@ function checkAnswer() {
 
   if (structuralError) {
     showFeedback("error", t("errorTitle"), structuralError);
+    renderConsoleResult(mission, answer, structuralError);
     saveState();
     return;
   }
@@ -1770,6 +1930,7 @@ function checkAnswer() {
     113.1 - (113.1 * state.solved.length) / missions.length,
   );
   showSuccess(alreadySolved);
+  renderConsoleResult(mission, answer);
   renderProgress();
 }
 
@@ -2148,7 +2309,7 @@ function analyzeCode(code) {
 let diagnosticsTimer;
 function renderDiagnostics() {
   const diagnostics = analyzeCode(elements.editor.value);
-  const lines = new Set(diagnostics.map((item) => item.line));
+  const lines = new Map(diagnostics.map((item) => [item.line, item.severity]));
   updateLineNumbers(lines);
   elements.diagnosticsList.replaceChildren();
   if (!diagnostics.length) {
@@ -2248,6 +2409,35 @@ function clearEditor() {
   elements.editor.value = "";
   elements.editor.dispatchEvent(new Event("input"));
   hideMessages();
+}
+
+function handleAutoPair(event) {
+  const pairs = { '"': '"', "'": "'", "(": ")", "[": "]", "{": "}" };
+  const opening = event.key;
+  const closing = pairs[opening];
+  const value = elements.editor.value;
+  const start = elements.editor.selectionStart;
+  const end = elements.editor.selectionEnd;
+  if ([")", "]", "}"].includes(opening) && start === end && value[start] === opening) {
+    event.preventDefault();
+    elements.editor.setSelectionRange(start + 1, start + 1);
+    return true;
+  }
+  if (!closing) return false;
+  if (start === end && value[start] === closing) {
+    event.preventDefault();
+    elements.editor.setSelectionRange(start + 1, start + 1);
+    return true;
+  }
+
+  event.preventDefault();
+  const selected = value.slice(start, end);
+  const replacement = `${opening}${selected}${closing}`;
+  elements.editor.setRangeText(replacement, start, end, "end");
+  const cursor = selected ? end + 2 : start + 1;
+  elements.editor.setSelectionRange(cursor, cursor);
+  elements.editor.dispatchEvent(new Event("input"));
+  return true;
 }
 
 function moveToMission(index) {
@@ -2377,7 +2567,9 @@ elements.editor.addEventListener("keydown", (event) => {
   if (event.key === "Tab") {
     event.preventDefault();
     expandLiveTemplateOrInsertTab();
+    return;
   }
+  handleAutoPair(event);
 });
 
 elements.completionList?.addEventListener("mousedown", (event) => {
@@ -2423,6 +2615,10 @@ elements.themeToggle?.addEventListener("click", () => {
 
 elements.sidebarToggle?.addEventListener("click", () => {
   setSidebarCollapsed(!state.editorPrefs?.sidebarCollapsed);
+});
+
+elements.freePracticeToggle?.addEventListener("click", () => {
+  setFreePractice(!state.freePractice);
 });
 
 elements.focusToggle?.addEventListener("click", () => {

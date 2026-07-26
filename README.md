@@ -22,6 +22,11 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Formateador de indentación a cuatro espacios.
 - Progreso local con XP, intentos, aciertos, pistas, soluciones, competencias, campos y una estimación de dominio cuya fórmula se muestra en pantalla.
 - Temas claro/oscuro, diseño responsive, navegación por teclado y respeto por `prefers-reduced-motion`.
+- **Modo de práctica libre:** podés abrir cualquier misión sin resolver la anterior; el recorrido secuencial sigue disponible como modo guiado.
+- Autocierre de `""`, `''`, `()`, `[]` y `{}` con el cursor dentro; si el cierre ya existe, el editor lo salta.
+- Consola educativa dentro del IDE: F5 muestra el comando, diagnósticos por línea y un resultado simulado sin fingir que ejecuta `javac`.
+- Documentación contextual visible por misión, con enlaces directos a `dev.java` y Oracle Java Tutorials/API.
+- Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
 
 ## Atajos
 
@@ -39,11 +44,22 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 | `Ctrl/Cmd + ←/→` | Misión anterior/siguiente disponible |
 | `Escape` | Cerrar popup/feedback, salir de enfoque o volver al editor |
 
+## Documentación contextual
+
+La tarjeta **¿Querés profundizar?** / **Möchtest du tiefer einsteigen?** selecciona recursos oficiales según el concepto de la misión. Incluye sintaxis, ejemplos y referencia API desde:
+
+- [dev.java Learn](https://dev.java/learn/)
+- [Oracle Java Tutorials](https://docs.oracle.com/javase/tutorial/)
+- [Java SE API](https://docs.oracle.com/en/java/javase/21/docs/api/index.html)
+
+Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: solo ofrece el acceso a la fuente.
+
 ## Arquitectura
 
 - `index.html`: shell SPA y semántica accesible.
 - `styles.css`: tokens visuales, temas, layouts responsive, editor, popup, diagnósticos y progreso.
 - `game.js`: catálogo curricular, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
+- La consola y el autocompletado funcionan sin dependencias; la salida de F5 es deliberadamente educativa y simulada.
 - `localStorage`: progreso y preferencias. La carga filtra IDs desconocidos y completa campos nuevos con valores seguros.
 
 No se usa Monaco, CodeMirror, frameworks, paquetes ni servicios externos.

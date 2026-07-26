@@ -56,6 +56,10 @@
           <p data-i18n="courseIntro">
             36 misiones de EF a Q2. Escribís, verificás y entendés por qué funciona.
           </p>
+          <button id="freePracticeToggle" class="free-practice-toggle" type="button" aria-pressed="false">
+            <span aria-hidden="true">⌘</span>
+            <span data-i18n="freePractice">Practicar cualquier misión</span>
+          </button>
         </div>
 
         <nav aria-label="Misiones">
@@ -97,6 +101,20 @@
             <strong id="concept"></strong>
           </div>
         </div>
+
+        <section class="docs-card" aria-labelledby="docsTitle">
+          <div class="docs-heading">
+            <div>
+              <p class="eyebrow" data-i18n="docsLabel">Documentación oficial</p>
+              <h3 id="docsTitle" data-i18n="docsTitle">¿Querés profundizar?</h3>
+            </div>
+            <span class="docs-badge" data-i18n="docsBadge">Java SE</span>
+          </div>
+          <p class="docs-intro" data-i18n="docsIntro">
+            Consultá sintaxis, ejemplos y API directamente en las fuentes oficiales. Los enlaces se adaptan a esta misión.
+          </p>
+          <ul id="docsLinks" class="docs-links" aria-label="Documentación oficial relacionada"></ul>
+        </section>
 
         <div id="editorPanel" class="editor-panel">
           <div class="editor-toolbar" role="toolbar" aria-label="Herramientas del editor">
@@ -168,11 +186,18 @@
             <pre id="codeAfter"></pre>
           </div>
 
-            <div class="ide-status">
+          <div class="ide-status">
               <span>Java · UTF-8</span>
               <span id="editorHelp" data-i18n="shortcut">F5 para comprobar · Tab expande plantillas · ⌥⇧↓ duplica</span>
             </div>
           </div>
+          <section id="editorConsole" class="editor-console" aria-labelledby="consoleTitle" aria-live="polite">
+            <div class="console-heading">
+              <strong id="consoleTitle" data-i18n="consoleTitle">Consola del editor</strong>
+              <span id="consoleStatus" data-i18n="consoleReady">Lista para F5</span>
+            </div>
+            <pre id="consoleOutput" class="console-output"><code data-i18n="consolePlaceholder">La salida de F5 aparecerá acá.</code></pre>
+          </section>
         </div>
 
         <section class="diagnostics-card" aria-labelledby="diagnosticsTitle">
@@ -204,29 +229,34 @@
           <div id="progressInsights" class="progress-insights"></div>
         </section>
 
-        <section class="live-template-help" aria-labelledby="liveTemplateTitle">
-          <div class="template-copy">
+        <details class="collapsible-card live-template-help">
+          <summary data-i18n="liveTemplatesSummary">Live Templates · Plantillas Java rápidas</summary>
+          <div class="details-content">
+            <div class="template-copy">
             <p class="eyebrow" data-i18n="liveTemplatesLabel">Live Templates</p>
             <h3 id="liveTemplateTitle" data-i18n="liveTemplatesTitle">Plantillas Java rápidas</h3>
             <p data-i18n="liveTemplatesIntro">
               Simulación educativa local inspirada en Live Templates de IntelliJ: abreviatura + Tab dentro del editor.
             </p>
-          </div>
-          <div class="template-list-wrap">
+            </div>
+            <div class="template-list-wrap">
             <p class="template-list-title" data-i18n="liveTemplatesAvailable">Disponibles</p>
             <ul id="liveTemplateList" class="template-list" aria-label="Live Templates Java"></ul>
+            </div>
           </div>
-        </section>
+        </details>
 
-        <section class="shortcut-help" aria-labelledby="shortcutHelpTitle">
-          <div>
+        <details class="collapsible-card shortcut-help">
+          <summary data-i18n="shortcutSummary">IDEA-Kürzel · Atajos de teclado</summary>
+          <div class="details-content">
+            <div>
             <p class="eyebrow" data-i18n="shortcutHelpLabel">Atajos IDEA</p>
             <h3 id="shortcutHelpTitle" data-i18n="shortcutHelpTitle">Teclado productivo</h3>
             <p data-i18n="shortcutHelpIntro">
               Atajos locales inspirados en IntelliJ IDEA. No compilan Java real.
             </p>
-          </div>
-          <dl class="shortcut-grid">
+            </div>
+            <dl class="shortcut-grid">
             <div><dt><kbd>F5</kbd></dt><dd data-i18n="shortcutCheck">Comprobar estructura</dd></div>
             <div><dt><kbd>⌥/Alt</kbd> + <kbd>Enter</kbd></dt><dd data-i18n="shortcutHint">Pedir pista</dd></div>
             <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>/</kbd></dt><dd data-i18n="shortcutComment">Comentar/descomentar</dd></div>
@@ -235,8 +265,9 @@
             <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>L</kbd></dt><dd data-i18n="shortcutClear">Limpiar editor con foco</dd></div>
             <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>←/→</kbd></dt><dd data-i18n="shortcutNavigate">Misión anterior/siguiente</dd></div>
             <div><dt><kbd>Esc</kbd></dt><dd data-i18n="shortcutEscape">Salir de enfoque, cerrar feedback o volver al editor</dd></div>
-          </dl>
-        </section>
+            </dl>
+          </div>
+        </details>
 
         <div class="action-row">
           <button id="checkButton" class="button button-primary" type="button">
@@ -280,6 +311,6 @@
       </section>
     </main>
 
-    <script src="game.js?v=9"></script>
+    <script src="game.js?v=10"></script>
   </body>
 </html>
