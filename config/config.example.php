@@ -11,8 +11,9 @@ return [
     'compiler' => [
         'javac' => 'javac',
         'java' => 'java',
-        // jvm = ejecución local con timeout/Xmx; docker = contenedor sin red si PHP puede ejecutar Docker.
+        // jvm = local; docker = PHP ejecuta contenedores; worker = cola compartida a un contenedor aislado sin red.
         'sandbox' => 'jvm',
         'docker_image' => 'eclipse-temurin:21-jre',
+        'worker_queue' => '/var/lib/java-werkstatt/queue',
     ],
 ];

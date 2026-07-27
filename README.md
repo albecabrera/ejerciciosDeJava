@@ -145,7 +145,7 @@ Fuentes:
 
 `api/compile.php` acepta únicamente `POST` JSON, limita el código a 48 KB, aplica un límite simple por sesión, rechaza nombres de archivo inseguros, comprueba que `javac`/`java` existan, usa `-proc:none`, fuerza un locale estable, impone timeout de compilación de 8 segundos, timeout de ejecución de 3 segundos, recorta salida y elimina artefactos temporales. Los snippets se envuelven en una clase educativa; las clases y métodos se compilan en sus respectivos modos.
 
-Esto **no es un sandbox de producción**: ejecutar Java arbitrario en el mismo servidor puede consumir recursos o intentar acceder al sistema. Para un aula multiusuario, ejecutá el compilador dentro de un contenedor sin red, con usuario sin privilegios, límites de CPU/memoria y filesystem efímero. La versión incluida está pensada para desarrollo local o servidor de confianza.
+El modo `jvm` **no es un sandbox de producción**: ejecutar Java arbitrario en el mismo servidor puede consumir recursos o intentar acceder al sistema. Para un aula multiusuario usá el worker aislado incluido.
 
 
 ### Ejecución Java y sandbox
@@ -164,6 +164,30 @@ Para un servidor de aula más serio, configurá:
 ```
 
 En modo Docker, el runner usa `docker run --rm --network none --cpus 0.5 --memory 96m --pids-limit 80 --read-only --cap-drop ALL --security-opt no-new-privileges`. Para que esto funcione, el proceso PHP debe poder ejecutar Docker o acceder a un worker que lo haga; un XAMPP clásico normalmente no expone el socket Docker dentro del contenedor PHP.
+
+#### Worker recomendado para producción
+
+La alternativa recomendada evita exponer el socket Docker a Apache/PHP. El worker procesa una cola compartida dentro de un contenedor dedicado configurado con `network_mode: none`, usuario sin privilegios, filesystem de solo lectura y límites de CPU/RAM/PIDs.
+
+1. Montá la misma cola en PHP y en el worker (por ejemplo `/var/lib/java-werkstatt/queue`).
+2. En `config/config.php` configurá:
+
+```php
+'compiler' => [
+    'sandbox' => 'worker',
+    'worker_queue' => '/var/lib/java-werkstatt/queue',
+],
+```
+
+3. Desde la raíz del proyecto iniciá el worker en producción:
+
+```bash
+docker compose -f sandbox/docker-compose.worker.yml up -d --build
+```
+
+El endpoint PHP entrega las clases al worker mediante la cola y espera el resultado. Si el worker no responde, la ejecución falla cerradamente: no vuelve silenciosamente a `jvm-limited`.
+
+En XAMPP, montá el volumen de cola también en `xampp-php`; no habilites `/var/run/docker.sock` salvo que aceptes el riesgo de otorgar control del daemon Docker al proceso web.
 
 ## Validación, límites y privacidad
 

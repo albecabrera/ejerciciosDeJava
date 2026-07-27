@@ -10,6 +10,7 @@ const COMPILE_TIMEOUT_SECONDS = 8.0;
 const RUN_TIMEOUT_SECONDS = 3.0;
 const MAX_COMPILES_PER_MINUTE = 20;
 const MAX_OUTPUT_BYTES = 12_000;
+const WORKER_POLL_INTERVAL_MICROSECONDS = 20_000;
 
 function respond(array $payload, int $status = 200): never
 {
@@ -60,6 +61,7 @@ $javac = getenv('JAVAC_BIN') ?: ($config['compiler']['javac'] ?? 'javac');
 $java = getenv('JAVA_BIN') ?: ($config['compiler']['java'] ?? 'java');
 $sandboxMode = (string) (getenv('JAVA_SANDBOX_MODE') ?: ($config['compiler']['sandbox'] ?? 'jvm'));
 $dockerImage = (string) (getenv('JAVA_SANDBOX_IMAGE') ?: ($config['compiler']['docker_image'] ?? 'eclipse-temurin:21-jre'));
+$workerQueue = (string) (getenv('JAVA_SANDBOX_QUEUE') ?: ($config['compiler']['worker_queue'] ?? '/var/lib/java-werkstatt/queue'));
 
 if (!isJavacAvailable($javac)) {
     respond([
@@ -72,7 +74,7 @@ if (!isJavacAvailable($javac)) {
         'mode' => $mode,
     ], 503);
 }
-if ($shouldRun && !isJavaAvailable($java) && $sandboxMode !== 'docker') {
+if ($shouldRun && !isJavaAvailable($java) && !in_array($sandboxMode, ['docker', 'worker'], true)) {
     respond(['ok' => false, 'phase' => 'run', 'error' => 'java no está instalado o no está en PATH.', 'diagnostics' => []], 503);
 }
 
@@ -121,9 +123,13 @@ if ($compile['exitCode'] !== 0 || !$shouldRun || $mode === 'member') {
     ]);
 }
 
-$run = $sandboxMode === 'docker' && isDockerAvailable()
-    ? runInDockerSandbox($dockerImage, $classesDir, $mainClass, $stdin)
-    : runInJvmSandbox($java, $classesDir, $mainClass, $stdin);
+$run = match ($sandboxMode) {
+    'worker' => runInWorkerSandbox($workerQueue, $classesDir, $mainClass, $stdin),
+    'docker' => isDockerAvailable()
+        ? runInDockerSandbox($dockerImage, $classesDir, $mainClass, $stdin)
+        : runInJvmSandbox($java, $classesDir, $mainClass, $stdin),
+    default => runInJvmSandbox($java, $classesDir, $mainClass, $stdin),
+};
 $runDurationMs = (int) round($run['duration'] * 1000);
 removeDirectory($workDir);
 
@@ -169,6 +175,65 @@ function runInDockerSandbox(string $image, string $classesDir, string $mainClass
     $result = runProcess($command, sys_get_temp_dir(), RUN_TIMEOUT_SECONDS + 2.0, $stdin);
     $result['sandbox'] = 'docker-no-network';
     return $result;
+}
+
+function runInWorkerSandbox(string $queueRoot, string $classesDir, string $mainClass, string $stdin): array
+{
+    $started = microtime(true);
+    $jobId = bin2hex(random_bytes(16));
+    $inputDir = rtrim($queueRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'in';
+    $outputDir = rtrim($queueRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'out';
+    if (!is_dir($inputDir) && !@mkdir($inputDir, 0700, true) && !is_dir($inputDir)) {
+        return workerFailure('No se pudo preparar la cola del sandbox worker.', $started);
+    }
+    if (!is_dir($outputDir) && !@mkdir($outputDir, 0700, true) && !is_dir($outputDir)) {
+        return workerFailure('No se pudo preparar la salida del sandbox worker.', $started);
+    }
+    $jobDir = $inputDir . DIRECTORY_SEPARATOR . $jobId;
+    if (!@mkdir($jobDir, 0700, true)) {
+        return workerFailure('No se pudo crear el trabajo del sandbox worker.', $started);
+    }
+    copyDirectory($classesDir, $jobDir . DIRECTORY_SEPARATOR . 'classes');
+    file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'job.json', json_encode([
+        'mainClass' => $mainClass,
+        'stdin' => $stdin,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'READY', '1', LOCK_EX);
+
+    $deadline = microtime(true) + RUN_TIMEOUT_SECONDS + 3.0;
+    $resultPath = $outputDir . DIRECTORY_SEPARATOR . $jobId . '.json';
+    while (microtime(true) < $deadline) {
+        if (is_file($resultPath)) {
+            $result = json_decode((string) file_get_contents($resultPath), true);
+            removeDirectory($jobDir);
+            @unlink($resultPath);
+            if (is_array($result)) {
+                $result['duration'] = microtime(true) - $started;
+                $result['sandbox'] = 'worker-no-network';
+                return $result;
+            }
+            break;
+        }
+        usleep(WORKER_POLL_INTERVAL_MICROSECONDS);
+    }
+    removeDirectory($jobDir);
+    return ['exitCode' => 124, 'stdout' => '', 'stderr' => 'El sandbox worker no respondió a tiempo.', 'timedOut' => true, 'duration' => microtime(true) - $started, 'sandbox' => 'worker-no-network'];
+}
+
+function workerFailure(string $message, float $started): array
+{
+    return ['exitCode' => 1, 'stdout' => '', 'stderr' => $message, 'timedOut' => false, 'duration' => microtime(true) - $started, 'sandbox' => 'worker-unavailable'];
+}
+
+function copyDirectory(string $source, string $destination): void
+{
+    @mkdir($destination, 0700, true);
+    foreach (scandir($source) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') continue;
+        $from = $source . DIRECTORY_SEPARATOR . $entry;
+        $to = $destination . DIRECTORY_SEPARATOR . $entry;
+        is_dir($from) ? copyDirectory($from, $to) : @copy($from, $to);
+    }
 }
 
 function runProcess(array $command, string $cwd, float $timeout, string $stdin = '', array $extraEnvironment = []): array

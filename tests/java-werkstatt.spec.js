@@ -53,7 +53,7 @@ test("runs a valid Java snippet with backend limits", async ({ request }) => {
   expect(body.ok).toBeTruthy();
   expect(body.phase).toBe("run");
   expect(body.stdout).toContain("Mara 27");
-  expect(body.sandbox).toMatch(/jvm-limited|docker-no-network/);
+  expect(body.sandbox).toMatch(/jvm-limited|docker-no-network|worker-no-network/);
 });
 
 test("keeps diagnostics and official docs visible on mobile", async ({ page }) => {
