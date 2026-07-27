@@ -1764,3 +1764,35 @@ kbd {
   color: #f6fcff;
   border-color: #7da6b5;
 }
+
+.teacher-recommendation {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.student-history {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted-strong);
+  font-size: 0.74rem;
+}
+
+.student-history[hidden] {
+  display: none;
+}
+
+.student-history li {
+  overflow-wrap: anywhere;
+}
+
+.student-history .attempt-pass::marker {
+  color: var(--mint);
+}
+
+.student-history .attempt-fail::marker {
+  color: var(--error);
+}

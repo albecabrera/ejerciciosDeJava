@@ -63,8 +63,8 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Consola educativa dentro del IDE: F5 muestra el comando, diagnósticos por línea y un resultado simulado sin fingir que ejecuta `javac`.
 - Documentación contextual visible por misión, con enlaces directos a `dev.java` y Oracle Java Tutorials/API.
 - Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
-- **Compilación real opcional:** al pulsar F5, `api/compile.php` envía el código al `javac` local, devuelve errores con línea/severidad y limpia el espacio temporal al terminar. Si PHP no está disponible, la app conserva el modo heurístico y lo indica.
-- **Panel docente local y centralizado:** resumen de misiones, intentos, precisión y pendientes; filtro EF/Q1/Q2, exportación CSV/JSON y vista de progreso por clase cuando un docente inicia sesión.
+- **Compilación y ejecución real opcional:** al pulsar F5, `api/compile.php` compila con `javac` y, en misiones ejecutables, corre `java` con timeout, salida recortada y memoria JVM limitada. Si configurás sandbox Docker, ejecuta con red desactivada y límites CPU/RAM/PID.
+- **Panel docente local y centralizado:** resumen de misiones, intentos, precisión, pendientes, vista por alumno, historial de intentos, recomendación automática y exportación CSV/JSON.
 - **Cuentas y clases centralizadas:** estudiantes y docentes con sesiones PHP, clases con código de acceso y progreso sincronizado por usuario en MySQL con métricas monotónicas para evitar regresiones accidentales.
 
 ## Atajos
@@ -98,14 +98,15 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `index.html`: shell SPA y semántica accesible.
 - `styles.css`: tokens visuales, temas, layouts responsive, editor, popup, diagnósticos y progreso.
 - `game.js`: catálogo curricular, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
-- `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en un directorio temporal aislado y devuelve diagnósticos JSON.
+- `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en temporal, ejecuta snippets/clases con límites y devuelve diagnósticos/salida JSON.
 - `api/auth.php`: registro, login, logout, sesiones y roles student/teacher/admin.
 - `api/classes.php`: creación de clases docente, unión por código y consulta GET de progreso por clase con permisos de docente/admin.
 - `api/progress.php`: sincronización centralizada del progreso con upsert transaccional, allowlist de misiones y contadores monotónicos.
+- `api/attempts.php`: historial de intentos por alumno para docentes: fase, resultado, feedback, duración y extracto de respuesta.
 - `api/bootstrap.php`: PDO, sesión HttpOnly/SameSite, respuestas JSON y protección CSRF.
 - `database/schema.sql`: esquema MySQL para usuarios, clases, miembros y progreso.
 - `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
-- `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre, autocierre de pares y progreso docente.
+- `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre, autocierre de pares, ejecución Java y progreso docente.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
 - Con PHP activo, F5 usa `javac` real; sin PHP, la consola vuelve a la validación local y lo comunica.
 - `localStorage`: progreso y preferencias. La carga filtra IDs desconocidos y completa campos nuevos con valores seguros.
@@ -142,9 +143,27 @@ Fuentes:
 
 ## Compilación y seguridad
 
-`api/compile.php` acepta únicamente `POST` JSON, limita el código a 48 KB, aplica un límite simple por sesión, rechaza nombres de archivo inseguros, comprueba que `javac` exista, usa `-proc:none`, fuerza un locale estable para diagnósticos, impone un timeout de 8 segundos y elimina los artefactos temporales. Los snippets se envuelven en una clase educativa; las clases y métodos se compilan en sus respectivos modos.
+`api/compile.php` acepta únicamente `POST` JSON, limita el código a 48 KB, aplica un límite simple por sesión, rechaza nombres de archivo inseguros, comprueba que `javac`/`java` existan, usa `-proc:none`, fuerza un locale estable, impone timeout de compilación de 8 segundos, timeout de ejecución de 3 segundos, recorta salida y elimina artefactos temporales. Los snippets se envuelven en una clase educativa; las clases y métodos se compilan en sus respectivos modos.
 
 Esto **no es un sandbox de producción**: ejecutar Java arbitrario en el mismo servidor puede consumir recursos o intentar acceder al sistema. Para un aula multiusuario, ejecutá el compilador dentro de un contenedor sin red, con usuario sin privilegios, límites de CPU/memoria y filesystem efímero. La versión incluida está pensada para desarrollo local o servidor de confianza.
+
+
+### Ejecución Java y sandbox
+
+Por defecto, `compiler.sandbox = "jvm"` ejecuta Java con límites prácticos (`-Xmx64m`, timeout, salida recortada). Esto es suficiente para laboratorio local, pero NO aísla red ni syscalls.
+
+Para un servidor de aula más serio, configurá:
+
+```php
+'compiler' => [
+    'javac' => 'javac',
+    'java' => 'java',
+    'sandbox' => 'docker',
+    'docker_image' => 'eclipse-temurin:21-jre',
+],
+```
+
+En modo Docker, el runner usa `docker run --rm --network none --cpus 0.5 --memory 96m --pids-limit 80 --read-only --cap-drop ALL --security-opt no-new-privileges`. Para que esto funcione, el proceso PHP debe poder ejecutar Docker o acceder a un worker que lo haga; un XAMPP clásico normalmente no expone el socket Docker dentro del contenedor PHP.
 
 ## Validación, límites y privacidad
 

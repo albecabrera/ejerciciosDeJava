@@ -31,12 +31,23 @@ if ($action === 'progress' && $_SERVER['REQUEST_METHOD'] === 'GET') {
                 COALESCE(SUM(p.attempts), 0) AS attempts,
                 COALESCE(SUM(p.correct_attempts), 0) AS correct_attempts,
                 COALESCE(SUM(p.hints_used), 0) AS hints_used,
+                COALESCE(a.history_count, 0) AS history_count,
+                COALESCE(a.failed_attempts, 0) AS failed_attempts,
+                a.weakest_mission,
                 MAX(p.updated_at) AS last_activity
            FROM class_members cm
            JOIN users u ON u.id = cm.user_id
       LEFT JOIN progress p ON p.user_id = u.id
+      LEFT JOIN (
+                SELECT user_id,
+                       COUNT(*) AS history_count,
+                       SUM(CASE WHEN passed = 0 THEN 1 ELSE 0 END) AS failed_attempts,
+                       SUBSTRING_INDEX(GROUP_CONCAT(CASE WHEN passed = 0 THEN mission_id END ORDER BY created_at DESC SEPARATOR ","), ",", 1) AS weakest_mission
+                  FROM attempt_events
+              GROUP BY user_id
+           ) a ON a.user_id = u.id
           WHERE cm.class_id = ?
-       GROUP BY u.id, u.name, u.email
+       GROUP BY u.id, u.name, u.email, a.history_count, a.failed_attempts, a.weakest_mission
        ORDER BY u.name'
     );
     $statement->execute([$classId]);

@@ -6,6 +6,7 @@ const BASE_XP = 30;
 const HINT_COST = 5;
 const SOLUTION_COST = 15;
 const COMPILER_API_URL = "api/compile.php";
+const ATTEMPT_API_URL = "api/attempts.php";
 
 const ui = {
   es: {
@@ -66,6 +67,9 @@ const ui = {
     compilerSuccess: "Compilación real aceptada",
     compilerError: "javac encontró errores",
     compilerHint: "Compilación realizada en PHP; por seguridad, la app no ejecuta el programa.",
+    runnerSuccess: "Ejecución real completada",
+    runnerError: "El programa compiló, pero falló al ejecutarse",
+    pedagogicError: "La salida no demuestra todavía el objetivo de la misión",
     teacherToggle: "Panel docente",
     teacherTitle: "Panel docente",
     teacherIntro: "Resumen local del alumno y, si iniciás sesión como docente, progreso centralizado de la clase.",
@@ -75,6 +79,10 @@ const ui = {
     teacherCloudError: "No se pudo cargar el progreso de clase.",
     teacherCloudStudents: "Estudiantes",
     teacherLastActivity: "Última actividad",
+    teacherHistory: "Historial",
+    teacherNoHistory: "Sin historial de intentos.",
+    teacherWeakness: "A reforzar",
+    teacherRecommendation: "Recomendación",
     teacherSolved: "Misiones resueltas",
     teacherAttempts: "Intentos",
     teacherAccuracy: "Precisión",
@@ -216,6 +224,9 @@ const ui = {
     compilerSuccess: "Echte Kompilierung akzeptiert",
     compilerError: "javac hat Fehler gefunden",
     compilerHint: "Kompilierung über PHP; aus Sicherheitsgründen wird das Programm nicht ausgeführt.",
+    runnerSuccess: "Echte Ausführung abgeschlossen",
+    runnerError: "Das Programm wurde kompiliert, ist aber beim Ausführen fehlgeschlagen",
+    pedagogicError: "Die Ausgabe zeigt das Lernziel noch nicht ausreichend",
     teacherToggle: "Lehrkräfte-Panel",
     teacherTitle: "Lehrkräfte-Panel",
     teacherIntro: "Lokale Übersicht und, mit Lehrkraft-Konto, zentraler Klassenfortschritt.",
@@ -225,6 +236,10 @@ const ui = {
     teacherCloudError: "Klassenfortschritt konnte nicht geladen werden.",
     teacherCloudStudents: "Lernende",
     teacherLastActivity: "Letzte Aktivität",
+    teacherHistory: "Verlauf",
+    teacherNoHistory: "Noch kein Versuchsverlauf.",
+    teacherWeakness: "Zu üben",
+    teacherRecommendation: "Empfehlung",
     teacherSolved: "Gelöste Missionen",
     teacherAttempts: "Versuche",
     teacherAccuracy: "Trefferquote",
@@ -1713,6 +1728,27 @@ async function syncCloudProgress() {
   }
 }
 
+async function recordAttemptEvent(mission, payload = {}) {
+  if (!cloudSession.user || !cloudSession.csrf) return;
+  try {
+    await cloudRequest(ATTEMPT_API_URL, {
+      method: "POST",
+      headers: { "X-CSRF-Token": cloudSession.csrf },
+      body: JSON.stringify({
+        missionId: mission.id,
+        phase: payload.phase || "local",
+        passed: Boolean(payload.passed),
+        feedback: payload.feedback || "",
+        diagnosticsCount: Number(payload.diagnosticsCount || 0),
+        durationMs: Number(payload.durationMs || 0),
+        answerExcerpt: String(payload.answer || "").slice(0, 800),
+      }),
+    });
+  } catch {
+    // El historial es útil para docentes, pero nunca debe bloquear la práctica.
+  }
+}
+
 function mergeCloudProgress(progress) {
   if (!Array.isArray(progress)) return;
   progress.forEach((row) => {
@@ -1799,6 +1835,13 @@ async function loadClassProgress(classId) {
     cloudSession.classProgressError = error.message || t("teacherCloudError");
   }
   renderTeacherCloudProgress();
+}
+
+async function loadStudentAttemptHistory(studentId) {
+  const classId = elements.classSelect?.value || "";
+  if (!cloudSession.user || !classId || !studentId) return [];
+  const result = await cloudRequest(`api/attempts.php?action=student&classId=${encodeURIComponent(classId)}&studentId=${encodeURIComponent(studentId)}`);
+  return Array.isArray(result.attempts) ? result.attempts : [];
 }
 
 async function initCloud() {
@@ -2177,8 +2220,11 @@ function renderTeacherCloudProgress(loading = false) {
     const attempts = Number(student.attempts || 0);
     const solved = Number(student.solved || 0);
     const accuracy = attempts ? Math.round((Number(student.correct_attempts || 0) / attempts) * 100) : 0;
+    const weakest = student.weakest_mission ? missionLabel(student.weakest_mission) : "—";
+    const recommendation = recommendationForStudent(student);
     const card = document.createElement("article");
     card.className = "teacher-student-card";
+    card.dataset.studentId = String(student.id);
     card.innerHTML = `
       <strong></strong>
       <span></span>
@@ -2187,14 +2233,36 @@ function renderTeacherCloudProgress(loading = false) {
         <div><dt>${t("teacherAttempts")}</dt><dd>${attempts}</dd></div>
         <div><dt>${t("teacherAccuracy")}</dt><dd>${accuracy}%</dd></div>
       </dl>
+      <p class="teacher-recommendation"><b>${t("teacherWeakness")}:</b> <span data-weakest></span><br><b>${t("teacherRecommendation")}:</b> <span data-recommendation></span></p>
+      <button class="button button-text button-compact" type="button" data-student-history>${t("teacherHistory")}</button>
+      <ol class="student-history" hidden></ol>
       <small></small>
     `;
     card.querySelector("strong").textContent = student.name || student.email || `#${student.id}`;
     card.querySelector("span").textContent = student.email || "";
+    card.querySelector("[data-weakest]").textContent = weakest;
+    card.querySelector("[data-recommendation]").textContent = recommendation;
     card.querySelector("small").textContent = `${t("teacherLastActivity")}: ${student.last_activity || "—"}`;
     grid.append(card);
   });
   elements.teacherCloudProgress.append(title, grid);
+}
+
+function missionLabel(missionId) {
+  const mission = missions.find((item) => item.id === missionId);
+  return mission ? `${mission.stage} · ${getMissionText(mission).short}` : missionId;
+}
+
+function recommendationForStudent(student) {
+  const attempts = Number(student.attempts || 0);
+  const solved = Number(student.solved || 0);
+  const failed = Number(student.failed_attempts || 0);
+  const accuracy = attempts ? Number(student.correct_attempts || 0) / attempts : 0;
+  if (!attempts) return state.language === "es" ? "Empezar con EF y exigir explicación verbal." : "Mit EF starten und eine mündliche Erklärung verlangen.";
+  if (failed >= 3 && student.weakest_mission) return state.language === "es" ? `Repetir ${missionLabel(student.weakest_mission)} sin solución y con casos de prueba.` : `${missionLabel(student.weakest_mission)} ohne Lösung und mit Testfällen wiederholen.`;
+  if (accuracy < 0.4) return state.language === "es" ? "Trabajar trazas manuales antes de volver a escribir código." : "Vor dem weiteren Coden manuelle Traces üben.";
+  if (solved < missions.length / 3) return state.language === "es" ? "Consolidar fundamentos antes de avanzar a Q1/Q2." : "Grundlagen sichern, bevor Q1/Q2 vertieft wird.";
+  return state.language === "es" ? "Subir dificultad: menos pistas y más justificación." : "Schwierigkeit erhöhen: weniger Hinweise, mehr Begründung.";
 }
 
 function buildTeacherExport() {
@@ -2311,11 +2379,12 @@ async function compileWithBackend(mission, answer) {
   const source = [mission.contextBefore, answer, mission.contextAfter].filter(Boolean).join("\n");
   const mode = detectCompileMode(source);
   const answerStartLine = mission.contextBefore ? mission.contextBefore.split("\n").length + 1 : 1;
+  const shouldRun = mode !== "member" && Boolean(window.JavaWerkstattEvaluators?.rules?.[mission.id]?.run);
   try {
     const response = await fetch(COMPILER_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ source, fileName: mission.file, mode, answerStartLine }),
+      body: JSON.stringify({ source, fileName: mission.file, mode, answerStartLine, run: shouldRun }),
     });
     const payload = await response.json();
     if (!response.ok && response.status !== 408) return { available: false };
@@ -2335,10 +2404,14 @@ async function compileWithBackend(mission, answer) {
 function renderRealCompilerResult(mission, result) {
   if (!result.available) return;
   const header = `> javac ${mission.file} [${result.mode || "source"}]`;
+  const runHeader = result.phase === "run" ? `\n> java ${mission.file.replace(/\.java$/, "")} [${result.sandbox || "jvm"}]` : "";
+  const successText = result.phase === "run" ? t("runnerSuccess") : t("compilerSuccess");
+  const errorText = result.phase === "run" ? t("runnerError") : t("compilerError");
+  const stream = [result.stdout ? `stdout:\n${result.stdout}` : "", result.stderr ? `stderr:\n${result.stderr}` : ""].filter(Boolean).join("\n");
   const output = result.ok
-    ? `${header}\n✓ ${t("compilerSuccess")} · ${result.durationMs || 0} ms\n✓ ${getMissionText(mission).title}\n\n${t("compilerHint")}`
-    : `${header}\n✕ ${t("compilerError")}\n${(result.diagnostics || []).map((item) => `L${item.line} [${item.severity.toUpperCase()}] ${item.message}`).join("\n") || result.rawOutput || result.error}\n\n${t("compilerHint")}`;
-  setConsole(result.ok ? t("compilerSuccess") : t("compilerError"), output);
+    ? `${header}${runHeader}\n✓ ${successText} · ${result.durationMs || 0} ms\n${stream ? `${stream}\n` : ""}✓ ${getMissionText(mission).title}\n\n${t("compilerHint")}`
+    : `${header}${runHeader}\n✕ ${errorText}\n${(result.diagnostics || []).map((item) => `L${item.line} [${item.severity.toUpperCase()}] ${item.message}`).join("\n") || stream || result.rawOutput || result.error}\n\n${t("compilerHint")}`;
+  setConsole(result.ok ? successText : errorText, output);
 }
 
 function showSuccess(wasAlreadySolved = false) {
@@ -2365,6 +2438,7 @@ async function checkAnswer() {
   if (!clean(answer)) {
     showFeedback("error", t("emptyTitle"), t("emptyMessage"));
     renderConsoleResult(mission, answer, t("emptyMessage"));
+    recordAttemptEvent(mission, { phase: "local", passed: false, feedback: t("emptyMessage"), answer });
     saveState();
     return;
   }
@@ -2375,9 +2449,25 @@ async function checkAnswer() {
     renderRealCompilerResult(mission, compiler);
     if (!compiler.ok) {
       const firstDiagnostic = compiler.diagnostics?.[0];
-      showFeedback("error", t("compilerError"), firstDiagnostic
+      const message = firstDiagnostic
         ? `Línea ${firstDiagnostic.line}: ${firstDiagnostic.message}`
-        : compiler.error || t("consoleError"));
+        : compiler.error || t("consoleError");
+      showFeedback("error", compiler.phase === "run" ? t("runnerError") : t("compilerError"), message);
+      recordAttemptEvent(mission, {
+        phase: compiler.phase || "compile",
+        passed: false,
+        feedback: message,
+        diagnosticsCount: compiler.diagnostics?.length || 0,
+        durationMs: compiler.durationMs || 0,
+        answer,
+      });
+      saveState();
+      return;
+    }
+    const pedagogic = window.JavaWerkstattEvaluators?.evaluate?.(mission.id, compiler, state.language);
+    if (pedagogic && !pedagogic.passed) {
+      showFeedback("error", t("pedagogicError"), pedagogic.message);
+      recordAttemptEvent(mission, { phase: "pedagogic", passed: false, feedback: pedagogic.message, durationMs: compiler.durationMs || 0, answer });
       saveState();
       return;
     }
@@ -2392,6 +2482,7 @@ async function checkAnswer() {
   if (structuralError) {
     showFeedback("error", t("errorTitle"), structuralError);
     renderConsoleResult(mission, answer, structuralError);
+    recordAttemptEvent(mission, { phase: "local", passed: false, feedback: structuralError, diagnosticsCount: analyzeCode(answer).length, answer });
     saveState();
     return;
   }
@@ -2411,6 +2502,7 @@ async function checkAnswer() {
     113.1 - (113.1 * state.solved.length) / missions.length,
   );
   showSuccess(alreadySolved);
+  recordAttemptEvent(mission, { phase: compiler.available ? (compiler.phase || "compile") : "local", passed: true, feedback: getMissionText(mission).title, durationMs: compiler.durationMs || 0, answer });
   if (!compiler.available) renderConsoleResult(mission, answer);
   renderProgress();
 }
@@ -3117,6 +3209,44 @@ elements.classSelect?.addEventListener("change", (event) => {
 });
 elements.teacherExport?.addEventListener("click", exportTeacherCsv);
 elements.teacherExportJson?.addEventListener("click", exportTeacherJson);
+elements.teacherCloudProgress?.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-student-history]");
+  if (!button) return;
+  const card = button.closest(".teacher-student-card");
+  const list = card?.querySelector(".student-history");
+  const studentId = card?.dataset.studentId;
+  if (!card || !list || !studentId) return;
+  if (!list.hidden) {
+    list.hidden = true;
+    return;
+  }
+  list.hidden = false;
+  list.replaceChildren();
+  const loading = document.createElement("li");
+  loading.textContent = t("teacherCloudLoading");
+  list.append(loading);
+  try {
+    const attempts = await loadStudentAttemptHistory(studentId);
+    list.replaceChildren();
+    if (!attempts.length) {
+      const empty = document.createElement("li");
+      empty.textContent = t("teacherNoHistory");
+      list.append(empty);
+      return;
+    }
+    attempts.slice(0, 12).forEach((attempt) => {
+      const item = document.createElement("li");
+      item.className = attempt.passed === "1" || attempt.passed === 1 ? "attempt-pass" : "attempt-fail";
+      item.textContent = `${attempt.created_at} · ${missionLabel(attempt.mission_id)} · ${attempt.phase} · ${attempt.feedback || "—"}`;
+      list.append(item);
+    });
+  } catch (error) {
+    list.replaceChildren();
+    const item = document.createElement("li");
+    item.textContent = error.message || t("teacherCloudError");
+    list.append(item);
+  }
+});
 
 elements.authToggle?.addEventListener("click", () => {
   const open = elements.authPanel.hidden;

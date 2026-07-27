@@ -10,5 +10,9 @@ return [
     'session_secure' => false,
     'compiler' => [
         'javac' => 'javac',
+        'java' => 'java',
+        // jvm = ejecución local con timeout/Xmx; docker = contenedor sin red si PHP puede ejecutar Docker.
+        'sandbox' => 'jvm',
+        'docker_image' => 'eclipse-temurin:21-jre',
     ],
 ];

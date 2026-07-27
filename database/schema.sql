@@ -41,3 +41,20 @@ CREATE TABLE IF NOT EXISTS progress (
     PRIMARY KEY (user_id, mission_id),
     CONSTRAINT fk_progress_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS attempt_events (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    mission_id VARCHAR(80) NOT NULL,
+    phase ENUM('local', 'compile', 'run', 'pedagogic') NOT NULL DEFAULT 'local',
+    passed TINYINT(1) NOT NULL DEFAULT 0,
+    feedback VARCHAR(500) NOT NULL DEFAULT '',
+    diagnostics_count SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    duration_ms INT UNSIGNED NOT NULL DEFAULT 0,
+    answer_excerpt VARCHAR(800) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_attempt_user_created (user_id, created_at),
+    INDEX idx_attempt_mission (mission_id),
+    CONSTRAINT fk_attempt_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
