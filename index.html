@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=14" />
+    <link rel="stylesheet" href="styles.css?v=15" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -69,6 +69,36 @@
         </section>
       </div>
     </header>
+
+    <section class="learning-command" aria-labelledby="commandTitle">
+      <div class="command-copy">
+        <p class="eyebrow" data-i18n="commandLabel">Mesa de trabajo</p>
+        <h2 id="commandTitle" data-i18n="commandTitle">Tu próxima decisión está clara</h2>
+        <p id="commandNarrative"></p>
+      </div>
+      <div class="command-grid" aria-label="Resumen de aprendizaje">
+        <article class="command-card command-card-primary">
+          <span data-i18n="commandNextLabel">Siguiente misión</span>
+          <strong id="commandNextMission">—</strong>
+          <small id="commandNextMeta">—</small>
+          <button id="commandContinueButton" class="button button-primary button-compact" type="button">
+            <span data-i18n="commandContinue">Abrir misión</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </article>
+        <article class="command-card">
+          <span data-i18n="commandProgressLabel">Progreso</span>
+          <strong id="commandProgress">0%</strong>
+          <small id="commandProgressMeta">0/49</small>
+        </article>
+        <article class="command-card">
+          <span data-i18n="commandProjectLabel">Proyecto activo</span>
+          <strong id="commandProjectName">—</strong>
+          <small id="commandProjectMeta">—</small>
+        </article>
+      </div>
+      <div id="projectGallery" class="project-gallery" aria-label="Proyectos disponibles"></div>
+    </section>
 
     <main id="workspace" class="workspace">
       <aside id="missionRail" class="mission-rail" aria-label="Ruta de aprendizaje">
@@ -422,6 +452,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=14"></script>
+    <script src="game.js?v=15"></script>
   </body>
 </html>

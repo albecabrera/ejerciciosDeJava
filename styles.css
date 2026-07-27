@@ -338,6 +338,126 @@ a:focus-visible {
   font-size: 1rem;
 }
 
+.learning-command {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.6fr);
+  gap: clamp(1rem, 2vw, 1.6rem);
+  padding: clamp(1rem, 2.3vw, 2rem) clamp(1rem, 4vw, 4rem);
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--copper-soft) 72%, transparent), transparent 30%),
+    linear-gradient(135deg, color-mix(in srgb, var(--panel) 92%, transparent), color-mix(in srgb, var(--paper) 84%, transparent));
+}
+
+.command-copy {
+  align-self: center;
+}
+
+.command-copy h2 {
+  max-width: 12ch;
+  margin: 0;
+  color: var(--java-deep);
+  font-size: clamp(1.7rem, 3.3vw, 3.7rem);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.command-copy p:not(.eyebrow) {
+  max-width: 36rem;
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.command-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) repeat(2, minmax(150px, 0.8fr));
+  gap: 0.8rem;
+}
+
+.command-card,
+.project-gallery-card {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--panel) 98%, transparent), color-mix(in srgb, var(--panel-soft) 92%, transparent));
+  box-shadow: var(--shadow-soft);
+}
+
+.command-card {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  padding: 1rem;
+}
+
+.command-card-primary {
+  border-color: color-mix(in srgb, var(--java-blue) 42%, var(--line));
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--java-deep) 10%, var(--panel)), var(--panel));
+}
+
+.command-card span,
+.project-gallery-card span {
+  color: var(--copper);
+  font: 900 0.64rem var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.command-card strong,
+.project-gallery-card strong {
+  min-width: 0;
+  color: var(--java-deep);
+  font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+  line-height: 1.08;
+}
+
+.command-card small,
+.project-gallery-card small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.command-card .button {
+  justify-self: start;
+  margin-top: 0.35rem;
+}
+
+.project-gallery {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.project-gallery-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+.project-gallery-card.is-active {
+  border-color: color-mix(in srgb, var(--copper) 58%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--copper) 24%, transparent), var(--shadow-soft);
+}
+
+.project-gallery-card div {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.project-gallery-card .button {
+  min-height: 34px;
+  justify-content: center;
+}
+
 .workspace {
   width: min(1440px, 100%);
   min-height: calc(100vh - 82px);
@@ -1593,6 +1713,23 @@ kbd {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .learning-command {
+    grid-template-columns: 1fr;
+  }
+
+  .command-copy h2 {
+    max-width: 16ch;
+  }
+
+  .command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-gallery {
+    grid-column: 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .workspace,
   .workspace.is-sidebar-collapsed {
     grid-template-columns: 1fr;
@@ -1637,6 +1774,19 @@ kbd {
   .xp-display span,
   .theme-toggle span:not(.theme-toggle-icon) {
     display: none;
+  }
+
+  .learning-command {
+    padding: 1rem 0.85rem;
+  }
+
+  .command-copy h2 {
+    max-width: none;
+    font-size: clamp(1.65rem, 11vw, 2.7rem);
+  }
+
+  .project-gallery {
+    grid-template-columns: 1fr;
   }
 
 

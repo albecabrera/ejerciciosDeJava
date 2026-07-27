@@ -81,10 +81,21 @@ test.beforeEach(async ({ page }) => {
 
 test("renders the curriculum and teacher panel", async ({ page }) => {
   await expect(page.locator("#missionList button")).toHaveCount(49);
+  await expect(page.locator("#projectGallery .project-gallery-card")).toHaveCount(5);
   await page.getByRole("button", { name: /panel docente|lehrkräfte-panel/i }).click();
   await expect(page.locator("#teacherPanel")).toBeVisible();
   await expect(page.locator("#teacherStats .teacher-stat")).toHaveCount(4);
   await expect(page.locator("#teacherCloudProgress")).toContainText(/clase|klasse/i);
+});
+
+test("shows a premium command center with project shortcuts", async ({ page }) => {
+  await expect(page.locator("#commandTitle")).toContainText(/próxima decisión|nächste entscheidung/i);
+  await expect(page.locator("#commandNextMission")).toContainText(/variables|variablen/i);
+  await expect(page.locator("#commandProgress")).toHaveText("0%");
+  await expect(page.locator("#commandProjectName")).toContainText(/mensa/i);
+  await page.locator('#projectGallery button[data-project-id="snake-arena"]').click();
+  await expect(page.locator("#projectSelect")).toHaveValue("snake-arena");
+  await expect(page.locator("#commandProjectName")).toContainText(/snake/i);
 });
 
 test("allows free practice and closes pairs in the editor", async ({ page }) => {

@@ -33,6 +33,17 @@ const ui = {
     courseLabel: "Ruta práctica",
     courseTitle: "Java desde los cimientos",
     courseIntro: "49 misiones y 5 proyectos de EF a Q2. Escribís, compilás y construís productos reales.",
+    commandLabel: "Mesa de trabajo",
+    commandTitle: "Tu próxima decisión está clara",
+    commandNextLabel: "Siguiente misión",
+    commandContinue: "Abrir misión",
+    commandProgressLabel: "Progreso",
+    commandProjectLabel: "Proyecto activo",
+    commandNarrative: "No adivines por dónde seguir: el tablero une misión, proyecto y evidencia en una ruta visible.",
+    commandComplete: "Ruta completa",
+    commandMissionsSolved: "{solved}/{total} misiones resueltas",
+    commandProjectProgress: "{solved}/{total} pasos",
+    commandOpenProject: "Abrir proyecto",
     freePractice: "Practicar cualquier misión",
     freePracticeOn: "Modo libre activo",
     projectNavigatorLabel: "Proyecto actual",
@@ -224,6 +235,17 @@ const ui = {
     courseLabel: "Praxispfad",
     courseTitle: "Java vom Fundament an",
     courseIntro: "49 Missionen und 5 Projekte von EF bis Q2. Du schreibst, kompilierst und baust echte Produkte.",
+    commandLabel: "Werkbank",
+    commandTitle: "Deine nächste Entscheidung ist klar",
+    commandNextLabel: "Nächste Mission",
+    commandContinue: "Mission öffnen",
+    commandProgressLabel: "Fortschritt",
+    commandProjectLabel: "Aktives Projekt",
+    commandNarrative: "Rätsle nicht über den nächsten Schritt: Das Dashboard verbindet Mission, Projekt und Nachweis in einem sichtbaren Pfad.",
+    commandComplete: "Route abgeschlossen",
+    commandMissionsSolved: "{solved}/{total} Missionen gelöst",
+    commandProjectProgress: "{solved}/{total} Schritte",
+    commandOpenProject: "Projekt öffnen",
     freePractice: "Jede Mission frei üben",
     freePracticeOn: "Freier Modus aktiv",
     projectNavigatorLabel: "Aktuelles Projekt",
@@ -1918,6 +1940,15 @@ const elements = {
   projectDeliverable: document.querySelector("#projectDeliverable"),
   projectSteps: document.querySelector("#projectSteps"),
   projectContinueButton: document.querySelector("#projectContinueButton"),
+  commandNarrative: document.querySelector("#commandNarrative"),
+  commandNextMission: document.querySelector("#commandNextMission"),
+  commandNextMeta: document.querySelector("#commandNextMeta"),
+  commandContinueButton: document.querySelector("#commandContinueButton"),
+  commandProgress: document.querySelector("#commandProgress"),
+  commandProgressMeta: document.querySelector("#commandProgressMeta"),
+  commandProjectName: document.querySelector("#commandProjectName"),
+  commandProjectMeta: document.querySelector("#commandProjectMeta"),
+  projectGallery: document.querySelector("#projectGallery"),
   projectContextName: document.querySelector("#projectContextName"),
   projectStep: document.querySelector("#projectStep"),
   projectContextDeliverable: document.querySelector("#projectContextDeliverable"),
@@ -2700,6 +2731,65 @@ function renderProjectNavigator() {
   }
 }
 
+function renderCommandCenter() {
+  if (!elements.commandNextMission || !elements.projectGallery) return;
+  const solved = new Set(state.solved);
+  const currentMission = missions[state.current];
+  const nextMission = missions.find((mission, index) => !solved.has(mission.id) && isUnlocked(index))
+    || missions.find((mission) => !solved.has(mission.id))
+    || currentMission;
+  const currentProject = projectById(state.selectedProject);
+  const currentRoute = projectMissions(currentProject.id);
+  const currentProjectSolved = currentRoute.filter((mission) => solved.has(mission.id)).length;
+  const percentage = missions.length ? Math.round((state.solved.length / missions.length) * 100) : 0;
+
+  elements.commandNarrative.textContent = t("commandNarrative");
+  elements.commandNextMission.textContent = nextMission ? getMissionText(nextMission).short : t("commandComplete");
+  elements.commandNextMeta.textContent = nextMission
+    ? `${nextMission.stage} · ${t("mission")} ${String(missions.indexOf(nextMission) + 1).padStart(2, "0")} · +${nextMission.xp} XP`
+    : t("commandComplete");
+  elements.commandContinueButton.disabled = !nextMission;
+  elements.commandContinueButton.dataset.missionId = nextMission?.id || "";
+  elements.commandProgress.textContent = `${percentage}%`;
+  elements.commandProgressMeta.textContent = interpolate(t("commandMissionsSolved"), {
+    solved: state.solved.length,
+    total: missions.length,
+  });
+  elements.commandProjectName.textContent = currentProject.text[state.language].name;
+  elements.commandProjectMeta.textContent = interpolate(t("commandProjectProgress"), {
+    solved: currentProjectSolved,
+    total: currentRoute.length,
+  });
+
+  elements.projectGallery.replaceChildren(...PROJECTS.map((project) => {
+    const route = projectMissions(project.id);
+    const projectSolved = route.filter((mission) => solved.has(mission.id)).length;
+    const nextProjectMission = route.find((mission) => !solved.has(mission.id) && isUnlocked(missions.indexOf(mission)))
+      || (state.freePractice ? route.find((mission) => !solved.has(mission.id)) : null)
+      || route.find((mission) => mission.id === project.checkpointId)
+      || route[0];
+    const card = document.createElement("article");
+    card.className = "project-gallery-card";
+    if (project.id === currentProject.id) card.classList.add("is-active");
+    card.innerHTML = `
+      <div>
+        <span>${project.stage}</span>
+        <strong></strong>
+        <small></small>
+      </div>
+      <button class="button button-text button-compact" type="button" data-project-id="${project.id}" data-mission-id="${nextProjectMission?.id || ""}">
+        ${t("commandOpenProject")}
+      </button>
+    `;
+    card.querySelector("strong").textContent = project.text[state.language].name;
+    card.querySelector("small").textContent = interpolate(t("commandProjectProgress"), {
+      solved: projectSolved,
+      total: route.length,
+    });
+    return card;
+  }));
+}
+
 function renderProjectContext(mission) {
   const project = projectById(mission.projectId);
   const route = projectMissions(project.id);
@@ -3060,6 +3150,7 @@ function renderMission(options = {}) {
   elements.prompt.textContent = text.prompt;
   elements.concept.textContent = text.concept;
   renderProjectContext(mission);
+  renderCommandCenter();
   renderDocumentation(mission);
   elements.fileName.textContent = mission.file;
   elements.codeBefore.textContent = mission.contextBefore;
@@ -4000,6 +4091,25 @@ elements.projectContinueButton?.addEventListener("click", () => {
   const missionId = elements.projectContinueButton.dataset.missionId;
   const index = missions.findIndex((mission) => mission.id === missionId);
   if (index >= 0) selectMission(index, { focusHeading: true });
+});
+
+elements.commandContinueButton?.addEventListener("click", () => {
+  const missionId = elements.commandContinueButton.dataset.missionId;
+  const index = missions.findIndex((mission) => mission.id === missionId);
+  if (index >= 0) selectMission(index, { focusHeading: true });
+});
+
+elements.projectGallery?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-project-id]");
+  if (!button) return;
+  state.selectedProject = button.dataset.projectId;
+  const index = missions.findIndex((mission) => mission.id === button.dataset.missionId);
+  if (index >= 0 && isUnlocked(index)) {
+    selectMission(index, { focusHeading: true });
+  } else {
+    saveState();
+    renderMission({ silent: true });
+  }
 });
 
 document.querySelectorAll(".language-button").forEach((button) => {
