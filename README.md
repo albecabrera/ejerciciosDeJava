@@ -60,10 +60,10 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Temas claro/oscuro, diseño responsive, navegación por teclado y respeto por `prefers-reduced-motion`.
 - **Modo de práctica libre:** podés abrir cualquier misión sin resolver la anterior; el recorrido secuencial sigue disponible como modo guiado.
 - Autocierre de `""`, `''`, `()`, `[]` y `{}` con el cursor dentro; si el cierre ya existe, el editor lo salta.
-- Consola educativa dentro del IDE: F5 muestra el comando, diagnósticos por línea y un resultado simulado sin fingir que ejecuta `javac`.
+- Consola educativa dentro del IDE: F5 muestra comandos reales, diagnósticos por línea y salida stdout/stderr solo si el programa imprime con `System.out.print(...)`, `System.out.println(...)` o `System.out.printf(...)`.
 - Documentación contextual visible por misión, con enlaces directos a `dev.java` y Oracle Java Tutorials/API.
 - Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
-- **Compilación y ejecución real opcional:** al pulsar F5, `api/compile.php` compila con `javac` y, en misiones ejecutables, corre `java` con timeout, salida recortada y memoria JVM limitada. Si configurás sandbox Docker, ejecuta con red desactivada y límites CPU/RAM/PID.
+- **Compilación y ejecución real opcional:** al pulsar F5, `api/compile.php` compila con `javac` y ejecuta con `java` cuando la misión lo exige o cuando el código contiene una impresión de consola. La salida se recorta y corre con timeout/límites; con sandbox Docker/worker se ejecuta sin red y con límites CPU/RAM/PID.
 - **Panel docente local y centralizado:** resumen de misiones, intentos, precisión, pendientes, vista por alumno, historial de intentos, recomendación automática y exportación CSV/JSON.
 - **Cuentas y clases centralizadas:** estudiantes y docentes con sesiones PHP, clases con código de acceso y progreso sincronizado por usuario en MySQL con métricas monotónicas para evitar regresiones accidentales.
 
@@ -108,7 +108,7 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
 - `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre, autocierre de pares, ejecución Java y progreso docente.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
-- Con PHP activo, F5 usa `javac` real; sin PHP, la consola vuelve a la validación local y lo comunica.
+- Con PHP activo, F5 usa `javac` real y ejecuta solo cuando hay salida esperable; sin `System.out.print/println/printf` la consola avisa que no hay resultado visible. Sin PHP, vuelve a validación local y lo comunica.
 - `localStorage`: progreso y preferencias. La carga filtra IDs desconocidos y completa campos nuevos con valores seguros.
 
 `localStorage` queda como caché offline y fallback; con una sesión activa, `api/progress.php` sincroniza las respuestas con MySQL. El registro público siempre crea estudiantes: los docentes se crean por CLI o por un flujo administrativo.

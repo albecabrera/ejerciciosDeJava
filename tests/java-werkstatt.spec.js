@@ -34,6 +34,15 @@ test("compiles a valid snippet through the PHP endpoint", async ({ request }) =>
   expect(body.phase).toBe("compile");
 });
 
+
+test("shows real stdout in the simulated editor console after F5", async ({ page }) => {
+  await page.locator("#editor").fill('String name = "Mara";\nint age = 27;');
+  await page.keyboard.press("F5");
+  await expect(page.locator("#consoleOutput")).toContainText("stdout:");
+  await expect(page.locator("#consoleOutput")).toContainText("Mara");
+  await expect(page.locator("#consoleOutput")).toContainText("27");
+});
+
 test("reports a real javac diagnostic with line information", async ({ request }) => {
   const response = await request.post("/api/compile.php", {
     data: { source: "int total = ;", fileName: "Test.java", mode: "snippet" },

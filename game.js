@@ -57,16 +57,18 @@ const ui = {
     consoleTitle: "Consola del editor",
     consoleReady: "Lista para F5",
     consoleChecking: "Comprobando estructura…",
-    consoleSuccess: "Estructura aceptada · salida simulada",
+    consoleSuccess: "Estructura aceptada",
     consoleError: "Hay errores · revisá los diagnósticos",
-    consolePlaceholder: "La salida de F5 aparecerá acá.",
-    consoleHint: "Salida educativa simulada: esta app no ejecuta javac en el navegador.",
+    consolePlaceholder: "La salida de F5 aparecerá acá. Para ver resultado real, imprimí con System.out.println(...).",
+    consoleHint: "Para que aparezca salida, el programa tiene que imprimir con System.out.print(...) o System.out.println(...).",
+    consoleNoStdout: "El programa se ejecutó, pero no imprimió nada en stdout.",
+    consolePrintRequired: "Sin salida visible: agregá System.out.println(...) para ver el resultado en consola.",
     compilerOnline: "Compilador PHP conectado",
     compilerOffline: "Compilador PHP no disponible · modo local",
     compilerConnecting: "Conectando con javac…",
     compilerSuccess: "Compilación real aceptada",
     compilerError: "javac encontró errores",
-    compilerHint: "Compilación realizada en PHP; por seguridad, la app no ejecuta el programa.",
+    compilerHint: "Compilación y ejecución aisladas en backend; la consola muestra solo lo que tu código imprime.",
     runnerSuccess: "Ejecución real completada",
     runnerError: "El programa compiló, pero falló al ejecutarse",
     pedagogicError: "La salida no demuestra todavía el objetivo de la misión",
@@ -214,16 +216,18 @@ const ui = {
     consoleTitle: "Editor-Konsole",
     consoleReady: "Bereit für F5",
     consoleChecking: "Struktur wird geprüft…",
-    consoleSuccess: "Struktur akzeptiert · simulierte Ausgabe",
+    consoleSuccess: "Struktur akzeptiert",
     consoleError: "Fehler gefunden · Diagnosen prüfen",
-    consolePlaceholder: "Die F5-Ausgabe erscheint hier.",
-    consoleHint: "Lehrreiche simulierte Ausgabe: Diese App führt javac nicht im Browser aus.",
+    consolePlaceholder: "Die F5-Ausgabe erscheint hier. Für ein echtes Ergebnis gib mit System.out.println(...) aus.",
+    consoleHint: "Damit eine Ausgabe erscheint, muss das Programm mit System.out.print(...) oder System.out.println(...) ausgeben.",
+    consoleNoStdout: "Das Programm wurde ausgeführt, hat aber nichts nach stdout ausgegeben.",
+    consolePrintRequired: "Keine sichtbare Ausgabe: Ergänze System.out.println(...), um das Ergebnis in der Konsole zu sehen.",
     compilerOnline: "PHP-Compiler verbunden",
     compilerOffline: "PHP-Compiler nicht verfügbar · lokaler Modus",
     compilerConnecting: "Verbindung zu javac…",
     compilerSuccess: "Echte Kompilierung akzeptiert",
     compilerError: "javac hat Fehler gefunden",
-    compilerHint: "Kompilierung über PHP; aus Sicherheitsgründen wird das Programm nicht ausgeführt.",
+    compilerHint: "Kompilierung und Ausführung laufen isoliert im Backend; die Konsole zeigt nur, was dein Code ausgibt.",
     runnerSuccess: "Echte Ausführung abgeschlossen",
     runnerError: "Das Programm wurde kompiliert, ist aber beim Ausführen fehlgeschlagen",
     pedagogicError: "Die Ausgabe zeigt das Lernziel noch nicht ausreichend",
@@ -491,7 +495,7 @@ function stripComments(code) {
 }
 
 function clean(code) {
-  return maskJava(stripComments(code)).masked.replace(/\s+/g, " ").trim();
+  return stripComments(code).replace(/\s+/g, " ").trim();
 }
 
 function hasBalancedPairs(code, open, close) {
@@ -2374,12 +2378,17 @@ function detectCompileMode(source) {
   return "snippet";
 }
 
+function hasConsolePrint(source) {
+  return /\bSystem\s*\.\s*out\s*\.\s*print(?:ln|f)?\s*\(/.test(maskJava(source).masked);
+}
+
 async function compileWithBackend(mission, answer) {
   if (!window.fetch) return { available: false };
   const source = [mission.contextBefore, answer, mission.contextAfter].filter(Boolean).join("\n");
   const mode = detectCompileMode(source);
   const answerStartLine = mission.contextBefore ? mission.contextBefore.split("\n").length + 1 : 1;
-  const shouldRun = mode !== "member" && Boolean(window.JavaWerkstattEvaluators?.rules?.[mission.id]?.run);
+  const requiresRun = Boolean(window.JavaWerkstattEvaluators?.rules?.[mission.id]?.run);
+  const shouldRun = mode !== "member" && (requiresRun || hasConsolePrint(source));
   try {
     const response = await fetch(COMPILER_API_URL, {
       method: "POST",
@@ -2408,8 +2417,11 @@ function renderRealCompilerResult(mission, result) {
   const successText = result.phase === "run" ? t("runnerSuccess") : t("compilerSuccess");
   const errorText = result.phase === "run" ? t("runnerError") : t("compilerError");
   const stream = [result.stdout ? `stdout:\n${result.stdout}` : "", result.stderr ? `stderr:\n${result.stderr}` : ""].filter(Boolean).join("\n");
+  const visibleOutput = result.phase === "run"
+    ? (stream || `stdout:\n${t("consoleNoStdout")}`)
+    : t("consolePrintRequired");
   const output = result.ok
-    ? `${header}${runHeader}\n✓ ${successText} · ${result.durationMs || 0} ms\n${stream ? `${stream}\n` : ""}✓ ${getMissionText(mission).title}\n\n${t("compilerHint")}`
+    ? `${header}${runHeader}\n✓ ${successText} · ${result.durationMs || 0} ms\n${visibleOutput}\n✓ ${getMissionText(mission).title}\n\n${t("compilerHint")}`
     : `${header}${runHeader}\n✕ ${errorText}\n${(result.diagnostics || []).map((item) => `L${item.line} [${item.severity.toUpperCase()}] ${item.message}`).join("\n") || stream || result.rawOutput || result.error}\n\n${t("compilerHint")}`;
   setConsole(result.ok ? successText : errorText, output);
 }
