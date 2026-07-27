@@ -1,5 +1,5 @@
-const STORAGE_KEY = "java-werkstatt-state-v2";
-const LEGACY_STORAGE_KEYS = ["java-werkstatt-state", "javaWerkstattState"];
+const STORAGE_KEY = "java-werkstatt-state-v3";
+const LEGACY_STORAGE_KEYS = ["java-werkstatt-state-v2", "java-werkstatt-state", "javaWerkstattState"];
 const THEME_STORAGE_KEY = "java-werkstatt-theme";
 const EDITOR_PREFS_STORAGE_KEY = "java-werkstatt-editor-prefs";
 const BASE_XP = 30;
@@ -7,6 +7,14 @@ const HINT_COST = 5;
 const SOLUTION_COST = 15;
 const COMPILER_API_URL = "api/compile.php";
 const ATTEMPT_API_URL = "api/attempts.php";
+const HISTORICAL_MISSION_IDS_V2 = [
+  "types", "condition", "loop", "method", "arrays", "class", "list", "debug",
+  "strings", "while-input", "uml-model", "tests-thinking",
+  "inheritance", "polymorphism", "stack", "queue", "linked-list", "recursion",
+  "linear-search", "binary-search", "insertion-sort", "efficiency", "bst", "graph-bfs",
+  "dfa", "grammar", "parser", "sql", "normalization", "network", "caesar", "privacy",
+  "von-neumann", "concurrency-limits", "halting-limit", "hash-map",
+];
 
 const ui = {
   es: {
@@ -24,9 +32,18 @@ const ui = {
     brandTagline: "Laboratorio de código",
     courseLabel: "Ruta práctica",
     courseTitle: "Java desde los cimientos",
-    courseIntro: "36 misiones de EF a Q2. Escribís, verificás y entendés por qué funciona.",
+    courseIntro: "45 misiones y 3 proyectos de EF a Q2. Escribís, compilás y explicás por qué funciona.",
     freePractice: "Practicar cualquier misión",
     freePracticeOn: "Modo libre activo",
+    projectNavigatorLabel: "Proyecto actual",
+    projectNavigatorTitle: "Ruta de entrega",
+    projectSelectLabel: "Elegir proyecto",
+    projectContinue: "Continuar ruta",
+    projectCheckpoint: "Ir al checkpoint",
+    projectContextLabel: "Contexto de proyecto",
+    projectDeliverableLabel: "Entregable",
+    projectEvidenceLabel: "Evidencia",
+    projectStep: "Paso {current} de {total}",
     storageNote: "Progreso guardado en este navegador",
     taskLabel: "Tu tarea",
     conceptLabel: "Concepto",
@@ -38,6 +55,27 @@ const ui = {
     docsOpen: "Abrir documentación oficial",
     docsSource: "Fuente oficial",
     localValidation: "Validación estructural local",
+    compileRailLabel: "Compile Rail",
+    compileRailTitle: "Del código a la evidencia",
+    compileRailReady: "Escribí y pulsá F5.",
+    compileRailRequesting: "Solicitud pendiente: el backend informará si compiló y si ejecutó.",
+    compileRailValidating: "Contrastando salida y evidencia pedagógica.",
+    compileRailVerifiedRun: "javac compiló, java ejecutó y la evidencia pedagógica fue validada.",
+    compileRailVerifiedCompile: "javac compiló el contexto; ejecución omitida y evidencia validada.",
+    compileRailLocal: "Backend no disponible: solo validación heurística local.",
+    compileRailFailed: "El flujo se detuvo en {phase}.",
+    compileWrite: "Escribir",
+    compileCompile: "Compilar",
+    compileRun: "Ejecutar",
+    compileValidate: "Validar",
+    compileExplain: "Explicar",
+    compileStatePending: "pendiente",
+    compileStateRequested: "solicitado al backend; resultado pendiente",
+    compileStateActive: "en validación",
+    compileStateDone: "verificado",
+    compileStateSkipped: "omitido o no alcanzado",
+    compileStateLocal: "no verificado; backend no disponible",
+    compileStateError: "falló",
     editorLabel: "Editor Java",
     shortcut: "F5 para comprobar · Tab expande plantillas · ⌥⇧↓ duplica",
     themeToggle: "Modo oscuro",
@@ -138,7 +176,7 @@ const ui = {
     noDiagnostics: "Sin avisos heurísticos en este bloque.",
     progressLabel: "Aprendizaje transparente",
     progressTitle: "Tu progreso",
-    check: "Comprobar estructura",
+    check: "Compilar y validar",
     hint: "Pedir pista",
     reveal: "Ver solución",
     next: "Siguiente misión",
@@ -151,11 +189,13 @@ const ui = {
     emptyTitle: "El editor está vacío",
     emptyMessage: "Escribí el bloque solicitado antes de comprobarlo.",
     errorTitle: "La estructura todavía no cierra",
-    successTitle: "Estructura correcta",
-    successMessage: "La solución cumple las reglas locales de esta misión.",
+    successTitle: "Flujo validado",
+    successMessage: "La solución superó el flujo disponible para esta misión.",
     alreadySolved: "Esta misión ya estaba resuelta. Podés revisar la explicación o seguir.",
-    validationNote:
-      "Esto NO compila Java: verifica estructuras, nombres y relaciones importantes en tu navegador.",
+    validationLocalNote: "El backend no respondió: este intento se aceptó solo con reglas heurísticas locales.",
+    validationCompileNote: "javac compiló el contexto real de la misión; la regla pedagógica se validó después.",
+    validationRunNote: "javac compiló y java ejecutó el programa; la salida real también pasó la regla pedagógica.",
+    validationSavedNote: "Resultado guardado de un intento anterior; pulsá F5 para volver a verificar el pipeline.",
     hintLevel: "Pista {current} de {total}",
     noMoreHints: "Ya viste todas las pistas disponibles.",
     solutionIntro: "Solución de referencia",
@@ -166,7 +206,7 @@ const ui = {
     resetConfirm: "¿Querés borrar respuestas, XP y progreso guardado?",
     allDoneTitle: "Ruta completada",
     allDoneMessage:
-      "Terminaste las 36 misiones. Repetí las que te costaron sin pistas: ahí se consolida el aprendizaje.",
+      "Terminaste las 45 misiones y sus tres entregas. Repetí las que te costaron sin pistas: ahí se consolida el aprendizaje.",
   },
   de: {
     documentTitle: "Java Werkstatt · Code-Labor",
@@ -183,9 +223,18 @@ const ui = {
     brandTagline: "Code-Labor",
     courseLabel: "Praxispfad",
     courseTitle: "Java vom Fundament an",
-    courseIntro: "36 Missionen von EF bis Q2. Du schreibst, prüfst und verstehst, warum es funktioniert.",
+    courseIntro: "45 Missionen und 3 Projekte von EF bis Q2. Du schreibst, kompilierst und erklärst, warum es funktioniert.",
     freePractice: "Jede Mission frei üben",
     freePracticeOn: "Freier Modus aktiv",
+    projectNavigatorLabel: "Aktuelles Projekt",
+    projectNavigatorTitle: "Abgaberoute",
+    projectSelectLabel: "Projekt wählen",
+    projectContinue: "Route fortsetzen",
+    projectCheckpoint: "Zum Checkpoint",
+    projectContextLabel: "Projektkontext",
+    projectDeliverableLabel: "Abgabe",
+    projectEvidenceLabel: "Nachweis",
+    projectStep: "Schritt {current} von {total}",
     storageNote: "Fortschritt in diesem Browser gespeichert",
     taskLabel: "Deine Aufgabe",
     conceptLabel: "Konzept",
@@ -197,6 +246,27 @@ const ui = {
     docsOpen: "Offizielle Dokumentation öffnen",
     docsSource: "Offizielle Quelle",
     localValidation: "Lokale Strukturprüfung",
+    compileRailLabel: "Compile Rail",
+    compileRailTitle: "Vom Code zum Nachweis",
+    compileRailReady: "Schreibe Code und drücke F5.",
+    compileRailRequesting: "Anfrage läuft: Das Backend meldet anschließend Kompilierung und Ausführung.",
+    compileRailValidating: "Ausgabe und Lernnachweis werden verglichen.",
+    compileRailVerifiedRun: "javac hat kompiliert, java ausgeführt und der Lernnachweis wurde validiert.",
+    compileRailVerifiedCompile: "javac hat den Kontext kompiliert; Ausführung übersprungen und Nachweis validiert.",
+    compileRailLocal: "Backend nicht verfügbar: nur lokale heuristische Prüfung.",
+    compileRailFailed: "Die Pipeline wurde bei {phase} gestoppt.",
+    compileWrite: "Schreiben",
+    compileCompile: "Kompilieren",
+    compileRun: "Ausführen",
+    compileValidate: "Validieren",
+    compileExplain: "Erklären",
+    compileStatePending: "ausstehend",
+    compileStateRequested: "beim Backend angefragt; Ergebnis ausstehend",
+    compileStateActive: "wird validiert",
+    compileStateDone: "verifiziert",
+    compileStateSkipped: "übersprungen oder nicht erreicht",
+    compileStateLocal: "nicht verifiziert; Backend nicht verfügbar",
+    compileStateError: "fehlgeschlagen",
     editorLabel: "Java-Editor",
     shortcut: "F5 zum Prüfen · Tab erweitert Vorlagen · ⌥⇧↓ dupliziert",
     themeToggle: "Dunkelmodus",
@@ -297,7 +367,7 @@ const ui = {
     noDiagnostics: "Keine heuristischen Hinweise in diesem Block.",
     progressLabel: "Transparenter Lernstand",
     progressTitle: "Dein Fortschritt",
-    check: "Struktur prüfen",
+    check: "Kompilieren und validieren",
     hint: "Hinweis anfordern",
     reveal: "Lösung anzeigen",
     next: "Nächste Mission",
@@ -310,11 +380,13 @@ const ui = {
     emptyTitle: "Der Editor ist leer",
     emptyMessage: "Schreibe zuerst den geforderten Block.",
     errorTitle: "Die Struktur ist noch nicht korrekt",
-    successTitle: "Struktur korrekt",
-    successMessage: "Die Lösung erfüllt die lokalen Regeln dieser Mission.",
+    successTitle: "Pipeline validiert",
+    successMessage: "Die Lösung hat den verfügbaren Prüfablauf dieser Mission bestanden.",
     alreadySolved: "Diese Mission war bereits gelöst. Lies die Erklärung oder gehe weiter.",
-    validationNote:
-      "Java wird hier NICHT kompiliert: Namen, Strukturen und wichtige Beziehungen werden lokal im Browser geprüft.",
+    validationLocalNote: "Das Backend antwortete nicht: Dieser Versuch wurde nur durch lokale heuristische Regeln akzeptiert.",
+    validationCompileNote: "javac hat den echten Missionskontext kompiliert; danach wurde die Lernregel geprüft.",
+    validationRunNote: "javac hat kompiliert, java hat ausgeführt und die echte Ausgabe hat auch die Lernregel bestanden.",
+    validationSavedNote: "Gespeichertes Ergebnis eines früheren Versuchs; drücke F5, um die Pipeline erneut zu prüfen.",
     hintLevel: "Hinweis {current} von {total}",
     noMoreHints: "Du hast bereits alle verfügbaren Hinweise gesehen.",
     solutionIntro: "Referenzlösung",
@@ -325,7 +397,7 @@ const ui = {
     resetConfirm: "Antworten, XP und gespeicherten Fortschritt löschen?",
     allDoneTitle: "Lernpfad abgeschlossen",
     allDoneMessage:
-      "Du hast alle 36 Missionen geschafft. Wiederhole schwierige Aufgaben ohne Hinweise – dort festigt sich dein Wissen.",
+      "Du hast alle 45 Missionen und drei Abgaben geschafft. Wiederhole schwierige Aufgaben ohne Hinweise – dort festigt sich dein Wissen.",
   },
 };
 
@@ -489,13 +561,25 @@ const LIVE_TEMPLATES = [
 ];
 
 function stripComments(code) {
-  return code
+  return String(code || "")
     .replace(/\/\*[\s\S]*?\*\//g, " ")
     .replace(/(^|[^:])\/\/.*$/gm, "$1 ");
 }
 
+function codeRepresentations(code) {
+  const raw = String(code || "");
+  const withoutComments = stripComments(raw);
+  return {
+    raw,
+    evidence: raw.replace(/\s+/g, " ").trim(),
+    withoutComments,
+    code: withoutComments.replace(/\s+/g, " ").trim(),
+    masked: maskJava(raw).masked,
+  };
+}
+
 function clean(code) {
-  return stripComments(code).replace(/\s+/g, " ").trim();
+  return codeRepresentations(code).code;
 }
 
 function hasBalancedPairs(code, open, close) {
@@ -1109,15 +1193,19 @@ function curriculumMission(spec) {
     xp: spec.xp || BASE_XP,
     minutes: spec.minutes || 15,
     file: spec.file,
+    compileMode: spec.compileMode,
     starter,
-    contextBefore: spec.before || starter,
-    contextAfter: spec.after || "",
+    contextBefore: spec.before ?? starter,
+    contextAfter: spec.after ?? "",
     solution: spec.solution,
     text: { es: makeText("es"), de: makeText("de") },
     validate(code, language) {
-      const value = clean(code);
-      const missing = spec.required.find((pattern) => !pattern.test(value));
-      return missing ? this.text[language].errors.required : commonStructureChecks(value, language);
+      const views = codeRepresentations(code);
+      const missingCode = spec.required.find((pattern) => !pattern.test(views.code));
+      const missingEvidence = (spec.evidenceRequired || []).find((pattern) => !pattern.test(views.evidence));
+      return missingCode || missingEvidence
+        ? this.text[language].errors.required
+        : commonStructureChecks(views.raw, language);
     },
   };
 }
@@ -1125,6 +1213,7 @@ function curriculumMission(spec) {
 const extraMissions = [
   {
     id: "strings", stage: "EF", field: "data", competencies: ["I", "D"], difficulty: "easy", file: "Greeting.java",
+    compileMode: "snippet", before: `String name = "  Mara  ";`,
     solution: `String message = name.trim().toUpperCase();\nSystem.out.println(message.length());`,
     required: [/String\s+message\s*=\s*name\.trim\(\)\.toUpperCase\(\)\s*;/, /message\.length\(\)/],
     es: { short: "Strings", title: "Transformá texto", objective: "Encadenar operaciones inmutables.", prompt: "Creá message recortando name y pasándolo a mayúsculas; imprimí su longitud.", concept: "String, inmutabilidad y métodos", hint: "Usá trim(), toUpperCase() y length().", explanation: "Cada operación devuelve un nuevo String.", error: "Faltan la cadena trim/toUpperCase o la impresión de length." },
@@ -1132,6 +1221,7 @@ const extraMissions = [
   },
   {
     id: "while-input", stage: "EF", field: "algorithms", competencies: ["M", "I"], difficulty: "medium", file: "Countdown.java",
+    compileMode: "snippet", before: `int seconds = 3;`,
     solution: `while (seconds > 0) {\n    System.out.println(seconds);\n    seconds--;\n}`,
     required: [/while\s*\(\s*seconds\s*>\s*0\s*\)/, /seconds\s*--/, /println\s*\(\s*seconds\s*\)/],
     es: { short: "Bucle while", title: "Repetí con condición", objective: "Mantener una invariante de terminación.", prompt: "Mientras seconds sea mayor que cero, imprimilo y decrementalo.", concept: "while y terminación", hint: "La variable debe cambiar dentro del bucle.", explanation: "seconds-- garantiza que la condición eventualmente sea falsa.", error: "El while debe comprobar, imprimir y decrementar seconds." },
@@ -1139,20 +1229,25 @@ const extraMissions = [
   },
   {
     id: "uml-model", stage: "EF", field: "data", competencies: ["M", "D", "K"], difficulty: "medium", file: "Student.java",
+    compileMode: "source", before: "",
     solution: `// UML: Student\n// - name: String\n// + getName(): String\npublic class Student {\n    private String name;\n    public String getName() { return name; }\n}`,
     required: [/class\s+Student/, /private\s+String\s+name/, /public\s+String\s+getName\s*\(\)/],
+    evidenceRequired: [/UML\s*:\s*Student/, /-\s*name\s*:\s*String/, /\+\s*getName\(\)\s*:\s*String/],
     es: { short: "POO y UML", title: "Traducí un modelo", objective: "Pasar de una clase UML a Java.", prompt: "Modelá Student con name privado y getName público. Conservá el UML como comentarios.", concept: "UML, visibilidad y encapsulación", hint: "«-» significa private y «+» public.", explanation: "UML describe el contrato; Java lo implementa.", error: "Faltan Student, el atributo privado o el getter público." },
     de: { short: "OOP und UML", title: "Übersetze ein Modell", objective: "Ein UML-Klassenmodell in Java übertragen.", prompt: "Modelliere Student mit privatem name und öffentlichem getName. Bewahre UML als Kommentare.", concept: "UML, Sichtbarkeit und Kapselung", hint: "„-“ bedeutet private, „+“ public.", explanation: "UML beschreibt den Vertrag, Java implementiert ihn.", error: "Student, das private Attribut oder der Getter fehlt." },
   },
   {
     id: "tests-thinking", stage: "EF", field: "algorithms", competencies: ["A", "I", "K"], difficulty: "medium", file: "BoundaryCases.java",
+    compileMode: "member", before: "",
     solution: `// Casos: -1 -> false; 0 -> true; 1 -> true\nboolean inRange(int value) {\n    return value >= 0 && value <= 10;\n}`,
-    required: [/boolean\s+inRange\s*\(\s*int\s+value\s*\)/, /value\s*>=\s*0\s*&&\s*value\s*<=\s*10/, /Casos|Fälle/],
+    required: [/boolean\s+inRange\s*\(\s*int\s+value\s*\)/, /value\s*>=\s*0\s*&&\s*value\s*<=\s*10/],
+    evidenceRequired: [/Casos|Fälle/, /-1\s*->\s*false/, /0\s*->\s*true/, /1\s*->\s*true/],
     es: { short: "Casos límite", title: "Pensá antes de ejecutar", objective: "Argumentar con ejemplos frontera.", prompt: "Implementá inRange para 0..10 inclusive y documentá tres casos límite.", concept: "Contrato y casos de prueba", hint: "Probá justo antes, en y después del límite.", explanation: "Los casos frontera hacen explícita la intención.", error: "Faltan el contrato 0..10 o los casos comentados." },
     de: { short: "Grenzfälle", title: "Denke vor dem Ausführen", objective: "Mit Grenzbeispielen argumentieren.", prompt: "Implementiere inRange inklusiv für 0..10 und dokumentiere drei Grenzfälle.", concept: "Vertrag und Testfälle", hint: "Prüfe direkt vor, auf und nach der Grenze.", explanation: "Grenzfälle machen die Absicht überprüfbar.", error: "Der Vertrag 0..10 oder kommentierte Fälle fehlen." },
   },
   {
     id: "inheritance", stage: "Q1", field: "data", competencies: ["M", "I"], difficulty: "medium", file: "Shape.java",
+    compileMode: "source", before: "",
     solution: `abstract class Shape { abstract double area(); }\nclass Square extends Shape {\n    private final double side;\n    Square(double side) { this.side = side; }\n    @Override double area() { return side * side; }\n}`,
     required: [/abstract\s+class\s+Shape/, /class\s+Square\s+extends\s+Shape/, /@Override/, /return\s+side\s*\*\s*side/],
     es: { short: "Herencia", title: "Especializá un contrato", objective: "Modelar una jerarquía mínima.", prompt: "Creá Shape abstracta y Square que la extienda e implemente area().", concept: "Herencia y override", hint: "El método abstracto no tiene cuerpo.", explanation: "La subclase concreta cumple el contrato común.", error: "Faltan la clase abstracta, extends u override de area." },
@@ -1160,6 +1255,7 @@ const extraMissions = [
   },
   {
     id: "polymorphism", stage: "Q1", field: "data", competencies: ["A", "I", "D"], difficulty: "medium", file: "ShapeReport.java",
+    compileMode: "snippet", before: `abstract class Shape { abstract double area(); }\nclass Square extends Shape {\n    private final double side;\n    Square(double side) { this.side = side; }\n    @Override double area() { return side * side; }\n}\nShape[] shapes = {new Square(2), new Square(3)};`,
     solution: `double total = 0.0;\nfor (Shape shape : shapes) {\n    total += shape.area();\n}`,
     required: [/double\s+total\s*=\s*0(?:\.0)?/, /for\s*\(\s*Shape\s+shape\s*:\s*shapes\s*\)/, /shape\.area\(\)/],
     es: { short: "Polimorfismo", title: "Programá contra el contrato", objective: "Despachar comportamiento dinámicamente.", prompt: "Sumá las áreas de shapes sin instanceof.", concept: "Polimorfismo y despacho dinámico", hint: "Cada Shape sabe calcular su propia área.", explanation: "La referencia común evita condicionales por subtipo.", error: "Usá for-each sobre Shape y llamá area()." },
@@ -1167,6 +1263,7 @@ const extraMissions = [
   },
   {
     id: "stack", stage: "Q1", field: "data", competencies: ["M", "I"], difficulty: "medium", file: "Undo.java",
+    compileMode: "snippet", before: "",
     solution: `Deque<String> history = new ArrayDeque<>();\nhistory.push("type A");\nString last = history.pop();\nSystem.out.println(last);`,
     required: [/Deque\s*<\s*String\s*>\s+history/, /new\s+ArrayDeque/, /history\.push/, /history\.pop/, /System\.out\.println\s*\(\s*last\s*\)/],
     es: { short: "Stack", title: "Deshacé en orden LIFO", objective: "Modelar historial con pila.", prompt: "Creá history como Deque, apilá una acción, recuperá la última e imprimí last.", concept: "Stack / LIFO", hint: "ArrayDeque ofrece push y pop.", explanation: "La última acción ingresada es la primera en salir.", error: "Faltan Deque/ArrayDeque, push, pop o la impresión de last." },
@@ -1174,6 +1271,7 @@ const extraMissions = [
   },
   {
     id: "queue", stage: "Q1", field: "data", competencies: ["M", "I"], difficulty: "medium", file: "PrintQueue.java",
+    compileMode: "snippet", before: "",
     solution: `Queue<String> jobs = new ArrayDeque<>();\njobs.offer("report.pdf");\nString next = jobs.poll();\nSystem.out.println(next);`,
     required: [/Queue\s*<\s*String\s*>\s+jobs/, /jobs\.offer/, /jobs\.poll/, /System\.out\.println\s*\(\s*next\s*\)/],
     es: { short: "Queue", title: "Atendé en orden FIFO", objective: "Modelar una cola de trabajo.", prompt: "Creá jobs, agregá report.pdf, retiralo de forma segura e imprimí next.", concept: "Queue / FIFO", hint: "offer y poll evitan excepciones por capacidad/vacío.", explanation: "La primera tarea ingresada es la primera atendida.", error: "Faltan Queue, offer, poll o la impresión de next." },
@@ -1181,6 +1279,7 @@ const extraMissions = [
   },
   {
     id: "linked-list", stage: "Q1", field: "data", competencies: ["A", "M", "I"], difficulty: "medium", file: "Playlist.java",
+    compileMode: "snippet", before: "",
     solution: `List<String> songs = new LinkedList<>();\nsongs.add("Intro");\nsongs.add(0, "Overture");\nsongs.remove("Intro");\nSystem.out.println(songs);`,
     required: [/List\s*<\s*String\s*>\s+songs\s*=\s*new\s+LinkedList/, /songs\.add/, /songs\.remove/, /System\.out\.println\s*\(\s*songs\s*\)/],
     es: { short: "List", title: "Editá una secuencia", objective: "Usar una lista con inserción y borrado.", prompt: "Creá songs como LinkedList, insertá dos títulos, eliminá Intro e imprimí la lista final.", concept: "Interfaz List y LinkedList", hint: "Declarar contra List reduce acoplamiento.", explanation: "List define el contrato; LinkedList la implementación.", error: "Faltan List/LinkedList, add, remove o la impresión de songs." },
@@ -1188,6 +1287,7 @@ const extraMissions = [
   },
   {
     id: "recursion", stage: "Q1", field: "algorithms", competencies: ["A", "M", "I"], difficulty: "hard", file: "Factorial.java",
+    compileMode: "member", before: "",
     solution: `static int factorial(int n) {\n    if (n <= 1) return 1;\n    return n * factorial(n - 1);\n}`,
     required: [/int\s+factorial\s*\(\s*int\s+n\s*\)/, /if\s*\(\s*n\s*<=\s*1\s*\)/, /return\s+n\s*\*\s*factorial\s*\(\s*n\s*-\s*1\s*\)/],
     es: { short: "Recursión", title: "Reducí el problema", objective: "Separar caso base y paso recursivo.", prompt: "Implementá factorial con caso base n <= 1.", concept: "Recursión y terminación", hint: "Toda llamada debe acercarse al caso base.", explanation: "n-1 reduce el problema y evita recursión infinita.", error: "Faltan firma, caso base o llamada con n-1." },
@@ -1195,6 +1295,7 @@ const extraMissions = [
   },
   {
     id: "linear-search", stage: "Q1", field: "algorithms", competencies: ["I", "D"], difficulty: "medium", file: "Search.java",
+    compileMode: "member", before: `static int search(int[] values, int target) {`, after: `}`,
     solution: `for (int i = 0; i < values.length; i++) {\n    if (values[i] == target) return i;\n}\nreturn -1;`,
     required: [/for\s*\(\s*int\s+i\s*=\s*0;\s*i\s*<\s*values\.length;\s*i\+\+\s*\)/, /values\s*\[\s*i\s*]\s*==\s*target/, /return\s+-1/],
     es: { short: "Búsqueda lineal", title: "Buscá sin suponer orden", objective: "Recorrer hasta encontrar.", prompt: "Devolvé el índice de target o -1 si no aparece.", concept: "Búsqueda lineal O(n)", hint: "Compará cada values[i] y cortá al encontrar.", explanation: "Sin orden, en el peor caso se inspeccionan n elementos.", error: "Faltan recorrido, comparación o retorno -1." },
@@ -1202,6 +1303,7 @@ const extraMissions = [
   },
   {
     id: "binary-search", stage: "Q1", field: "algorithms", competencies: ["A", "M", "I"], difficulty: "hard", file: "BinarySearch.java",
+    compileMode: "member", before: `static int search(int[] values, int target) {`, after: `}`,
     solution: `int low = 0, high = values.length - 1;\nwhile (low <= high) {\n    int mid = low + (high - low) / 2;\n    if (values[mid] == target) return mid;\n    if (values[mid] < target) low = mid + 1; else high = mid - 1;\n}\nreturn -1;`,
     required: [/low\s*=\s*0/, /high\s*=\s*values\.length\s*-\s*1/, /while\s*\(\s*low\s*<=\s*high\s*\)/, /mid\s*=\s*low\s*\+\s*\(high\s*-\s*low\)\s*\/\s*2/],
     es: { short: "Búsqueda binaria", title: "Partí el espacio", objective: "Buscar en datos ordenados en O(log n).", prompt: "Implementá búsqueda binaria con límites low/high.", concept: "Invariante y complejidad logarítmica", hint: "mid debe evitar overflow y cada paso descarta una mitad.", explanation: "La precondición es que values esté ordenado.", error: "Faltan límites, bucle o cálculo seguro de mid." },
@@ -1209,6 +1311,7 @@ const extraMissions = [
   },
   {
     id: "insertion-sort", stage: "Q1", field: "algorithms", competencies: ["A", "I", "D"], difficulty: "hard", file: "InsertionSort.java",
+    compileMode: "member", before: `static void sort(int[] values) {`, after: `}`,
     solution: `for (int i = 1; i < values.length; i++) {\n    int key = values[i];\n    int j = i - 1;\n    while (j >= 0 && values[j] > key) {\n        values[j + 1] = values[j];\n        j--;\n    }\n    values[j + 1] = key;\n}`,
     required: [/for\s*\(\s*int\s+i\s*=\s*1/, /int\s+key\s*=\s*values\s*\[\s*i\s*]/, /while\s*\([^)]*values\s*\[\s*j\s*]\s*>\s*key/, /values\s*\[\s*j\s*\+\s*1\s*]\s*=\s*key/],
     es: { short: "Ordenamiento", title: "Insertá manteniendo orden", objective: "Implementar insertion sort.", prompt: "Ordená values in-place mediante inserción.", concept: "Insertion sort y O(n²)", hint: "El prefijo antes de i permanece ordenado.", explanation: "Es cuadrático en general y eficiente en datos casi ordenados.", error: "Faltan key, desplazamiento o inserción final." },
@@ -1216,14 +1319,16 @@ const extraMissions = [
   },
   {
     id: "efficiency", stage: "Q1", field: "algorithms", competencies: ["A", "D", "K"], difficulty: "medium", file: "Complexity.java",
-    before: `boolean sorted = true;`,
+    compileMode: "snippet", before: `boolean sorted = true;`,
     solution: `// Búsqueda lineal: O(n), no requiere orden.\n// Búsqueda binaria: O(log n), requiere datos ordenados.\nString choice = sorted ? "binary" : "linear";\nSystem.out.println(choice);`,
-    required: [/O\s*\(\s*n\s*\)/, /O\s*\(\s*log\s*n\s*\)/i, /sorted\s*\?\s*"binary"\s*:\s*"linear"/, /System\.out\.println\s*\(\s*choice\s*\)/],
+    required: [/sorted\s*\?\s*"binary"\s*:\s*"linear"/, /System\.out\.println\s*\(\s*choice\s*\)/],
+    evidenceRequired: [/O\s*\(\s*n\s*\)/, /O\s*\(\s*log\s*n\s*\)/i, /requiere orden|benötigt sortierte Daten|Sortierung/i],
     es: { short: "Eficiencia", title: "Justificá el algoritmo", objective: "Comparar costo y precondiciones.", prompt: "Documentá lineal vs binaria, elegí según sorted e imprimí la decisión.", concept: "Complejidad y trade-offs", hint: "No mires solo Big-O: anotá la precondición de orden.", explanation: "La opción asintóticamente mejor puede exigir preparación adicional.", error: "Faltan ambas complejidades, la decisión según sorted o su impresión." },
     de: { short: "Effizienz", title: "Begründe den Algorithmus", objective: "Kosten und Vorbedingungen vergleichen.", prompt: "Dokumentiere linear vs. binär, wähle anhand sorted und gib die Entscheidung aus.", concept: "Komplexität und Trade-offs", hint: "Nicht nur Big-O: Sortierung ist eine Vorbedingung.", explanation: "Die asymptotisch bessere Wahl kann Vorbereitung verlangen.", error: "Beide Komplexitäten, die Auswahl nach sorted oder ihre Ausgabe fehlt." },
   },
   {
     id: "bst", stage: "Q1", field: "data", competencies: ["M", "I", "D"], difficulty: "hard", file: "BinarySearchTree.java",
+    compileMode: "member", before: `static final class Node {\n    final int value;\n    Node left;\n    Node right;\n    Node(int value) { this.value = value; }\n}`,
     solution: `Node insert(Node node, int value) {\n    if (node == null) return new Node(value);\n    if (value < node.value) node.left = insert(node.left, value);\n    else if (value > node.value) node.right = insert(node.right, value);\n    return node;\n}`,
     required: [/Node\s+insert\s*\(\s*Node\s+node\s*,\s*int\s+value\s*\)/, /node\s*==\s*null/, /node\.left\s*=\s*insert/, /node\.right\s*=\s*insert/],
     es: { short: "Árbol BST", title: "Conservá el orden del árbol", objective: "Insertar recursivamente en un BST.", prompt: "Implementá insert sin duplicados.", concept: "BST e invariante de orden", hint: "Menores van a izquierda; mayores, a derecha.", explanation: "La estructura mantiene el orden local en cada nodo.", error: "Faltan caso vacío o inserciones izquierda/derecha." },
@@ -1231,6 +1336,7 @@ const extraMissions = [
   },
   {
     id: "graph-bfs", stage: "Q1", field: "data", competencies: ["M", "I", "D"], difficulty: "hard", file: "GraphBfs.java",
+    compileMode: "member", before: `static void bfs(Map<Integer, List<Integer>> graph, int start) {`, after: `}`,
     solution: `Queue<Integer> open = new ArrayDeque<>();\nSet<Integer> visited = new HashSet<>();\nopen.offer(start);\nvisited.add(start);\nwhile (!open.isEmpty()) {\n    int node = open.poll();\n    for (int next : graph.get(node)) if (visited.add(next)) open.offer(next);\n}`,
     required: [/Queue\s*<\s*Integer\s*>/, /Set\s*<\s*Integer\s*>/, /while\s*\(\s*!open\.isEmpty\(\)\s*\)/, /visited\.add\s*\(\s*next\s*\)/],
     es: { short: "Grafos BFS", title: "Explorá por niveles", objective: "Recorrer un grafo evitando ciclos.", prompt: "Implementá BFS con cola y conjunto visited.", concept: "Grafo, BFS y visitados", hint: "Marcá al encolar, no al retirar.", explanation: "La cola produce recorrido por distancia no ponderada.", error: "Faltan cola, visitados o expansión BFS." },
@@ -1238,6 +1344,7 @@ const extraMissions = [
   },
   {
     id: "dfa", stage: "Q2", field: "formal", competencies: ["M", "I", "D"], difficulty: "medium", file: "EvenOnesDfa.java",
+    compileMode: "member", before: `static boolean accepts(String word) {`, after: `}`,
     solution: `boolean even = true;\nfor (char symbol : word.toCharArray()) {\n    if (symbol == '1') even = !even;\n    else if (symbol != '0') return false;\n}\nreturn even;`,
     required: [/boolean\s+even\s*=\s*true/, /for\s*\(\s*char\s+symbol\s*:\s*word\.toCharArray\(\)\s*\)/, /symbol\s*==\s*'1'/, /even\s*=\s*!even/],
     es: { short: "Autómata DFA", title: "Simulá estados finitos", objective: "Reconocer palabras con cantidad par de unos.", prompt: "Simulá un DFA binario y rechazá símbolos fuera de 0/1.", concept: "DFA, estado y transición", hint: "Un 1 alterna el estado; un 0 lo conserva.", explanation: "El boolean representa los dos estados del autómata.", error: "Faltan estado inicial, recorrido o transición con 1." },
@@ -1245,13 +1352,16 @@ const extraMissions = [
   },
   {
     id: "grammar", stage: "Q2", field: "formal", competencies: ["A", "M", "D", "K"], difficulty: "medium", file: "GrammarModel.java",
+    compileMode: "snippet", before: `String word = "aaabbb";`,
     solution: `// G = ({S}, {a,b}, P, S)\n// P: S -> aSb | ε\nboolean generated = word.matches("a*b*") && word.replace("b", "").length() == word.replace("a", "").length();`,
-    required: [/S\s*->\s*aSb/, /ε|epsilon/, /word\.matches/],
+    required: [/word\.matches/, /word\.replace/],
+    evidenceRequired: [/S\s*->\s*aSb/, /ε|epsilon/],
     es: { short: "Gramáticas", title: "Modelá una producción", objective: "Representar una gramática y un reconocedor limitado.", prompt: "Documentá S → aSb | ε y modelá una comprobación para aⁿbⁿ.", concept: "Gramática formal y límites del modelo", hint: "Conservá la producción en comentarios y separá forma de conteo.", explanation: "La expresión regular sola no demuestra el lenguaje; el conteo completa este modelo acotado.", error: "Faltan producción, epsilon o modelo de comprobación." },
     de: { short: "Grammatiken", title: "Modelliere eine Produktion", objective: "Grammatik und begrenzten Erkenner darstellen.", prompt: "Dokumentiere S → aSb | ε und modelliere eine Prüfung für aⁿbⁿ.", concept: "Formale Grammatik und Modellgrenzen", hint: "Produktion kommentieren; Form und Anzahl getrennt prüfen.", explanation: "Der reguläre Ausdruck allein erkennt die Sprache nicht; die Zählung ergänzt das Modell.", error: "Produktion, epsilon oder Prüfmodell fehlt." },
   },
   {
     id: "parser", stage: "Q2", field: "formal", competencies: ["M", "I"], difficulty: "hard", file: "TinyParser.java",
+    compileMode: "member", before: "",
     solution: `int parseSum(String input) {\n    String[] parts = input.split("\\\\+");\n    int sum = 0;\n    for (String part : parts) sum += Integer.parseInt(part.trim());\n    return sum;\n}`,
     required: [/String\s*\[\s*]\s+parts\s*=\s*input\.split/, /Integer\.parseInt/, /return\s+sum/],
     es: { short: "Parser simple", title: "Interpretá una mini lengua", objective: "Separar tokens y construir significado.", prompt: "Interpretá sumas como «2 + 3 + 4».", concept: "Tokenización e interpretación", hint: "Separá por +, limpiá espacios y convertí cada token.", explanation: "Es un parser educativo limitado, no una gramática Java.", error: "Faltan tokenización, conversión o acumulación." },
@@ -1259,20 +1369,25 @@ const extraMissions = [
   },
   {
     id: "sql", stage: "Q2", field: "data", competencies: ["M", "D"], difficulty: "medium", file: "QueryModel.java",
+    compileMode: "snippet", before: "",
     solution: `String sql = "SELECT name FROM Student WHERE grade >= ? ORDER BY name";\n// ? se enlaza como parámetro, no se concatena.`,
-    required: [/SELECT\s+name\s+FROM\s+Student\s+WHERE\s+grade\s*>=\s*\?\s+ORDER\s+BY\s+name/i, /parámetro|Parameter/i],
+    required: [/SELECT\s+name\s+FROM\s+Student\s+WHERE\s+grade\s*>=\s*\?\s+ORDER\s+BY\s+name/i],
+    evidenceRequired: [/parámetro|Parameter/i, /no se concatena|nicht verkettet/i],
     es: { short: "SQL", title: "Consultá datos con intención", objective: "Modelar selección, filtro y orden.", prompt: "Guardá una consulta parametrizada de nombres por nota mínima.", concept: "SQL y parámetros", hint: "Usá ? en lugar de concatenar entrada.", explanation: "La cadena modela SQL; la app no conecta una base real.", error: "Falta SELECT/WHERE/ORDER BY parametrizado." },
     de: { short: "SQL", title: "Frage Daten gezielt ab", objective: "Auswahl, Filter und Ordnung modellieren.", prompt: "Speichere eine parametrisierte Namensabfrage nach Mindestnote.", concept: "SQL und Parameter", hint: "Nutze ? statt Eingaben zu verketten.", explanation: "Der String modelliert SQL; keine echte Datenbank wird verbunden.", error: "Parametrisiertes SELECT/WHERE/ORDER BY fehlt." },
   },
   {
     id: "normalization", stage: "Q2", field: "data", competencies: ["A", "M", "D", "K"], difficulty: "medium", file: "Schema.java",
+    compileMode: "source", before: "",
     solution: `// 3NF\n// Student(studentId PK, name)\n// Course(courseId PK, title)\n// Enrollment(studentId FK, courseId FK, grade)\nrecord Enrollment(int studentId, int courseId, int grade) {}`,
-    required: [/3NF/, /Student\s*\(/, /Course\s*\(/, /Enrollment\s*\(/, /FK/],
+    required: [/record\s+Enrollment\s*\(\s*int\s+studentId\s*,\s*int\s+courseId\s*,\s*int\s+grade/],
+    evidenceRequired: [/3NF/, /Student\s*\(/, /Course\s*\(/, /Enrollment\s*\(/, /FK/],
     es: { short: "Normalización", title: "Separá responsabilidades de datos", objective: "Modelar una relación N:M en 3NF.", prompt: "Documentá Student, Course y Enrollment con claves.", concept: "Normalización y dependencias", hint: "La nota depende de la pareja estudiante-curso.", explanation: "La tabla puente evita grupos repetidos y redundancia.", error: "Faltan 3NF, entidades o claves de Enrollment." },
     de: { short: "Normalisierung", title: "Trenne Datenverantwortung", objective: "Eine N:M-Beziehung in 3NF modellieren.", prompt: "Dokumentiere Student, Course und Enrollment mit Schlüsseln.", concept: "Normalisierung und Abhängigkeiten", hint: "Die Note hängt vom Paar Schüler-Kurs ab.", explanation: "Die Zwischentabelle vermeidet Wiederholungsgruppen.", error: "3NF, Entitäten oder Enrollment-Schlüssel fehlen." },
   },
   {
     id: "network", stage: "Q2", field: "systems", competencies: ["M", "D", "K"], difficulty: "medium", file: "PacketRoute.java",
+    compileMode: "snippet", before: "",
     solution: `record Packet(String source, String destination, String payload) {}\nList<String> route = List.of("client", "router", "server");\n// Cada salto procesa el paquete; Internet no garantiza una ruta fija.`,
     required: [/record\s+Packet/, /source/, /destination/, /List\.of\s*\(\s*"client"\s*,\s*"router"\s*,\s*"server"/],
     es: { short: "Redes", title: "Modelá un recorrido de paquetes", objective: "Distinguir paquete, nodo y ruta.", prompt: "Representá un paquete y una ruta educativa cliente-router-servidor.", concept: "Redes por capas y paquetes", hint: "No confundas la simulación con una ruta real fija.", explanation: "El modelo simplifica encaminamiento para hacerlo observable.", error: "Faltan Packet o la ruta de tres nodos." },
@@ -1280,46 +1395,104 @@ const extraMissions = [
   },
   {
     id: "caesar", stage: "Q2", field: "society", competencies: ["A", "I", "D"], difficulty: "medium", file: "CaesarDemo.java",
+    compileMode: "member", before: "",
     solution: `char encryptUpper(char c, int shift) {\n    return (char) ('A' + (c - 'A' + shift) % 26);\n}\n// Solo demostración: César NO protege datos reales.`,
-    required: [/char\s+encryptUpper/, /%\s*26/, /NO|NICHT|nicht\s+sicher/i],
+    required: [/char\s+encryptUpper/, /%\s*26/],
+    evidenceRequired: [/NO|NICHT|nicht\s+sicher/i],
     es: { short: "Cifrado educativo", title: "Entendé sustitución y límite", objective: "Implementar César sin presentarlo como seguridad.", prompt: "Cifrá una mayúscula con módulo 26 y advertí que no es seguro.", concept: "Cifrado César y seguridad", hint: "Normalizá respecto de 'A' y usá módulo 26.", explanation: "Sirve para estudiar transformación, NO para proteger información.", error: "Faltan transformación modular o advertencia de inseguridad." },
     de: { short: "Lernverschlüsselung", title: "Verstehe Ersetzung und Grenze", objective: "Caesar implementieren, ohne Sicherheit zu behaupten.", prompt: "Verschiebe einen Großbuchstaben modulo 26 und warne vor Unsicherheit.", concept: "Caesar-Chiffre und Sicherheit", hint: "Relativ zu 'A' rechnen und modulo 26 verwenden.", explanation: "Geeignet zum Lernen, NICHT zum Schutz echter Daten.", error: "Modulare Umwandlung oder Sicherheitswarnung fehlt." },
   },
   {
     id: "privacy", stage: "Q2", field: "society", competencies: ["A", "M", "K"], difficulty: "medium", file: "PrivacyModel.java",
-    solution: `record StudentView(String pseudonym, int grade) {}\nStudentView shared = new StudentView(hashId(id), grade);\n// Minimización: no compartir nombre, email ni fecha de nacimiento.`,
-    required: [/record\s+StudentView/, /pseudonym/, /hashId\s*\(\s*id\s*\)/, /Minimizaci|Datenminimierung/i],
+    compileMode: "snippet", before: `String id = "student-17";\nint grade = 12;`,
+    solution: `String pseudonym = Integer.toHexString(id.hashCode());\nrecord StudentView(String pseudonym, int grade) {}\nStudentView shared = new StudentView(pseudonym, grade);\n// Minimización: no compartir nombre, email ni fecha de nacimiento.`,
+    required: [/String\s+pseudonym\s*=\s*Integer\.toHexString\s*\(\s*id\.hashCode\(\)\s*\)/, /record\s+StudentView/, /new\s+StudentView\s*\(\s*pseudonym\s*,\s*grade\s*\)/],
+    evidenceRequired: [/Minimizaci|Datenminimierung/i, /nombre|Name/i, /email|E-Mail/i],
     es: { short: "Privacidad", title: "Compartí solo lo necesario", objective: "Aplicar minimización y seudonimización.", prompt: "Modelá una vista de notas sin identidad directa.", concept: "Privacidad desde el diseño", hint: "Un hash no vuelve anónimos automáticamente los datos.", explanation: "La minimización reduce exposición; la seudonimización sigue requiriendo protección.", error: "Faltan vista mínima, seudónimo o justificación." },
     de: { short: "Datenschutz", title: "Teile nur Notwendiges", objective: "Datenminimierung und Pseudonymisierung anwenden.", prompt: "Modelliere eine Notenansicht ohne direkte Identität.", concept: "Privacy by Design", hint: "Ein Hash anonymisiert Daten nicht automatisch.", explanation: "Minimierung senkt Exposition; Pseudonyme bleiben schutzbedürftig.", error: "Minimale Ansicht, Pseudonym oder Begründung fehlt." },
   },
   {
     id: "von-neumann", stage: "Q2", field: "systems", competencies: ["M", "D"], difficulty: "medium", file: "VonNeumann.java",
+    compileMode: "snippet", before: "",
     solution: `String[] cycle = {"FETCH", "DECODE", "EXECUTE", "STORE"};\nfor (String phase : cycle) System.out.println(phase);\n// Programa y datos comparten memoria en el modelo de Von Neumann.`,
-    required: [/FETCH/, /DECODE/, /EXECUTE/, /STORE/, /comparten memoria|gemeinsamen Speicher/i],
+    required: [/FETCH/, /DECODE/, /EXECUTE/, /STORE/],
+    evidenceRequired: [/comparten memoria|gemeinsamen Speicher/i],
     es: { short: "Von Neumann", title: "Simulá el ciclo de instrucción", objective: "Representar fases y memoria compartida.", prompt: "Recorré FETCH, DECODE, EXECUTE, STORE y explicá el modelo.", concept: "Arquitectura Von Neumann", hint: "Es un modelo conceptual, no una emulación de CPU.", explanation: "El ciclo ayuda a relacionar software, memoria y procesador.", error: "Faltan fases o explicación de memoria compartida." },
     de: { short: "Von Neumann", title: "Simuliere den Befehlszyklus", objective: "Phasen und gemeinsamen Speicher darstellen.", prompt: "Durchlaufe FETCH, DECODE, EXECUTE, STORE und erkläre das Modell.", concept: "Von-Neumann-Architektur", hint: "Konzeptmodell, keine CPU-Emulation.", explanation: "Der Zyklus verbindet Software, Speicher und Prozessor.", error: "Phasen oder Erklärung des gemeinsamen Speichers fehlt." },
   },
   {
     id: "concurrency-limits", stage: "Q2", field: "systems", competencies: ["A", "M", "K"], difficulty: "hard", file: "RaceModel.java",
+    compileMode: "snippet", before: `int balance = 0;`,
     solution: `// Lectura-modificación-escritura NO es atómica.\nint snapshotA = balance;\nint snapshotB = balance;\nbalance = snapshotA + 1;\nbalance = snapshotB + 1;\n// Resultado posible: se pierde una actualización.`,
-    required: [/NO\s+es\s+atómica|NICHT\s+atomar/i, /snapshotA/, /snapshotB/, /pierde una actualización|Update verloren/i],
+    required: [/snapshotA/, /snapshotB/, /balance\s*=\s*snapshotA\s*\+\s*1/, /balance\s*=\s*snapshotB\s*\+\s*1/],
+    evidenceRequired: [/NO\s+es\s+atómica|NICHT\s+atomar/i, /pierde una actualización|Update verloren/i],
     es: { short: "Límites concurrentes", title: "Hacé visible una carrera", objective: "Argumentar sobre intercalado y atomicidad.", prompt: "Modelá dos incrementos intercalados que pierdan una actualización.", concept: "Race condition y atomicidad", hint: "Separá leer, sumar y escribir.", explanation: "La secuencia demuestra por qué ++ no es una transacción.", error: "Faltan dos snapshots o explicación de actualización perdida." },
     de: { short: "Nebenläufigkeitsgrenzen", title: "Mache ein Rennen sichtbar", objective: "Über Interleaving und Atomarität argumentieren.", prompt: "Modelliere zwei verschachtelte Inkremente mit verlorenem Update.", concept: "Race Condition und Atomarität", hint: "Lesen, Rechnen und Schreiben trennen.", explanation: "Die Sequenz zeigt, warum ++ keine Transaktion ist.", error: "Zwei Snapshots oder Erklärung des verlorenen Updates fehlt." },
   },
   {
     id: "halting-limit", stage: "Q2", field: "formal", competencies: ["A", "D", "K"], difficulty: "hard", file: "Computability.java",
+    compileMode: "snippet", before: "",
     solution: `// No existe un algoritmo general que decida para todo programa y entrada si termina.\nString model = "halting problem";\nboolean claimUniversalSolver = false;`,
-    required: [/algoritmo general|allgemeinen Algorithmus/i, /halting problem/, /claimUniversalSolver\s*=\s*false/],
+    required: [/halting problem/, /claimUniversalSolver\s*=\s*false/],
+    evidenceRequired: [/algoritmo general|allgemeinen Algorithmus/i, /todo programa|jedes Programm/i],
     es: { short: "Límites computables", title: "Reconocé lo indecidible", objective: "Explicar el límite del problema de parada.", prompt: "Representá y comentá por qué no hay solucionador universal de terminación.", concept: "Computabilidad y problema de parada", hint: "No confundas casos particulares con una decisión universal.", explanation: "Podemos analizar muchos programas, pero no decidir todos algorítmicamente.", error: "Falta la afirmación correcta o negar el solucionador universal." },
     de: { short: "Berechenbarkeitsgrenzen", title: "Erkenne Unentscheidbarkeit", objective: "Die Grenze des Halteproblems erklären.", prompt: "Stelle dar, warum es keinen universellen Terminierungsentscheider gibt.", concept: "Berechenbarkeit und Halteproblem", hint: "Einzelfälle sind kein universelles Verfahren.", explanation: "Viele Programme sind analysierbar, aber nicht alle algorithmisch entscheidbar.", error: "Korrekte Aussage oder Ablehnung des Universallösers fehlt." },
   },
   {
     id: "hash-map", stage: "Q2", field: "data", competencies: ["A", "I"], difficulty: "medium", file: "Frequency.java",
-    before: `String[] words = {"java", "oop", "java"};`,
+    compileMode: "snippet", before: `String[] words = {"java", "oop", "java"};`,
     solution: `Map<String, Integer> counts = new HashMap<>();\nfor (String word : words) {\n    counts.merge(word, 1, Integer::sum);\n}\nSystem.out.println(counts);`,
     required: [/Map\s*<\s*String\s*,\s*Integer\s*>\s+counts/, /new\s+HashMap/, /counts\.merge\s*\(\s*word\s*,\s*1\s*,\s*Integer::sum/, /System\.out\.println\s*\(\s*counts\s*\)/],
     es: { short: "Map", title: "Contá por clave", objective: "Construir una tabla de frecuencias.", prompt: "Contá cada palabra con HashMap.merge e imprimí counts.", concept: "Map, hashing y frecuencia", hint: "merge cubre alta y actualización en una operación.", explanation: "El acceso esperado es O(1), no una garantía absoluta.", error: "Faltan Map/HashMap, merge o la impresión de counts." },
     de: { short: "Map", title: "Zähle nach Schlüssel", objective: "Eine Häufigkeitstabelle aufbauen.", prompt: "Zähle jedes Wort mit HashMap.merge und gib counts aus.", concept: "Map, Hashing und Häufigkeit", hint: "merge behandelt Einfügen und Aktualisieren.", explanation: "Erwarteter Zugriff ist O(1), keine absolute Garantie.", error: "Map/HashMap, merge oder die Ausgabe von counts fehlt." },
+  },
+  {
+    id: "guessing-game", stage: "EF", field: "algorithms", competencies: ["M", "I"], difficulty: "easy", file: "GuessingGame.java",
+    compileMode: "snippet", before: `int secret = 7;\nint guess = 5;`,
+    solution: `if (guess < secret) {\n    System.out.println("too low");\n} else if (guess > secret) {\n    System.out.println("too high");\n} else {\n    System.out.println("hit");\n}`,
+    required: [/if\s*\(\s*guess\s*<\s*secret\s*\)/, /else\s+if\s*\(\s*guess\s*>\s*secret\s*\)/, /System\.out\.println\s*\(\s*"too low"\s*\)/, /System\.out\.println\s*\(\s*"hit"\s*\)/],
+    es: { short: "Juego: adivinar", title: "Compará una apuesta", objective: "Modelar feedback de un mini juego con ramas claras.", prompt: "Compará guess contra secret: imprimí too low, too high o hit según corresponda.", concept: "if/else if/else en lógica de juego", hint: "Primero cubrí menor, después mayor y dejá el acierto para el else.", explanation: "Un juego simple no necesita magia: necesita estados observables y decisiones exclusivas.", error: "Faltan las tres ramas del juego o la salida visible." },
+    de: { short: "Spiel: Raten", title: "Vergleiche einen Tipp", objective: "Feedback eines Mini-Spiels mit klaren Zweigen modellieren.", prompt: "Vergleiche guess mit secret: Gib too low, too high oder hit passend aus.", concept: "if/else if/else in Spiellogik", hint: "Erst kleiner, dann größer prüfen; der Treffer bleibt im else.", explanation: "Ein einfaches Spiel braucht keine Magie, sondern sichtbare Zustände und exklusive Entscheidungen.", error: "Die drei Spielzweige oder die sichtbare Ausgabe fehlen." },
+  },
+  {
+    id: "score-level", stage: "EF", field: "algorithms", competencies: ["A", "I"], difficulty: "medium", file: "ScoreLevel.java",
+    compileMode: "snippet", before: `int points = 1200;`,
+    solution: `String badge = points >= 1000 ? "LEVEL_UP" : "KEEP_TRAINING";\nSystem.out.println(badge);`,
+    required: [/String\s+badge/, /points\s*>=\s*1000\s*\?\s*"LEVEL_UP"\s*:\s*"KEEP_TRAINING"/, /System\.out\.println\s*\(\s*badge\s*\)/],
+    es: { short: "Puntaje", title: "Convertí puntos en estado", objective: "Usar una expresión condicional para comunicar progreso.", prompt: "Creá badge con el operador ternario: LEVEL_UP si points >= 1000, si no KEEP_TRAINING. Imprimí badge.", concept: "Ternario y estado de juego", hint: "El ternario tiene forma condición ? valorSiTrue : valorSiFalse.", explanation: "La UI de un juego se alimenta de estados simples; el cálculo debe quedar explícito.", error: "Falta badge con ternario, umbral 1000 o impresión." },
+    de: { short: "Punkte", title: "Wandle Punkte in Status", objective: "Mit einem bedingten Ausdruck Fortschritt kommunizieren.", prompt: "Erstelle badge mit dem ternären Operator: LEVEL_UP bei points >= 1000, sonst KEEP_TRAINING. Gib badge aus.", concept: "Ternärer Operator und Spielstatus", hint: "Die Form lautet Bedingung ? WertWennTrue : WertWennFalse.", explanation: "Eine Spiel-UI lebt von einfachen Zuständen; die Berechnung muss sichtbar bleiben.", error: "badge mit ternärem Operator, Schwelle 1000 oder Ausgabe fehlt." },
+  },
+  {
+    id: "dice-duel", stage: "Q1", field: "algorithms", competencies: ["M", "I", "D"], difficulty: "medium", file: "DiceDuel.java",
+    compileMode: "snippet", before: `int mara = 4;\nint noah = 6;`,
+    solution: `String winner = mara > noah ? "Mara wins" : "Noah wins";\nSystem.out.println(winner);`,
+    required: [/String\s+winner/, /mara\s*>\s*noah\s*\?\s*"Mara wins"\s*:\s*"Noah wins"/, /System\.out\.println\s*\(\s*winner\s*\)/],
+    es: { short: "Duelo de dados", title: "Resolvé un turno", objective: "Separar datos del resultado visible de una ronda.", prompt: "Compará mara y noah, guardá el texto ganador en winner e imprimilo.", concept: "Regla de juego y resultado", hint: "No imprimas dos caminos: calculá winner una vez y después mostrala.", explanation: "Nombrar el resultado baja la complejidad: primero decidís, después comunicás.", error: "Falta calcular winner desde mara/noah o imprimirlo." },
+    de: { short: "Würfelduell", title: "Entscheide eine Runde", objective: "Daten und sichtbares Rundenergebnis trennen.", prompt: "Vergleiche mara und noah, speichere den Gewinnertext in winner und gib ihn aus.", concept: "Spielregel und Ergebnis", hint: "Nicht zwei Wege direkt drucken: Berechne winner einmal und gib ihn dann aus.", explanation: "Ein benanntes Ergebnis senkt Komplexität: erst entscheiden, dann kommunizieren.", error: "winner aus mara/noah oder seine Ausgabe fehlt." },
+  },
+  {
+    id: "snake-step", stage: "Q1", field: "algorithms", competencies: ["M", "I"], difficulty: "medium", file: "SnakeStep.java",
+    compileMode: "snippet", before: `int x = 2;\nint y = 2;\nchar direction = 'R';`,
+    solution: `switch (direction) {\n    case 'R': x++; break;\n    case 'L': x--; break;\n    case 'U': y--; break;\n    case 'D': y++; break;\n    default: throw new IllegalArgumentException("bad direction");\n}\nSystem.out.println(x + "," + y);`,
+    required: [/switch\s*\(\s*direction\s*\)/, /case\s+'R'\s*:/, /x\s*\+\+/, /case\s+'L'\s*:/, /case\s+'U'\s*:/, /case\s+'D'\s*:/, /System\.out\.println\s*\(\s*x\s*\+\s*","\s*\+\s*y\s*\)/],
+    es: { short: "Snake: paso", title: "Mové una ficha", objective: "Traducir una dirección a cambio de coordenadas.", prompt: "Usá switch sobre direction para mover x/y y después imprimí x,y.", concept: "switch, coordenadas y estado mutable", hint: "R suma x; L resta x; U resta y; D suma y.", explanation: "Un juego de grilla es estado + transición. Si no entendés eso, sólo estás copiando código.", error: "Falta switch por dirección, actualización de coordenadas o impresión x,y." },
+    de: { short: "Snake: Schritt", title: "Bewege eine Figur", objective: "Eine Richtung in Koordinatenänderung übersetzen.", prompt: "Nutze switch über direction, bewege x/y und gib danach x,y aus.", concept: "switch, Koordinaten und veränderlicher Zustand", hint: "R erhöht x; L verringert x; U verringert y; D erhöht y.", explanation: "Ein Rasterspiel ist Zustand plus Übergang. Ohne dieses Konzept kopierst du nur Code.", error: "switch nach Richtung, Koordinatenänderung oder x,y-Ausgabe fehlt." },
+  },
+  {
+    id: "exception-parse", stage: "Q2", field: "systems", competencies: ["A", "I", "K"], difficulty: "medium", file: "SafeParse.java",
+    compileMode: "snippet", before: `String input = "42";`,
+    solution: `try {\n    int value = Integer.parseInt(input);\n    System.out.println(value);\n} catch (NumberFormatException error) {\n    System.out.println("invalid");\n}`,
+    required: [/try\s*\{/, /Integer\.parseInt\s*\(\s*input\s*\)/, /catch\s*\(\s*NumberFormatException\s+\w+\s*\)/, /System\.out\.println\s*\(\s*"invalid"\s*\)/],
+    es: { short: "Excepciones", title: "Parseá sin romper", objective: "Controlar una entrada inválida con catch específico.", prompt: "Parseá input con Integer.parseInt dentro de try; capturá NumberFormatException e imprimí invalid.", concept: "Excepciones y recuperación", hint: "No captures Exception genérico si conocés el fallo esperado.", explanation: "La recuperación responsable empieza por acotar qué puede fallar y cómo responder.", error: "Falta try, parseInt, catch específico o salida invalid." },
+    de: { short: "Exceptions", title: "Parse ohne Absturz", objective: "Ungültige Eingabe mit spezifischem catch behandeln.", prompt: "Parse input mit Integer.parseInt im try; fange NumberFormatException ab und gib invalid aus.", concept: "Exceptions und Wiederherstellung", hint: "Fange nicht generisch Exception, wenn der erwartete Fehler bekannt ist.", explanation: "Verantwortliche Fehlerbehandlung beginnt damit, erwartete Fehler klar einzugrenzen.", error: "try, parseInt, spezifischer catch oder invalid-Ausgabe fehlt." },
+  },
+  {
+    id: "stream-filter", stage: "Q2", field: "data", competencies: ["A", "I", "D"], difficulty: "hard", file: "StreamFilter.java",
+    compileMode: "snippet", before: `List<String> names = List.of("Mara", "Noah", "Lina");`,
+    solution: `long count = names.stream()\n    .filter(name -> name.toLowerCase().contains("a"))\n    .count();\nSystem.out.println(count);`,
+    required: [/long\s+count/, /names\.stream\s*\(\s*\)/, /\.filter\s*\(\s*name\s*->\s*name\.toLowerCase\(\)\.contains\(\s*"a"\s*\)\s*\)/, /\.count\s*\(\s*\)/, /System\.out\.println\s*\(\s*count\s*\)/],
+    es: { short: "Streams", title: "Filtrá una colección", objective: "Expresar una consulta de datos sin mutar la lista.", prompt: "Contá con stream/filter/count los nombres que contienen la letra a e imprimí count.", concept: "Streams, lambda y consulta", hint: "stream() crea la tubería; filter conserva elementos; count produce el resultado.", explanation: "Streams sirven cuando pensás en transformación de datos. No reemplazan entender bucles: LOS ABSTRAEN.", error: "Faltan stream, lambda de filtro, count o impresión." },
+    de: { short: "Streams", title: "Filtere eine Sammlung", objective: "Eine Datenabfrage ohne Mutation der Liste ausdrücken.", prompt: "Zähle mit stream/filter/count die Namen mit Buchstabe a und gib count aus.", concept: "Streams, Lambda und Abfrage", hint: "stream() startet die Pipeline; filter behält Elemente; count liefert das Ergebnis.", explanation: "Streams helfen bei Datentransformation. Sie ersetzen Schleifenverständnis nicht, sie abstrahieren es.", error: "stream, Filter-Lambda, count oder Ausgabe fehlt." },
   },
 ];
 
@@ -1343,12 +1516,309 @@ legacyMeta.forEach(([id, field, competencies, minutes]) => {
     competencies,
     minutes,
     starter: mission.contextBefore,
+    compileMode: "source",
+  });
+});
+
+const PROJECTS = [
+  {
+    id: "mensa-terminal",
+    stage: "EF",
+    checkpointId: "project-mensa-terminal",
+    text: {
+      es: {
+        name: "Terminal de Mensa",
+        deliverable: "Un ticket monofichero que calcula total, descuento y pago desde datos reales.",
+        evidence: "stdout exacto con TOTAL_CENTS, DISCOUNT_CENTS y DUE_CENTS calculados.",
+      },
+      de: {
+        name: "Mensa-Terminal",
+        deliverable: "Eine Ein-Datei-Abrechnung, die Summe, Rabatt und Zahlbetrag aus echten Daten berechnet.",
+        evidence: "Exakte stdout-Zeilen mit berechneten TOTAL_CENTS, DISCOUNT_CENTS und DUE_CENTS.",
+      },
+    },
+  },
+  {
+    id: "school-library",
+    stage: "Q1",
+    checkpointId: "project-school-library",
+    text: {
+      es: {
+        name: "Biblioteca escolar",
+        deliverable: "Un flujo monofichero de catálogo, cola de préstamos y deshacer.",
+        evidence: "stdout exacto que demuestra colección, FIFO y LIFO con BOOKS, NEXT y UNDO.",
+      },
+      de: {
+        name: "Schulbibliothek",
+        deliverable: "Ein Ein-Datei-Ablauf für Bestand, Ausleihwarteschlange und Rückgängig.",
+        evidence: "Exakte stdout-Ausgabe für Sammlung, FIFO und LIFO mit BOOKS, NEXT und UNDO.",
+      },
+    },
+  },
+  {
+    id: "safe-chat",
+    stage: "Q2",
+    checkpointId: "project-safe-chat",
+    text: {
+      es: {
+        name: "Chat seguro del campus",
+        deliverable: "Un filtro monofichero que parsea mensajes, valida símbolos y minimiza la salida.",
+        evidence: "stdout exacto con aceptados, rechazados y solo remitentes permitidos.",
+      },
+      de: {
+        name: "Sicherer Campus-Chat",
+        deliverable: "Ein Ein-Datei-Filter, der Nachrichten parst, Zeichen prüft und die Ausgabe minimiert.",
+        evidence: "Exakte stdout-Ausgabe mit angenommenen, abgelehnten und nur erlaubten Absendern.",
+      },
+    },
+  },
+];
+
+const capstoneMissions = [
+  curriculumMission({
+    id: "project-mensa-terminal", stage: "EF", field: "algorithms", competencies: ["M", "I", "D", "K"], difficulty: "hard", file: "MensaTerminal.java",
+    compileMode: "source", before: `public class MensaTerminal {`, xp: 60, minutes: 30,
+    solution: `public static int[] calculate(int[] itemCents, int discountPercent) {
+        int totalCents = 0;
+        for (int priceCents : itemCents) {
+            totalCents += priceCents;
+        }
+        int discountCents = totalCents * discountPercent / 100;
+        int dueCents = totalCents - discountCents;
+        return new int[] {totalCents, discountCents, dueCents};
+    }`,
+    after: `    private static void printCase(int caseNumber, int[] itemCents, int discountPercent) {
+        int[] result = calculate(itemCents, discountPercent);
+        System.out.println("CASE=" + caseNumber);
+        System.out.println("TOTAL_CENTS=" + result[0]);
+        System.out.println("DISCOUNT_CENTS=" + result[1]);
+        System.out.println("DUE_CENTS=" + result[2]);
+    }
+
+    public static void main(String[] args) {
+        printCase(1, new int[] {350, 420, 250}, 10);
+        printCase(2, new int[] {125, 375}, 20);
+    }
+}`,
+    required: [
+      /public\s+static\s+int\s*\[\s*]\s+calculate\s*\(\s*int\s*\[\s*]\s+itemCents\s*,\s*int\s+discountPercent\s*\)/,
+      /for\s*\(\s*int\s+priceCents\s*:\s*itemCents\s*\)/,
+      /totalCents\s*\+=\s*priceCents/,
+      /discountCents\s*=\s*totalCents\s*\*\s*discountPercent\s*\/\s*100/,
+      /dueCents\s*=\s*totalCents\s*-\s*discountCents/,
+      /return\s+new\s+int\s*\[\s*]\s*\{\s*totalCents\s*,\s*discountCents\s*,\s*dueCents\s*}/,
+    ],
+    es: {
+      short: "Proyecto · Mensa", title: "Entregá una terminal de Mensa", objective: "Integrar arrays, bucles, acumulación y aritmética entera en un ticket verificable.",
+      prompt: "Implementá calculate(itemCents, discountPercent). Devolvé total, descuento y deuda calculados desde los parámetros. El harness visible ejecuta dos tickets distintos.",
+      concept: "Función reutilizable + harness determinista", hint: "Recorré itemCents para obtener totalCents; no supongas valores ni longitud.",
+      hint2: "Derivá discountCents con discountPercent y devolvé las tres variables en ese orden.",
+      explanation: "Dos fixtures fuerzan a que el resultado dependa del array y del porcentaje recibidos, no de un ticket conocido.",
+      error: "calculate debe recorrer itemCents, usar discountPercent y devolver total, descuento y deuda derivados.",
+    },
+    de: {
+      short: "Projekt · Mensa", title: "Liefere ein Mensa-Terminal", objective: "Arrays, Schleifen, Akkumulation und Ganzzahlarithmetik in einem prüfbaren Bon verbinden.",
+      prompt: "Implementiere calculate(itemCents, discountPercent). Gib Summe, Rabatt und Zahlbetrag aus den Parametern zurück. Der sichtbare Harness führt zwei verschiedene Bons aus.",
+      concept: "Wiederverwendbare Funktion + deterministischer Harness", hint: "Durchlaufe itemCents für totalCents; setze keine Werte oder Länge voraus.",
+      hint2: "Leite discountCents aus discountPercent ab und gib die drei Variablen in dieser Reihenfolge zurück.",
+      explanation: "Zwei Fixtures erzwingen, dass das Ergebnis vom Array und Prozentsatz abhängt statt von einem bekannten Bon.",
+      error: "calculate muss itemCents durchlaufen, discountPercent verwenden und drei abgeleitete Werte zurückgeben.",
+    },
+  }),
+  curriculumMission({
+    id: "project-school-library", stage: "Q1", field: "data", competencies: ["M", "I", "D", "K"], difficulty: "hard", file: "SchoolLibrary.java",
+    compileMode: "source", before: `import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Queue;
+
+public class SchoolLibrary {`, xp: 70, minutes: 40,
+    solution: `public static String[] process(
+        List<String> books,
+        Queue<String> requests,
+        Deque<String> undoHistory
+    ) {
+        String next = requests.poll();
+        String borrowed = next.split(":", 2)[1];
+        books.remove(borrowed);
+        undoHistory.push(borrowed);
+        String restored = undoHistory.pop();
+        books.add(restored);
+        return new String[] {String.valueOf(books.size()), next, restored};
+    }`,
+    after: `    private static void printCase(
+        int caseNumber,
+        List<String> books,
+        Queue<String> requests
+    ) {
+        String[] result = process(books, requests, new ArrayDeque<>());
+        System.out.println("CASE=" + caseNumber);
+        System.out.println("BOOKS=" + result[0]);
+        System.out.println("NEXT=" + result[1]);
+        System.out.println("UNDO=" + result[2]);
+    }
+
+    public static void main(String[] args) {
+        printCase(
+            1,
+            new ArrayList<>(List.of("Ada", "Java", "Networks")),
+            new ArrayDeque<>(List.of("Lina:Java", "Noah:Ada"))
+        );
+        printCase(
+            2,
+            new ArrayList<>(List.of("Ada", "Java", "Networks", "Databases")),
+            new ArrayDeque<>(List.of("Mika:Networks", "Ana:Ada"))
+        );
+    }
+}`,
+    required: [
+      /public\s+static\s+String\s*\[\s*]\s+process\s*\(\s*List\s*<\s*String\s*>\s+books\s*,\s*Queue\s*<\s*String\s*>\s+requests\s*,\s*Deque\s*<\s*String\s*>\s+undoHistory\s*\)/,
+      /String\s+next\s*=\s*requests\.poll\s*\(\s*\)/,
+      /String\s+borrowed\s*=\s*next\.split\s*\(\s*":"\s*,\s*2\s*\)\s*\[\s*1\s*]/,
+      /books\.remove\s*\(\s*borrowed\s*\)/,
+      /undoHistory\.push\s*\(\s*borrowed\s*\)/,
+      /String\s+restored\s*=\s*undoHistory\.pop\s*\(\s*\)/,
+      /books\.add\s*\(\s*restored\s*\)/,
+      /return\s+new\s+String\s*\[\s*]\s*\{\s*String\.valueOf\s*\(\s*books\.size\s*\(\s*\)\s*\)\s*,\s*next\s*,\s*restored\s*}/,
+    ],
+    es: {
+      short: "Proyecto · Biblioteca", title: "Operá una biblioteca escolar", objective: "Integrar colección, cola FIFO, pila LIFO y parsing en un flujo observable.",
+      prompt: "Implementá process(books, requests, undoHistory). Atendé la primera solicitud, retirala, registrala y deshacela. El harness usa dos catálogos y colas distintos.",
+      concept: "Colecciones causales + harness", hint: "next debe salir de requests.poll(); borrowed debe salir de next.",
+      hint2: "Usá la misma variable borrowed en remove/push y restored desde pop en add/return.",
+      explanation: "Los dos fixtures comprueban que FIFO, LIFO y catálogo participan realmente del resultado.",
+      error: "process debe derivar next/restored de Queue y Deque, mutar books y devolver los valores observados.",
+    },
+    de: {
+      short: "Projekt · Bibliothek", title: "Betreibe eine Schulbibliothek", objective: "Sammlung, FIFO-Queue, LIFO-Stack und Parsing sichtbar verbinden.",
+      prompt: "Implementiere process(books, requests, undoHistory). Bearbeite die erste Anfrage, entferne, speichere und mache rückgängig. Der Harness nutzt zwei Bestände und Queues.",
+      concept: "Kausale Sammlungen + Harness", hint: "next muss aus requests.poll() kommen; borrowed muss aus next entstehen.",
+      hint2: "Nutze borrowed für remove/push und restored aus pop für add/return.",
+      explanation: "Zwei Fixtures prüfen, dass FIFO, LIFO und Bestand das Ergebnis wirklich bestimmen.",
+      error: "process muss next/restored aus Queue und Deque ableiten, books ändern und beobachtete Werte zurückgeben.",
+    },
+  }),
+  curriculumMission({
+    id: "project-safe-chat", stage: "Q2", field: "formal", competencies: ["A", "M", "I", "D", "K"], difficulty: "hard", file: "SafeChat.java",
+    compileMode: "source", before: `import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class SafeChat {`, xp: 80, minutes: 45,
+    solution: `public static String[] filter(String[] messages, Set<String> allowed) {
+        Set<String> acceptedSenders = new LinkedHashSet<>();
+        int accepted = 0;
+        int rejected = 0;
+        for (String message : messages) {
+            String[] parts = message.split(":", 2);
+            boolean validShape = parts.length == 2 && parts[1].matches("[A-Z]+");
+            if (validShape && allowed.contains(parts[0])) {
+                acceptedSenders.add(parts[0]);
+                accepted++;
+            } else {
+                rejected++;
+            }
+        }
+        return new String[] {
+            String.valueOf(accepted),
+            String.valueOf(rejected),
+            acceptedSenders.toString()
+        };
+    }`,
+    after: `    private static void printCase(
+        int caseNumber,
+        String[] messages,
+        Set<String> allowed
+    ) {
+        String[] result = filter(messages, allowed);
+        System.out.println("CASE=" + caseNumber);
+        System.out.println("ACCEPTED=" + result[0]);
+        System.out.println("REJECTED=" + result[1]);
+        System.out.println("SENDERS=" + result[2]);
+    }
+
+    public static void main(String[] args) {
+        printCase(
+            1,
+            new String[] {"ALICE:HELLO", "BOB:JAVA", "EVE:<script>"},
+            Set.of("ALICE", "BOB")
+        );
+        printCase(
+            2,
+            new String[] {"ALICE:JAVA", "MALLORY:HELLO", "BOB:OK", "BOB:42"},
+            Set.of("ALICE", "BOB")
+        );
+    }
+}`,
+    required: [
+      /public\s+static\s+String\s*\[\s*]\s+filter\s*\(\s*String\s*\[\s*]\s+messages\s*,\s*Set\s*<\s*String\s*>\s+allowed\s*\)/,
+      /Set\s*<\s*String\s*>\s+acceptedSenders\s*=\s*new\s+LinkedHashSet\s*<\s*>\s*\(\s*\)/,
+      /for\s*\(\s*String\s+message\s*:\s*messages\s*\)/,
+      /message\.split\s*\(\s*":"\s*,\s*2\s*\)/,
+      /parts\s*\[\s*1\s*]\.matches\s*\(\s*"\[A-Z]\+"\s*\)/,
+      /allowed\.contains\s*\(\s*parts\s*\[\s*0\s*]\s*\)/,
+      /acceptedSenders\.add\s*\(\s*parts\s*\[\s*0\s*]\s*\)/,
+      /accepted\s*\+\+/,
+      /rejected\s*\+\+/,
+      /return\s+new\s+String\s*\[\s*]\s*\{\s*String\.valueOf\s*\(\s*accepted\s*\)\s*,\s*String\.valueOf\s*\(\s*rejected\s*\)\s*,\s*acceptedSenders\.toString\s*\(\s*\)\s*}/,
+    ],
+    es: {
+      short: "Proyecto · Chat seguro", title: "Filtrá un chat del campus", objective: "Integrar parser, lenguaje regular, Set y minimización de datos.",
+      prompt: "Implementá filter(messages, allowed). Parseá y validá cada mensaje recibido; devolvé aceptados, rechazados y remitentes. El harness ejecuta dos lotes distintos.",
+      concept: "Parser causal + reconocedor + privacidad", hint: "Iterá messages: split tokeniza y matches(\"[A-Z]+\") valida el contenido.",
+      hint2: "allowed decide autorización; LinkedHashSet deduplica remitentes sin publicar mensajes.",
+      explanation: "Dos lotes prueban que conteos y remitentes nacen de los parámetros, no de datos precargados.",
+      error: "filter debe recorrer messages, consultar allowed y devolver contadores y remitentes derivados.",
+    },
+    de: {
+      short: "Projekt · Sicherer Chat", title: "Filtere einen Campus-Chat", objective: "Parser, reguläre Sprache, Set und Datenminimierung verbinden.",
+      prompt: "Implementiere filter(messages, allowed). Parse und prüfe jede übergebene Nachricht; gib angenommene, abgelehnte und Absender zurück. Der Harness führt zwei Stapel aus.",
+      concept: "Kausaler Parser + Erkenner + Datenschutz", hint: "Iteriere messages: split tokenisiert, matches(\"[A-Z]+\") prüft den Inhalt.",
+      hint2: "allowed entscheidet die Berechtigung; LinkedHashSet dedupliziert Absender ohne Nachrichten zu veröffentlichen.",
+      explanation: "Zwei Stapel prüfen, dass Zähler und Absender aus den Parametern statt aus Vorbelegung entstehen.",
+      error: "filter muss messages durchlaufen, allowed abfragen und abgeleitete Zähler sowie Absender zurückgeben.",
+    },
+  }),
+];
+
+capstoneMissions.forEach((capstone) => {
+  const lastStageIndex = missions.reduce(
+    (last, mission, index) => mission.stage === capstone.stage ? index : last,
+    -1,
+  );
+  missions.splice(lastStageIndex + 1, 0, capstone);
+});
+
+PROJECTS.forEach((project) => {
+  const routeMissions = missions.filter((mission) => mission.stage === project.stage);
+  routeMissions.forEach((mission, index) => {
+    mission.projectId = project.id;
+    mission.projectOrder = index + 1;
+    mission.checkpoint = mission.id === project.checkpointId;
+    mission.deliverable = {
+      es: project.text.es.deliverable,
+      de: project.text.de.deliverable,
+    };
+    mission.evidence = mission.checkpoint
+      ? { es: project.text.es.evidence, de: project.text.de.evidence }
+      : { es: mission.text.es.objective, de: mission.text.de.objective };
   });
 });
 
 const elements = {
   xp: document.querySelector("#xp"),
   missionList: document.querySelector("#missionList"),
+  projectSelect: document.querySelector("#projectSelect"),
+  projectProgress: document.querySelector("#projectProgress"),
+  projectDeliverable: document.querySelector("#projectDeliverable"),
+  projectSteps: document.querySelector("#projectSteps"),
+  projectContinueButton: document.querySelector("#projectContinueButton"),
+  projectContextName: document.querySelector("#projectContextName"),
+  projectStep: document.querySelector("#projectStep"),
+  projectContextDeliverable: document.querySelector("#projectContextDeliverable"),
+  projectEvidence: document.querySelector("#projectEvidence"),
+  compileRailStatus: document.querySelector("#compileRailStatus"),
+  compileRailSteps: document.querySelector("#compileRailSteps"),
   missionNumber: document.querySelector("#missionNumber"),
   difficulty: document.querySelector("#difficulty"),
   missionXp: document.querySelector("#missionXp"),
@@ -1582,9 +2052,13 @@ function setTheme(theme) {
 
 function createDefaultState(language = "es") {
   return {
+    stateVersion: 3,
     language,
     theme: getInitialTheme(),
     current: 0,
+    currentMissionId: missions[0].id,
+    unlockedThroughMissionId: missions[0].id,
+    selectedProject: PROJECTS[0].id,
     freePractice: false,
     xp: 0,
     solved: [],
@@ -1611,7 +2085,7 @@ function sanitizeMissionMap(value, sanitize) {
   }));
 }
 
-function normalizeState(stored) {
+function normalizeState(stored, options = {}) {
   const defaults = createDefaultState();
   const validIds = new Set(missions.map((mission) => mission.id));
   const legacySolved = stored?.solved ?? stored?.completedMissions ?? stored?.completed;
@@ -1622,12 +2096,23 @@ function normalizeState(stored) {
   while (highestUnlocked < missions.length - 1 && solvedSet.has(missions[highestUnlocked].id)) {
     highestUnlocked += 1;
   }
-  const requestedCurrent = Math.min(
-    Math.max(Number.isFinite(Number(stored?.current ?? stored?.currentMission))
-      ? Math.trunc(Number(stored.current ?? stored.currentMission))
-      : 0, 0),
-    missions.length - 1,
+  const highestSolvedIndex = missions.reduce(
+    (highest, mission, index) => solvedSet.has(mission.id) ? Math.max(highest, index) : highest,
+    -1,
   );
+  highestUnlocked = Math.min(
+    missions.length - 1,
+    Math.max(highestUnlocked, highestSolvedIndex + 1),
+  );
+  const storedIndex = Number.isFinite(Number(stored?.current ?? stored?.currentMission))
+    ? Math.max(0, Math.trunc(Number(stored.current ?? stored.currentMission)))
+    : 0;
+  const requestedMissionId = validIds.has(stored?.currentMissionId)
+    ? stored.currentMissionId
+    : options.historicalIndex
+      ? (HISTORICAL_MISSION_IDS_V2[Math.min(storedIndex, HISTORICAL_MISSION_IDS_V2.length - 1)] || missions[0].id)
+      : (missions[Math.min(storedIndex, missions.length - 1)]?.id || missions[0].id);
+  const requestedCurrent = Math.max(0, missions.findIndex((mission) => mission.id === requestedMissionId));
   const attempts = sanitizeMissionMap(stored?.attempts, (value) => {
     const number = Number(value);
     return Number.isFinite(number) ? Math.max(0, Math.trunc(number)) : 0;
@@ -1638,12 +2123,28 @@ function normalizeState(stored) {
     return Math.min(safe, attempts[mission.id] || 0);
   });
   const xpValue = Number(stored?.xp ?? stored?.score);
+  const storedUnlockedIndex = validIds.has(stored?.unlockedThroughMissionId)
+    ? missions.findIndex((mission) => mission.id === stored.unlockedThroughMissionId)
+    : -1;
+  const preservedUnlockedIndex = options.historicalIndex
+    ? Math.max(highestUnlocked, requestedCurrent)
+    : Math.max(highestUnlocked, storedUnlockedIndex);
+  const current = Math.min(
+    requestedCurrent,
+    stored?.freePractice === true ? missions.length - 1 : preservedUnlockedIndex,
+  );
 
   return {
     ...defaults,
+    stateVersion: 3,
     language: stored?.language === "de" ? "de" : "es",
     theme: stored?.theme === "light" || stored?.theme === "dark" ? stored.theme : getInitialTheme(),
-    current: Math.min(requestedCurrent, stored?.freePractice === true ? missions.length - 1 : highestUnlocked),
+    current,
+    currentMissionId: missions[current].id,
+    unlockedThroughMissionId: missions[preservedUnlockedIndex]?.id || missions[0].id,
+    selectedProject: PROJECTS.some((project) => project.id === stored?.selectedProject)
+      ? stored.selectedProject
+      : (missions[current]?.projectId || PROJECTS[0].id),
     freePractice: stored?.freePractice === true,
     xp: Number.isFinite(xpValue) ? Math.max(0, Math.trunc(xpValue)) : 0,
     solved,
@@ -1682,7 +2183,7 @@ function loadState() {
       try {
         const parsed = JSON.parse(legacyValue);
         if (!parsed || typeof parsed !== "object") continue;
-        const migrated = normalizeState(parsed);
+        const migrated = normalizeState(parsed, { historicalIndex: true });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
         localStorage.removeItem(legacyKey);
         return migrated;
@@ -1880,6 +2381,8 @@ async function initCloud() {
 }
 
 function saveState(sync = true) {
+  state.stateVersion = 3;
+  state.currentMissionId = missions[state.current]?.id || missions[0].id;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
@@ -1904,7 +2407,11 @@ function getMissionText(mission = missions[state.current]) {
 }
 
 function isUnlocked(index) {
-  return state.freePractice || index === 0 || state.solved.includes(missions[index - 1].id);
+  if (state.freePractice || index === 0 || state.solved.includes(missions[index]?.id)) return true;
+  const preservedIndex = missions.findIndex((mission) => mission.id === state.unlockedThroughMissionId);
+  if (preservedIndex >= index) return true;
+  if (state.solved.includes(missions[index - 1].id)) return true;
+  return missions.slice(index + 1).some((mission) => state.solved.includes(mission.id));
 }
 
 function translateInterface() {
@@ -2026,6 +2533,120 @@ function syncFocusModeWithFullscreen() {
   }
 }
 
+function projectById(projectId) {
+  return PROJECTS.find((project) => project.id === projectId) || PROJECTS[0];
+}
+
+function projectMissions(projectId) {
+  return missions.filter((mission) => mission.projectId === projectId);
+}
+
+function renderProjectNavigator() {
+  if (!elements.projectSelect || !elements.projectSteps) return;
+  const project = projectById(state.selectedProject);
+  const route = projectMissions(project.id);
+  const solvedCount = route.filter((mission) => state.solved.includes(mission.id)).length;
+
+  elements.projectSelect.replaceChildren(...PROJECTS.map((candidate) => {
+    const option = document.createElement("option");
+    option.value = candidate.id;
+    option.textContent = `${candidate.stage} · ${candidate.text[state.language].name}`;
+    option.selected = candidate.id === project.id;
+    return option;
+  }));
+  elements.projectProgress.textContent = `${solvedCount}/${route.length}`;
+  elements.projectDeliverable.textContent = project.text[state.language].deliverable;
+  elements.projectSteps.replaceChildren(...route.map((mission) => {
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    const index = missions.indexOf(mission);
+    const solved = state.solved.includes(mission.id);
+    button.type = "button";
+    button.dataset.missionId = mission.id;
+    button.disabled = !isUnlocked(index);
+    button.className = mission.checkpoint ? "is-checkpoint" : "";
+    if (solved) button.classList.add("is-complete");
+    if (index === state.current) button.setAttribute("aria-current", "step");
+    button.setAttribute(
+      "aria-label",
+      `${t("projectStep").replace("{current}", mission.projectOrder).replace("{total}", route.length)}: ${getMissionText(mission).short}`,
+    );
+    const order = document.createElement("span");
+    order.textContent = solved ? "✓" : String(mission.projectOrder).padStart(2, "0");
+    const title = document.createElement("strong");
+    title.textContent = getMissionText(mission).short;
+    const marker = document.createElement("small");
+    marker.textContent = mission.checkpoint ? "CHECKPOINT" : mission.competencies.join("·");
+    button.append(order, title, marker);
+    item.append(button);
+    return item;
+  }));
+
+  const remaining = route.filter((mission) => !state.solved.includes(mission.id));
+  const nextMission = remaining.find((mission) => isUnlocked(missions.indexOf(mission)))
+    || (state.freePractice ? remaining[0] : null)
+    || route.find((mission) => mission.id === project.checkpointId);
+  elements.projectContinueButton.disabled = !nextMission || !isUnlocked(missions.indexOf(nextMission));
+  elements.projectContinueButton.dataset.missionId = nextMission?.id || "";
+  const label = elements.projectContinueButton.querySelector("[data-i18n]");
+  if (label) {
+    label.dataset.i18n = nextMission?.checkpoint ? "projectCheckpoint" : "projectContinue";
+    label.textContent = t(label.dataset.i18n);
+  }
+}
+
+function renderProjectContext(mission) {
+  const project = projectById(mission.projectId);
+  const route = projectMissions(project.id);
+  elements.projectContextName.textContent = `${project.stage} · ${project.text[state.language].name}`;
+  elements.projectStep.textContent = `${interpolate(t("projectStep"), {
+    current: mission.projectOrder,
+    total: route.length,
+  })} · ${getMissionText(mission).short}${mission.checkpoint ? " · CHECKPOINT" : ""}`;
+  elements.projectContextDeliverable.textContent = mission.deliverable[state.language];
+  elements.projectEvidence.textContent = mission.evidence[state.language];
+}
+
+const COMPILE_PHASES = ["write", "compile", "run", "validate", "explain"];
+
+function setCompileRail(activePhase = "write", options = {}) {
+  if (!elements.compileRailSteps) return;
+  const activeIndex = COMPILE_PHASES.indexOf(activePhase);
+  elements.compileRailSteps.querySelectorAll("[data-compile-phase]").forEach((step) => {
+    const phase = step.dataset.compilePhase;
+    const phaseIndex = COMPILE_PHASES.indexOf(phase);
+    let status;
+    if (activePhase === "request") {
+      status = phase === "write" ? "done" : ["compile", "run"].includes(phase) ? "requested" : "pending";
+    } else {
+      status = phaseIndex < activeIndex ? "done" : phaseIndex === activeIndex ? "active" : "pending";
+    }
+    if (phase === "compile" && options.local) status = "local";
+    if (phase === "run" && options.runSkipped) status = "skipped";
+    if (options.failed && phase === activePhase) status = "error";
+    step.dataset.state = status;
+    step.setAttribute("aria-current", status === "active" || status === "error" ? "step" : "false");
+    const phaseLabel = t(`compile${phase[0].toUpperCase()}${phase.slice(1)}`);
+    const stateLabel = t(`compileState${status[0].toUpperCase()}${status.slice(1)}`);
+    step.setAttribute("aria-label", `${phaseLabel}: ${stateLabel}`);
+  });
+
+  const statusKey = options.failed
+    ? "compileRailFailed"
+    : options.local
+      ? "compileRailLocal"
+      : activePhase === "request"
+        ? "compileRailRequesting"
+        : activePhase === "validate"
+          ? "compileRailValidating"
+          : activePhase === "explain"
+            ? (options.runSkipped ? "compileRailVerifiedCompile" : "compileRailVerifiedRun")
+            : "compileRailReady";
+  elements.compileRailStatus.textContent = statusKey === "compileRailFailed"
+    ? interpolate(t(statusKey), { phase: t(`compile${activePhase[0].toUpperCase()}${activePhase.slice(1)}`) })
+    : t(statusKey);
+}
+
 function renderMissionList() {
   elements.missionList.replaceChildren();
   let renderedStage = "";
@@ -2072,6 +2693,7 @@ function renderMissionList() {
     item.append(button);
     elements.missionList.append(item);
   });
+  renderProjectNavigator();
 }
 
 function updateLineNumbers(diagnosticLines = new Set()) {
@@ -2104,8 +2726,8 @@ function renderProgress() {
     : 0;
   elements.masteryValue.textContent = `${Math.min(100, mastery)}%`;
   elements.masteryExplanation.textContent = state.language === "es"
-    ? "Fórmula local: 70 × resueltas/36 + 20 × aciertos/intentos + máx.(0, 10 − pistas − 2 × soluciones). No es una nota oficial."
-    : "Lokale Formel: 70 × gelöst/36 + 20 × Treffer/Versuche + max.(0, 10 − Hinweise − 2 × Lösungen). Keine offizielle Note.";
+    ? `Fórmula local: 70 × resueltas/${missions.length} + 20 × aciertos/intentos + máx.(0, 10 − pistas − 2 × soluciones). No es una nota oficial.`
+    : `Lokale Formel: 70 × gelöst/${missions.length} + 20 × Treffer/Versuche + max.(0, 10 − Hinweise − 2 × Lösungen). Keine offizielle Note.`;
 
   const stats = [
     [state.language === "es" ? "Intentos" : "Versuche", totalAttempts],
@@ -2331,6 +2953,7 @@ function renderMission(options = {}) {
   elements.objective.textContent = text.objective;
   elements.prompt.textContent = text.prompt;
   elements.concept.textContent = text.concept;
+  renderProjectContext(mission);
   renderDocumentation(mission);
   elements.fileName.textContent = mission.file;
   elements.codeBefore.textContent = mission.contextBefore;
@@ -2352,6 +2975,7 @@ function renderMission(options = {}) {
   scheduleDiagnostics();
   renderProgress();
   hideMessages();
+  setCompileRail("write");
 
   if (hintCount > 0) showCurrentHint();
   if (solved && !options.silent) showSuccess(true);
@@ -2393,18 +3017,29 @@ function hasConsolePrint(source) {
   return /\bSystem\s*\.\s*out\s*\.\s*print(?:ln|f)?\s*\(/.test(maskJava(source).masked);
 }
 
-async function compileWithBackend(mission, answer) {
-  if (!window.fetch) return { available: false };
+function buildCompileRequest(mission, answer) {
   const source = [mission.contextBefore, answer, mission.contextAfter].filter(Boolean).join("\n");
-  const mode = detectCompileMode(source);
+  const mode = mission.compileMode || detectCompileMode(source);
   const answerStartLine = mission.contextBefore ? mission.contextBefore.split("\n").length + 1 : 1;
   const requiresRun = Boolean(window.JavaWerkstattEvaluators?.rules?.[mission.id]?.run);
   const shouldRun = mode !== "member" && (requiresRun || hasConsolePrint(source));
+  return {
+    source,
+    fileName: mission.file,
+    mode,
+    answerStartLine,
+    run: shouldRun,
+  };
+}
+
+async function compileWithBackend(mission, answer) {
+  if (!window.fetch) return { available: false };
+  const request = buildCompileRequest(mission, answer);
   try {
     const response = await fetch(COMPILER_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ source, fileName: mission.file, mode, answerStartLine, run: shouldRun }),
+      body: JSON.stringify(request),
     });
     const payload = await response.json();
     if (!response.ok && response.status !== 408) return { available: false };
@@ -2412,7 +3047,7 @@ async function compileWithBackend(mission, answer) {
       payload.diagnostics = payload.diagnostics.map((item) => ({
         ...item,
         sourceLine: item.line,
-        line: Math.max(1, Number(item.line || 1) - answerStartLine + 1),
+        line: Math.max(1, Number(item.line || 1) - request.answerStartLine + 1),
       }));
     }
     return { available: true, ...payload };
@@ -2437,7 +3072,7 @@ function renderRealCompilerResult(mission, result) {
   setConsole(result.ok ? successText : errorText, output);
 }
 
-function showSuccess(wasAlreadySolved = false) {
+function showSuccess(wasAlreadySolved = false, compiler = null) {
   const mission = missions[state.current];
   const text = getMissionText(mission);
   showFeedback(
@@ -2446,7 +3081,10 @@ function showSuccess(wasAlreadySolved = false) {
     wasAlreadySolved ? t("alreadySolved") : t("successMessage"),
   );
   elements.explanation.hidden = false;
-  elements.explanation.textContent = `${text.explanation} ${t("validationNote")}`;
+  const validationNote = compiler?.available
+    ? (compiler.phase === "run" ? t("validationRunNote") : t("validationCompileNote"))
+    : (wasAlreadySolved ? t("validationSavedNote") : t("validationLocalNote"));
+  elements.explanation.textContent = `${text.explanation} ${validationNote}`;
   elements.nextButton.disabled = false;
 }
 
@@ -2459,6 +3097,7 @@ async function checkAnswer() {
   state.attempts[mission.id] = Number(state.attempts[mission.id] || 0) + 1;
 
   if (!clean(answer)) {
+    setCompileRail("write", { failed: true });
     showFeedback("error", t("emptyTitle"), t("emptyMessage"));
     renderConsoleResult(mission, answer, t("emptyMessage"));
     recordAttemptEvent(mission, { phase: "local", passed: false, feedback: t("emptyMessage"), answer });
@@ -2466,11 +3105,16 @@ async function checkAnswer() {
     return;
   }
 
+  setCompileRail("request");
   setConsole(t("compilerConnecting"), `> javac ${mission.file}\n… ${t("compilerConnecting")}`);
   const compiler = await compileWithBackend(mission, answer);
   if (compiler.available) {
     renderRealCompilerResult(mission, compiler);
     if (!compiler.ok) {
+      setCompileRail(compiler.phase === "run" ? "run" : "compile", {
+        failed: true,
+        runSkipped: compiler.phase !== "run",
+      });
       const firstDiagnostic = compiler.diagnostics?.[0];
       const message = firstDiagnostic
         ? `Línea ${firstDiagnostic.line}: ${firstDiagnostic.message}`
@@ -2487,22 +3131,31 @@ async function checkAnswer() {
       saveState();
       return;
     }
+    setCompileRail("validate", { runSkipped: compiler.phase !== "run" });
     const pedagogic = window.JavaWerkstattEvaluators?.evaluate?.(mission.id, compiler, state.language);
     if (pedagogic && !pedagogic.passed) {
+      setCompileRail("validate", { failed: true, runSkipped: compiler.phase !== "run" });
       showFeedback("error", t("pedagogicError"), pedagogic.message);
       recordAttemptEvent(mission, { phase: "pedagogic", passed: false, feedback: pedagogic.message, durationMs: compiler.durationMs || 0, answer });
       saveState();
       return;
     }
   } else {
+    setCompileRail("validate", { local: true, runSkipped: true });
     setConsole(t("compilerOffline"), `> javac ${mission.file}\n… ${t("compilerOffline")}\n\n${t("consoleHint")}`);
   }
 
+  const answerViews = codeRepresentations(answer);
   const structuralError =
-    commonStructureChecks(clean(answer), state.language) ||
-    mission.validate(answer, state.language);
+    commonStructureChecks(answerViews.raw, state.language) ||
+    mission.validate(answerViews.raw, state.language);
 
   if (structuralError) {
+    setCompileRail("validate", {
+      failed: true,
+      local: !compiler.available,
+      runSkipped: compiler.phase !== "run",
+    });
     showFeedback("error", t("errorTitle"), structuralError);
     renderConsoleResult(mission, answer, structuralError);
     recordAttemptEvent(mission, { phase: "local", passed: false, feedback: structuralError, diagnosticsCount: analyzeCode(answer).length, answer });
@@ -2524,7 +3177,11 @@ async function checkAnswer() {
   elements.orbitValue.style.strokeDashoffset = String(
     113.1 - (113.1 * state.solved.length) / missions.length,
   );
-  showSuccess(alreadySolved);
+  setCompileRail("explain", {
+    local: !compiler.available,
+    runSkipped: compiler.phase !== "run",
+  });
+  showSuccess(alreadySolved, compiler);
   recordAttemptEvent(mission, { phase: compiler.available ? (compiler.phase || "compile") : "local", passed: true, feedback: getMissionText(mission).title, durationMs: compiler.durationMs || 0, answer });
   if (!compiler.available) renderConsoleResult(mission, answer);
   renderProgress();
@@ -2600,19 +3257,28 @@ function moveNext() {
   }
 
   state.current += 1;
+  state.selectedProject = missions[state.current].projectId;
   saveState();
   renderMission({ silent: true });
   elements.editor.focus();
 }
 
-function selectMission(index) {
+function focusMissionHeading() {
+  window.requestAnimationFrame(() => {
+    elements.missionTitle?.focus({ preventScroll: false });
+  });
+}
+
+function selectMission(index, options = {}) {
   if (!isUnlocked(index)) return;
   const currentMission = missions[state.current];
   state.answers[currentMission.id] = elements.editor.value;
   state.answerUpdatedAt[currentMission.id] = new Date().toISOString();
   state.current = index;
+  state.selectedProject = missions[index].projectId;
   saveState();
   renderMission();
+  if (options.focusHeading) focusMissionHeading();
 }
 
 function changeLanguage(language) {
@@ -3142,6 +3808,7 @@ elements.editor.addEventListener("input", () => {
   updateLineNumbers();
   scheduleDiagnostics();
   renderCompletion();
+  setCompileRail("write");
   saveState();
 });
 
@@ -3200,7 +3867,33 @@ elements.resetButton.addEventListener("click", resetProgress);
 
 elements.missionList.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-index]");
-  if (button) selectMission(Number(button.dataset.index));
+  if (button) selectMission(Number(button.dataset.index), { focusHeading: true });
+});
+
+elements.projectSelect?.addEventListener("change", (event) => {
+  state.selectedProject = event.target.value;
+  const target = projectMissions(state.selectedProject)
+    .find((mission) => isUnlocked(missions.indexOf(mission)));
+  if (target) {
+    selectMission(missions.indexOf(target), { focusHeading: true });
+  } else {
+    saveState();
+    renderProjectNavigator();
+    focusMissionHeading();
+  }
+});
+
+elements.projectSteps?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-mission-id]");
+  if (!button) return;
+  const index = missions.findIndex((mission) => mission.id === button.dataset.missionId);
+  if (index >= 0) selectMission(index, { focusHeading: true });
+});
+
+elements.projectContinueButton?.addEventListener("click", () => {
+  const missionId = elements.projectContinueButton.dataset.missionId;
+  const index = missions.findIndex((mission) => mission.id === missionId);
+  if (index >= 0) selectMission(index, { focusHeading: true });
 });
 
 document.querySelectorAll(".language-button").forEach((button) => {
@@ -3345,6 +4038,39 @@ elements.focusToggle?.addEventListener("click", () => {
 
 document.addEventListener("fullscreenchange", syncFocusModeWithFullscreen);
 document.addEventListener("webkitfullscreenchange", syncFocusModeWithFullscreen);
+
+if (new URLSearchParams(window.location.search).get("e2e") === "1") {
+  window.__JAVA_WERKSTATT_E2E__ = Object.freeze({
+    officialContracts() {
+      return missions.map((mission) => ({
+        id: mission.id,
+        stage: mission.stage,
+        projectId: mission.projectId,
+        checkpoint: mission.checkpoint,
+        solution: mission.solution,
+        localError: mission.validate(mission.solution, "es"),
+        compileRequest: buildCompileRequest(mission, mission.solution),
+        evaluatorRule: window.JavaWerkstattEvaluators?.rules?.[mission.id] || null,
+      }));
+    },
+    projects() {
+      return PROJECTS.map((project) => ({
+        id: project.id,
+        stage: project.stage,
+        checkpointId: project.checkpointId,
+        missionIds: projectMissions(project.id).map((mission) => mission.id),
+      }));
+    },
+    validateMission(missionId, answer) {
+      const mission = missions.find((candidate) => candidate.id === missionId);
+      if (!mission) return { localError: "unknown-mission", compileRequest: null };
+      return {
+        localError: mission.validate(String(answer || ""), "es"),
+        compileRequest: buildCompileRequest(mission, String(answer || "")),
+      };
+    },
+  });
+}
 
 renderLiveTemplates();
 renderMission();

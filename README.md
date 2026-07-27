@@ -50,7 +50,9 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 
 ## Qué incluye
 
-- **Exactamente 36 misiones:** EF (12), Q1 (12) y Q2 (12).
+- **Exactamente 45 misiones:** EF (15), Q1 (15) y Q2 (15). Cada nivel termina con un proyecto ejecutable.
+- **Tres proyectos monofichero y deterministas:** Terminal de Mensa (arrays/bucles/cálculo), Biblioteca escolar (List/Queue/Deque/parsing) y Chat seguro del campus (parser, lenguaje regular, Set y minimización de datos). El alumno implementa un método reutilizable y un harness visible lo ejecuta con dos fixtures distintos.
+- **Rutas de proyecto aditivas:** cada misión conserva su ID histórico y suma `projectId`, orden, checkpoint, entregable y evidencia; el modo libre permite abrir cualquier proyecto y cualquier misión.
 - Recorrido razonable por sintaxis, tipos, control, métodos, arrays/Strings, POO/UML, herencia, polimorfismo, colecciones, List/Stack/Queue, recursión, búsqueda, ordenamiento, eficiencia, BST, grafos, autómatas, gramáticas, SQL, normalización, redes, cifrado educativo, privacidad, Von Neumann y límites de la computación.
 - Los contenidos no-Java se trabajan como simulaciones, modelos, cadenas o comentarios Java; no se finge una base de datos, red, CPU o autómata real.
 - Popup de completado para Live Templates y términos contextuales, accesible como `listbox`.
@@ -61,6 +63,7 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - **Modo de práctica libre:** podés abrir cualquier misión sin resolver la anterior; el recorrido secuencial sigue disponible como modo guiado.
 - Autocierre de `""`, `''`, `()`, `[]` y `{}` con el cursor dentro; si el cierre ya existe, el editor lo salta.
 - Consola educativa dentro del IDE: F5 muestra comandos reales, diagnósticos por línea y salida stdout/stderr solo si el programa imprime con `System.out.print(...)`, `System.out.println(...)` o `System.out.printf(...)`. Las misiones ejecutables obligan al alumno a escribir también la impresión cuando el resultado debe observarse.
+- **Compile Rail:** el pipeline visible `Escribir → Compilar → Ejecutar → Validar → Explicar` muestra primero una solicitud backend pendiente y solo marca compilación/ejecución como verificadas cuando el endpoint devuelve su fase final. También distingue etapa omitida, error y fallback heurístico local mediante texto y estados accesibles.
 - Documentación contextual visible por misión, con enlaces directos a `dev.java` y Oracle Java Tutorials/API.
 - Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
 - **Compilación y ejecución real opcional:** al pulsar F5, `api/compile.php` compila con `javac` y ejecuta con `java` cuando la misión lo exige o cuando el código contiene una impresión de consola. La salida se recorta y corre con timeout/límites; con sandbox Docker/worker se ejecuta sin red y con límites CPU/RAM/PID.
@@ -98,6 +101,7 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `index.html`: shell SPA y semántica accesible.
 - `styles.css`: tokens visuales, temas, layouts responsive, editor, popup, diagnósticos y progreso.
 - `game.js`: catálogo curricular, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
+- `js/java-evaluators.js`: contratos conductuales sobre stdout real; soporta inclusión compatible (`stdoutIncludes`) e igualdad normalizada (`stdoutEquals`).
 - `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en temporal, ejecuta snippets/clases con límites y devuelve diagnósticos/salida JSON.
 - `api/auth.php`: registro, login, logout, sesiones y roles student/teacher/admin.
 - `api/classes.php`: creación de clases docente, unión por código y consulta GET de progreso por clase con permisos de docente/admin.
@@ -106,26 +110,33 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `api/bootstrap.php`: PDO, sesión HttpOnly/SameSite, respuestas JSON y protección CSRF.
 - `database/schema.sql`: esquema MySQL para usuarios, clases, miembros y progreso.
 - `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
-- `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre, autocierre de pares, ejecución Java y progreso docente.
+- `tests/java-werkstatt.spec.js`: 18 pruebas Playwright de UI, API, modo libre, overflow a 390/320 px, foco, migración v2→v3, proyectos, Compile Rail, stdout exacto y contratos positivos/adversariales.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
 - Con PHP activo, F5 usa `javac` real y ejecuta solo cuando hay salida esperable; sin `System.out.print/println/printf` la consola avisa que no hay resultado visible. Sin PHP, vuelve a validación local y lo comunica.
-- `localStorage`: progreso y preferencias. La carga filtra IDs desconocidos y completa campos nuevos con valores seguros.
+- `localStorage`: progreso y preferencias en estado v3. Persiste `currentMissionId` estable; al migrar v2/legacy traduce el índice con el orden histórico de 36 misiones anterior a los capstones.
 
 `localStorage` queda como caché offline y fallback; con una sesión activa, `api/progress.php` sincroniza las respuestas con MySQL. El registro público siempre crea estudiantes: los docentes se crean por CLI o por un flujo administrativo.
 
 El frontend no usa Monaco ni CodeMirror. Playwright es una dependencia exclusiva de testing; PHP no requiere framework.
 
-### Tests Playwright
+### Checks y tests
 
-Instalá las dependencias de desarrollo y ejecutá los smoke tests:
+Instalá las dependencias de desarrollo una vez:
 
 ```bash
 npm install
 npx playwright install chromium
+```
+
+Después ejecutá, sin necesidad de build:
+
+```bash
+npm run test:syntax
+npm run test:worker
 npm run test:e2e
 ```
 
-Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`. En Docker XAMPP usá `tools/install-xampp-jdk.sh xampp-php`.
+`test:e2e` conserva los ocho smoke tests originales y añade diez contratos de producto. El contrato oficial obtiene los 45 casos desde una API encapsulada que solo existe bajo `?e2e=1`, exige una regla para las 23 misiones ejecutables, prueba salidas incorrectas y compila en paralelo con concurrencia limitada. Los tres cheats verificados de capstone también deben ser rechazados. Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`. En Docker XAMPP usá `tools/install-xampp-jdk.sh xampp-php`.
 
 ## Currículo NRW GOSt
 
@@ -134,6 +145,8 @@ El **Kernlehrplan (KLP) Informatik für die gymnasiale Oberstufe** es el marco o
 El **Schulinterner Lehrplan (SiLP)** consultado aporta una secuencia orientativa EF/Q1/Q2; no es correcto presentarlo como una secuencia universal obligatoria para todos los centros. La documentación de los exámenes centrales se usa como contexto adicional.
 
 La aplicación ofrece una cobertura práctica y razonable, pero **NO afirma cubrir literalmente todo el currículo, no reemplaza el KLP, un SiLP escolar, la docencia ni la preparación oficial de examen**.
+
+Como inspiración complementaria para secuencias y ejercicios se referencia la [playlist aportada para el proyecto](https://www.youtube.com/playlist?list=PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV). Es material de apoyo: **no sustituye ni amplía por sí sola la cobertura oficial del KLP NRW**.
 
 Fuentes:
 
@@ -213,7 +226,9 @@ npm run test:worker
 
 ## Validación, límites y privacidad
 
-La validación local es **honestamente heurística**: expresiones regulares y análisis léxico revisan estructuras esperadas, no la semántica completa del lenguaje. Los diagnósticos locales intentan ignorar strings y comentarios, pero pueden producir falsos positivos o negativos. Cuando el backend PHP está conectado, el diagnóstico de compilación proviene de `javac`; aun así, que compile no demuestra que la solución cumpla el objetivo didáctico de la misión.
+La validación local es **honestamente heurística**: expresiones regulares y análisis léxico revisan estructuras esperadas, no la semántica completa del lenguaje. El frontend mantiene representaciones separadas del código crudo, del código sin comentarios y del código enmascarado. Así, los comentarios pueden servir como evidencia pedagógica solo en reglas explícitas, sin contaminar las comprobaciones estructurales. Los diagnósticos locales pueden producir falsos positivos o negativos.
+
+Cada misión declara su modo de compilación (`source`, `snippet` o `member`) y, si necesita símbolos de contexto, un fixture visible alrededor del bloque editable. Cuando el backend PHP está conectado, el diagnóstico proviene de `javac`; las 23 misiones ejecutables tienen contrato runtime explícito y una ejecución sin regla se rechaza cerradamente. Los proyectos usan `stdoutEquals` normalizado sobre dos fixtures y validadores causales sobre parámetros/colecciones. Esto reduce hardcoding trivial, aunque ninguna heurística local reemplaza análisis semántico general.
 
 Sin PHP, no existe un compilador Java real en el navegador. Una respuesta aceptada todavía puede no compilar, y una solución válida escrita de otra manera puede ser rechazada por las reglas educativas de la misión.
 
@@ -223,6 +238,6 @@ Sin backend configurado, todo se procesa en el navegador. Con backend, las cuent
 
 La estimación mostrada se calcula así, con un máximo de 100:
 
-`70 × misiones resueltas / 36 + 20 × aciertos / intentos + max(0, 10 − pistas − 2 × soluciones reveladas)`
+`70 × misiones resueltas / 45 + 20 × aciertos / intentos + max(0, 10 − pistas − 2 × soluciones reveladas)`
 
 Un **acierto** se registra únicamente la primera vez que una misión se resuelve; volver a comprobar una misión ya resuelta suma un intento, pero no infla los aciertos. Esta métrica local sirve para orientar la práctica: no es una calificación oficial.

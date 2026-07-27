@@ -76,13 +76,33 @@
           <p class="eyebrow" data-i18n="courseLabel">Ruta práctica</p>
           <h1 data-i18n="courseTitle">Java desde los cimientos</h1>
           <p data-i18n="courseIntro">
-            36 misiones de EF a Q2. Escribís, verificás y entendés por qué funciona.
+            45 misiones y 3 proyectos de EF a Q2. Escribís, compilás y explicás por qué funciona.
           </p>
           <button id="freePracticeToggle" class="free-practice-toggle" type="button" aria-pressed="false">
             <span aria-hidden="true">⌘</span>
             <span data-i18n="freePractice">Practicar cualquier misión</span>
           </button>
         </div>
+
+        <section class="project-navigator" aria-labelledby="projectNavigatorTitle">
+          <div class="project-navigator-heading">
+            <div>
+              <p class="eyebrow" data-i18n="projectNavigatorLabel">Proyecto actual</p>
+              <h2 id="projectNavigatorTitle" data-i18n="projectNavigatorTitle">Ruta de entrega</h2>
+            </div>
+            <strong id="projectProgress">0/13</strong>
+          </div>
+          <label class="project-select-label" for="projectSelect">
+            <span data-i18n="projectSelectLabel">Elegir proyecto</span>
+            <select id="projectSelect"></select>
+          </label>
+          <p id="projectDeliverable" class="project-deliverable"></p>
+          <ol id="projectSteps" class="project-steps"></ol>
+          <button id="projectContinueButton" class="project-continue-button" type="button">
+            <span data-i18n="projectContinue">Continuar ruta</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </section>
 
         <nav aria-label="Misiones">
           <ol id="missionList" class="mission-list"></ol>
@@ -102,7 +122,7 @@
               <span id="difficulty" class="difficulty"></span>
               <span id="missionXp"></span>
             </div>
-            <h2 id="missionTitle"></h2>
+            <h2 id="missionTitle" tabindex="-1"></h2>
             <p id="objective" class="objective"></p>
           </div>
 
@@ -111,7 +131,7 @@
               <circle class="orbit-track" cx="22" cy="22" r="18"></circle>
               <circle id="orbitValue" class="orbit-value" cx="22" cy="22" r="18"></circle>
             </svg>
-            <span id="progressValue">0/36</span>
+            <span id="progressValue">0/45</span>
           </div>
         </div>
 
@@ -139,6 +159,41 @@
         </section>
 
         <div id="editorPanel" class="editor-panel">
+          <section class="project-context" aria-labelledby="projectContextName">
+            <div class="project-context-main">
+              <p class="eyebrow" data-i18n="projectContextLabel">Contexto de proyecto</p>
+              <h3 id="projectContextName"></h3>
+              <p id="projectStep"></p>
+            </div>
+            <dl class="project-context-evidence">
+              <div>
+                <dt data-i18n="projectDeliverableLabel">Entregable</dt>
+                <dd id="projectContextDeliverable"></dd>
+              </div>
+              <div>
+                <dt data-i18n="projectEvidenceLabel">Evidencia</dt>
+                <dd id="projectEvidence"></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="compile-rail" aria-labelledby="compileRailTitle">
+            <div class="compile-rail-heading">
+              <div>
+                <p class="eyebrow" data-i18n="compileRailLabel">Compile Rail</p>
+                <h3 id="compileRailTitle" data-i18n="compileRailTitle">Del código a la evidencia</h3>
+              </div>
+              <span id="compileRailStatus" role="status" aria-live="polite" aria-atomic="true" data-i18n="compileRailReady">Escribí y pulsá F5.</span>
+            </div>
+            <ol id="compileRailSteps" class="compile-rail-steps">
+              <li data-compile-phase="write"><span>01</span><strong data-i18n="compileWrite">Escribir</strong></li>
+              <li data-compile-phase="compile"><span>02</span><strong data-i18n="compileCompile">Compilar</strong></li>
+              <li data-compile-phase="run"><span>03</span><strong data-i18n="compileRun">Ejecutar</strong></li>
+              <li data-compile-phase="validate"><span>04</span><strong data-i18n="compileValidate">Validar</strong></li>
+              <li data-compile-phase="explain"><span>05</span><strong data-i18n="compileExplain">Explicar</strong></li>
+            </ol>
+          </section>
+
           <div class="editor-toolbar" role="toolbar" aria-label="Herramientas del editor">
             <button
               id="sidebarToggle"
@@ -220,6 +275,42 @@
               <span id="consoleStatus" data-i18n="consoleReady">Lista para F5</span>
             </div>
             <pre id="consoleOutput" class="console-output"><code data-i18n="consolePlaceholder">La salida de F5 aparecerá acá.</code></pre>
+          </section>
+
+          <div class="action-row">
+            <button id="checkButton" class="button button-primary" type="button">
+              <span data-i18n="check">Compilar y validar</span>
+              <kbd>F5</kbd>
+            </button>
+            <button id="hintButton" class="button button-secondary" type="button">
+              <span data-i18n="hint">Pedir pista</span>
+              <small id="hintCost">−5 XP</small>
+            </button>
+            <button id="solutionButton" class="button button-text" type="button">
+              <span data-i18n="reveal">Ver solución</span>
+              <small>−15 XP</small>
+            </button>
+            <button id="nextButton" class="button button-next" type="button" disabled>
+              <span data-i18n="next">Siguiente misión</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <section id="feedbackPanel" class="feedback-panel" aria-live="polite" hidden>
+            <div id="feedbackIcon" class="feedback-icon" aria-hidden="true"></div>
+            <div>
+              <strong id="feedbackTitle"></strong>
+              <p id="feedbackMessage"></p>
+              <div id="explanation" class="explanation" hidden></div>
+            </div>
+          </section>
+
+          <section id="hintPanel" class="hint-panel" aria-live="polite" hidden>
+            <div class="hint-heading">
+              <strong data-i18n="hintTitle">Pista del mentor</strong>
+              <span id="hintLevel"></span>
+            </div>
+            <p id="hintText"></p>
           </section>
         </div>
 
@@ -324,49 +415,13 @@
           </div>
         </details>
 
-        <div class="action-row">
-          <button id="checkButton" class="button button-primary" type="button">
-            <span data-i18n="check">Comprobar estructura</span>
-            <kbd>F5</kbd>
-          </button>
-          <button id="hintButton" class="button button-secondary" type="button">
-            <span data-i18n="hint">Pedir pista</span>
-            <small id="hintCost">−5 XP</small>
-          </button>
-          <button id="solutionButton" class="button button-text" type="button">
-            <span data-i18n="reveal">Ver solución</span>
-            <small>−15 XP</small>
-          </button>
-          <button id="nextButton" class="button button-next" type="button" disabled>
-            <span data-i18n="next">Siguiente misión</span>
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
-
-        <section id="feedbackPanel" class="feedback-panel" aria-live="polite" hidden>
-          <div id="feedbackIcon" class="feedback-icon" aria-hidden="true"></div>
-          <div>
-            <strong id="feedbackTitle"></strong>
-            <p id="feedbackMessage"></p>
-            <div id="explanation" class="explanation" hidden></div>
-          </div>
-        </section>
-
-        <section id="hintPanel" class="hint-panel" aria-live="polite" hidden>
-          <div class="hint-heading">
-            <strong data-i18n="hintTitle">Pista del mentor</strong>
-            <span id="hintLevel"></span>
-          </div>
-          <p id="hintText"></p>
-        </section>
-
         <button id="resetButton" class="reset-button" type="button" data-i18n="reset">
           Reiniciar todo el progreso
         </button>
       </section>
     </main>
 
-    <script src="js/java-evaluators.js?v=1"></script>
-    <script src="game.js?v=12"></script>
+    <script src="js/java-evaluators.js?v=2"></script>
+    <script src="game.js?v=13"></script>
   </body>
 </html>

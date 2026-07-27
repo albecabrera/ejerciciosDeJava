@@ -12,6 +12,7 @@ $allowedMissionIds = [
     'efficiency', 'bst', 'graph-bfs', 'dfa', 'grammar', 'parser', 'sql',
     'normalization', 'network', 'caesar', 'privacy', 'von-neumann',
     'concurrency-limits', 'halting-limit', 'hash-map',
+    'project-mensa-terminal', 'project-school-library', 'project-safe-chat',
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

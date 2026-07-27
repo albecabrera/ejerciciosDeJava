@@ -1,4 +1,77 @@
 import { test, expect } from "@playwright/test";
+import { execFile } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+
+function materializeCompileRequest(request) {
+  if (request.mode === "snippet") {
+    return {
+      fileName: "WerkstattSnippet.java",
+      mainClass: "WerkstattSnippet",
+      source: `import java.util.*;
+public class WerkstattSnippet {
+    public static void main(String[] args) throws Exception {
+${request.source.split("\n").map((line) => `        ${line}`).join("\n")}
+    }
+}
+`,
+    };
+  }
+  if (request.mode === "member") {
+    return {
+      fileName: "WerkstattMember.java",
+      mainClass: "WerkstattMember",
+      source: `import java.util.*;
+public class WerkstattMember {
+${request.source.split("\n").map((line) => `    ${line}`).join("\n")}
+}
+`,
+    };
+  }
+  return {
+    fileName: request.fileName,
+    mainClass: basename(request.fileName, ".java"),
+    source: request.source,
+  };
+}
+
+async function verifyJavaContract(contract) {
+  const directory = await mkdtemp(join(tmpdir(), "java-werkstatt-contract-"));
+  try {
+    const unit = materializeCompileRequest(contract.compileRequest);
+    await writeFile(join(directory, unit.fileName), unit.source, "utf8");
+    await execFileAsync("javac", ["-encoding", "UTF-8", "-proc:none", unit.fileName], {
+      cwd: directory,
+      timeout: 15_000,
+    });
+    if (!contract.compileRequest.run) return { id: contract.id, stdout: "", ran: false };
+    const result = await execFileAsync("java", ["-cp", directory, unit.mainClass], {
+      cwd: directory,
+      timeout: 8_000,
+      maxBuffer: 64_000,
+    });
+    return { id: contract.id, stdout: result.stdout, ran: true };
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function mapWithConcurrency(values, concurrency, operation) {
+  const results = new Array(values.length);
+  let nextIndex = 0;
+  await Promise.all(Array.from({ length: concurrency }, async () => {
+    while (nextIndex < values.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await operation(values[index]);
+    }
+  }));
+  return results;
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/index.html?e2e=1");
@@ -7,7 +80,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("renders the curriculum and teacher panel", async ({ page }) => {
-  await expect(page.locator("#missionList button")).toHaveCount(36);
+  await expect(page.locator("#missionList button")).toHaveCount(45);
   await page.getByRole("button", { name: /panel docente|lehrkräfte-panel/i }).click();
   await expect(page.locator("#teacherPanel")).toBeVisible();
   await expect(page.locator("#teacherStats .teacher-stat")).toHaveCount(4);
@@ -79,4 +152,204 @@ test("keeps diagnostics and official docs visible on mobile", async ({ page }) =
   await expect(page.locator("#diagnosticsList")).toBeVisible();
   await page.locator("#editor").fill("if (true) {\nSystem.out.println(\"ok\")");
   await expect(page.locator("#diagnosticsList")).toContainText(/línea|zeile/i);
+});
+
+test("has no horizontal overflow at 390px", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dimensions = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+  }));
+  expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
+  expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
+});
+
+test("keeps project and mission routes compact without overflow at 320px", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  const layout = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+    projectClientHeight: document.querySelector("#projectSteps").clientHeight,
+    projectScrollHeight: document.querySelector("#projectSteps").scrollHeight,
+    missionClientHeight: document.querySelector("#missionRail nav").clientHeight,
+    missionScrollHeight: document.querySelector("#missionRail nav").scrollHeight,
+  }));
+  expect(layout.document).toBeLessThanOrEqual(layout.viewport);
+  expect(layout.body).toBeLessThanOrEqual(layout.viewport);
+  expect(layout.projectScrollHeight).toBeGreaterThan(layout.projectClientHeight);
+  expect(layout.missionScrollHeight).toBeGreaterThan(layout.missionClientHeight);
+});
+
+test("describes real javac and java execution without contradictory local copy", async ({ page }) => {
+  await page.locator("#editor").fill('String name = "Mara";\nint age = 27;\nSystem.out.println(name + " · " + age);');
+  await page.keyboard.press("F5");
+  await expect(page.locator("#feedbackPanel")).toBeVisible();
+  await expect(page.locator("#explanation")).toContainText(/javac/i);
+  await expect(page.locator("#explanation")).toContainText(/java ejecutó|java hat ausgeführt/i);
+  await expect(page.locator("#explanation")).not.toContainText(/NO compila|NICHT kompiliert/i);
+});
+
+test("navigates three project routes and exposes every mission in free mode", async ({ page }) => {
+  await expect(page.locator("#projectSelect option")).toHaveCount(3);
+  await expect(page.locator("#projectSteps button")).toHaveCount(13);
+  await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
+  await page.locator("#projectSelect").selectOption("safe-chat");
+  await expect(page.locator("#projectSteps button")).toHaveCount(13);
+  await expect(page.locator("#projectSteps button:disabled")).toHaveCount(0);
+  await page.locator('#projectSteps button[data-mission-id="project-safe-chat"]').click();
+  await expect(page.locator("#missionTitle")).toContainText(/chat/i);
+  await expect(page.locator("#projectStep")).toContainText(/checkpoint/i);
+});
+
+test("connects Compile Rail to the real F5 pipeline", async ({ page }) => {
+  await expect(page.locator('[data-compile-phase="write"]')).toHaveAttribute("data-state", "active");
+  let releaseRequest;
+  await page.route("**/api/compile.php", async (route) => {
+    await new Promise((resolve) => {
+      releaseRequest = resolve;
+    });
+    await route.continue();
+  });
+  await page.locator("#editor").fill('String name = "Mara";\nint age = 27;\nSystem.out.println(name + " · " + age);');
+  await page.keyboard.press("F5");
+  await expect(page.locator('[data-compile-phase="compile"]')).toHaveAttribute("data-state", "requested");
+  await expect(page.locator('[data-compile-phase="run"]')).toHaveAttribute("data-state", "requested");
+  await expect(page.locator("#compileRailStatus")).toContainText(/solicitud pendiente|anfrage läuft/i);
+  await expect.poll(() => typeof releaseRequest).toBe("function");
+  releaseRequest();
+  await expect(page.locator('[data-compile-phase="compile"]')).toHaveAttribute("data-state", "done");
+  await expect(page.locator('[data-compile-phase="run"]')).toHaveAttribute("data-state", "done");
+  await expect(page.locator('[data-compile-phase="validate"]')).toHaveAttribute("data-state", "done");
+  await expect(page.locator('[data-compile-phase="explain"]')).toHaveAttribute("data-state", "active");
+  await expect(page.locator("#compileRailStatus")).toContainText(/javac compiló, java ejecutó|javac hat kompiliert, java ausgeführt/i);
+  await expect(page.locator('[data-compile-phase="run"]')).toHaveAttribute("aria-label", /verificado|verifiziert/i);
+});
+
+test("runs the Mensa capstone with exact stdout", async ({ page }) => {
+  const solution = await page.evaluate(() => window.__JAVA_WERKSTATT_E2E__
+    .officialContracts()
+    .find((mission) => mission.id === "project-mensa-terminal").solution);
+  await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
+  await page.locator("#projectSelect").selectOption("mensa-terminal");
+  await page.locator('#projectSteps button[data-mission-id="project-mensa-terminal"]').click();
+  await page.locator("#editor").fill(solution);
+  await page.keyboard.press("F5");
+  await expect.poll(() => page.locator("#consoleOutput").textContent()).toContain(
+    "CASE=1\nTOTAL_CENTS=1020\nDISCOUNT_CENTS=102\nDUE_CENTS=918\nCASE=2\nTOTAL_CENTS=500\nDISCOUNT_CENTS=100\nDUE_CENTS=400",
+  );
+});
+
+test("moves keyboard focus to the mission heading after project navigation", async ({ page }) => {
+  await page.locator("#freePracticeToggle").focus();
+  await page.keyboard.press("Enter");
+  await page.locator("#projectSelect").selectOption("school-library");
+  await expect(page.locator("#missionTitle")).toBeFocused();
+
+  const checkpoint = page.locator('#projectSteps button[data-mission-id="project-school-library"]');
+  await checkpoint.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#missionTitle")).toBeFocused();
+  await expect(page.locator("#fileName")).toHaveText("SchoolLibrary.java");
+});
+
+test("migrates v2 current index through the historical 36-mission order", async ({ page }) => {
+  const historicalSolved = [
+    "types", "condition", "loop", "method", "arrays", "class", "list", "debug",
+    "strings", "while-input", "uml-model", "tests-thinking",
+  ];
+  await page.evaluate((solved) => {
+    localStorage.removeItem("java-werkstatt-state-v3");
+    localStorage.setItem("java-werkstatt-state-v2", JSON.stringify({
+      language: "es",
+      current: 12,
+      solved,
+      answers: {},
+      attempts: {},
+      correctAttempts: {},
+    }));
+  }, historicalSolved);
+  await page.reload();
+  await expect(page.locator("#fileName")).toHaveText("Shape.java");
+  await expect(page.locator('#missionList button[data-index="13"]')).toHaveAttribute("aria-current", "step");
+  const migrated = await page.evaluate(() => JSON.parse(localStorage.getItem("java-werkstatt-state-v3")));
+  expect(migrated.currentMissionId).toBe("inheritance");
+});
+
+test("rejects the three verified capstone hardcoding cheats", async ({ page }) => {
+  const cheats = {
+    "project-mensa-terminal": `public static int[] calculate(int[] itemCents, int discountPercent) {
+      int[] decorative = {1020};
+      return new int[] {1020, 102, 918};
+    }`,
+    "project-school-library": `public static String[] process(
+      java.util.List<String> books,
+      java.util.Queue<String> requests,
+      java.util.Deque<String> undoHistory
+    ) {
+      requests.poll();
+      undoHistory.push("dummy");
+      undoHistory.pop();
+      String next = "Lina:Java";
+      String restored = "Java";
+      return new String[] {"3", next, restored};
+    }`,
+    "project-safe-chat": `public static String[] filter(String[] messages, java.util.Set<String> allowed) {
+      messages = new String[0];
+      java.util.Set<String> acceptedSenders = new java.util.LinkedHashSet<>();
+      acceptedSenders.add("ALICE");
+      acceptedSenders.add("BOB");
+      return new String[] {"2", "1", acceptedSenders.toString()};
+    }`,
+  };
+  const results = await page.evaluate((answers) => Object.entries(answers).map(([id, answer]) => ({
+    id,
+    ...window.__JAVA_WERKSTATT_E2E__.validateMission(id, answer),
+  })), cheats);
+  expect(results.map(({ id, localError }) => ({ id, rejected: Boolean(localError) }))).toEqual([
+    { id: "project-mensa-terminal", rejected: true },
+    { id: "project-school-library", rejected: true },
+    { id: "project-safe-chat", rejected: true },
+  ]);
+});
+
+test("all official solutions pass local rules, javac and their runtime evaluator", async ({ page }) => {
+  test.setTimeout(90_000);
+  const contracts = await page.evaluate(() => window.__JAVA_WERKSTATT_E2E__.officialContracts());
+  expect(contracts).toHaveLength(45);
+  expect(contracts.filter((contract) => contract.localError)).toEqual([]);
+  expect(contracts.every((contract) => ["source", "snippet", "member"].includes(contract.compileRequest.mode))).toBeTruthy();
+  expect(contracts.filter((contract) => contract.compileRequest.run && !contract.evaluatorRule?.run)).toEqual([]);
+
+  const runtimeResults = await mapWithConcurrency(contracts, 6, verifyJavaContract);
+  const evaluated = await page.evaluate((results) => results
+    .filter((result) => result.ran)
+    .map((result) => ({
+      id: result.id,
+      ...window.JavaWerkstattEvaluators.evaluate(result.id, {
+        ok: true,
+        phase: "run",
+        stdout: result.stdout,
+      }, "es"),
+    })), runtimeResults);
+  expect(evaluated.filter((result) => !result.passed)).toEqual([]);
+
+  const adversarial = await page.evaluate((runnableIds) => ({
+    wrongOutputs: runnableIds.map((id) => ({
+      id,
+      ...window.JavaWerkstattEvaluators.evaluate(id, {
+        ok: true,
+        phase: "run",
+        stdout: `WRONG_OUTPUT_${id}`,
+      }, "es"),
+    })),
+    missingRule: window.JavaWerkstattEvaluators.evaluate("missing-runtime-rule", {
+      ok: true,
+      phase: "run",
+      stdout: "anything",
+    }, "es"),
+  }), contracts.filter((contract) => contract.compileRequest.run).map((contract) => contract.id));
+  expect(adversarial.wrongOutputs.filter((result) => result.passed)).toEqual([]);
+  expect(adversarial.missingRule.passed).toBeFalsy();
 });
