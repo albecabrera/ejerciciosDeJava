@@ -7,6 +7,7 @@ header('Cache-Control: no-store');
 
 const MAX_SOURCE_BYTES = 48_000;
 const PROCESS_TIMEOUT_SECONDS = 8.0;
+const MAX_COMPILES_PER_MINUTE = 20;
 
 function respond(array $payload, int $status = 200): never
 {
@@ -15,9 +16,16 @@ function respond(array $payload, int $status = 200): never
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? (PHP_SAPI === 'cli' ? 'POST' : 'GET');
+if ($requestMethod !== 'POST') {
     respond(['ok' => false, 'error' => 'Usá POST con JSON.'], 405);
 }
+
+session_name('java_werkstatt_session');
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+rateLimit();
 
 $raw = file_get_contents(PHP_SAPI === 'cli' ? 'php://stdin' : 'php://input') ?: '';
 $request = json_decode($raw, true);
@@ -42,7 +50,20 @@ if (!in_array($mode, ['source', 'snippet', 'member'], true)) {
     respond(['ok' => false, 'error' => 'Modo de compilación no válido.'], 422);
 }
 
-$javac = getenv('JAVAC_BIN') ?: 'javac';
+$configPath = dirname(__DIR__) . '/config/config.php';
+$config = is_file($configPath) ? require $configPath : [];
+$javac = getenv('JAVAC_BIN') ?: ($config['compiler']['javac'] ?? 'javac');
+if (!isJavacAvailable($javac)) {
+    respond([
+        'ok' => false,
+        'phase' => 'compile',
+        'error' => 'javac no está instalado o no está en PATH. En XAMPP instalá un JDK dentro del contenedor PHP.',
+        'diagnostics' => [],
+        'rawOutput' => 'No se pudo encontrar javac.',
+        'compiler' => basename($javac),
+        'mode' => $mode,
+    ], 503);
+}
 $workDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'java-werkstatt-' . bin2hex(random_bytes(8));
 $classesDir = $workDir . DIRECTORY_SEPARATOR . 'classes';
 if (!mkdir($classesDir, 0700, true)) {
@@ -129,6 +150,26 @@ function runProcess(array $command, string $cwd, float $timeout): array
     fclose($pipes[2]);
     $exitCode = proc_close($process);
     return ['exitCode' => $exitCode, 'stdout' => $stdout, 'stderr' => $stderr, 'timedOut' => $timedOut, 'duration' => microtime(true) - $started];
+}
+
+function isJavacAvailable(string $javac): bool
+{
+    $check = runProcess([$javac, '-version'], sys_get_temp_dir(), 2.0);
+    return $check['exitCode'] === 0 && !$check['timedOut'];
+}
+
+function rateLimit(): void
+{
+    $now = time();
+    $bucket = $_SESSION['compile_bucket'] ?? ['minute' => $now, 'count' => 0];
+    if (!is_array($bucket) || $now - (int) ($bucket['minute'] ?? 0) >= 60) {
+        $bucket = ['minute' => $now, 'count' => 0];
+    }
+    $bucket['count'] = (int) ($bucket['count'] ?? 0) + 1;
+    $_SESSION['compile_bucket'] = $bucket;
+    if ($bucket['count'] > MAX_COMPILES_PER_MINUTE) {
+        respond(['ok' => false, 'error' => 'Demasiadas compilaciones. Esperá un minuto y volvé a probar.'], 429);
+    }
 }
 
 function parseDiagnostics(string $output): array

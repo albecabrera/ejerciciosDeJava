@@ -36,6 +36,14 @@ php tools/create-teacher.php "Nombre Docente" docente@example.com "una-clave-seg
 
 En tu stack `xampp-docker`, la app queda montada en `~/xampp-data/htdocs/java-werkstatt` y aparece en el panel de `http://localhost:8080/` como sitio PHP. El frontend se abre desde `http://localhost/java-werkstatt/`; el puerto `8080` es el panel, no el Apache que sirve los sitios. La base `java_werkstatt` usa el host interno `mariadb`.
 
+Para activar la compilación real dentro del contenedor PHP, instalá el JDK una vez:
+
+```bash
+tools/install-xampp-jdk.sh xampp-php
+```
+
+Si usás otro contenedor o servidor, instalá un JDK y configurá `JAVAC_BIN` o `config/config.php` → `compiler.javac`.
+
 Para producción: HTTPS obligatorio, `session_secure=true`, credenciales fuera del repositorio y usuario MySQL con permisos mínimos.
 
 Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente, aunque un servidor local evita restricciones particulares de algunos navegadores.
@@ -56,8 +64,8 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Documentación contextual visible por misión, con enlaces directos a `dev.java` y Oracle Java Tutorials/API.
 - Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
 - **Compilación real opcional:** al pulsar F5, `api/compile.php` envía el código al `javac` local, devuelve errores con línea/severidad y limpia el espacio temporal al terminar. Si PHP no está disponible, la app conserva el modo heurístico y lo indica.
-- **Panel docente local:** resumen de misiones, intentos, precisión y pendientes; filtro EF/Q1/Q2 y exportación CSV/JSON. No inventa una clase ni sincroniza datos sin una cuenta/backend de identidad.
-- **Cuentas y clases centralizadas:** estudiantes y docentes con sesiones PHP, clases con código de acceso y progreso sincronizado por usuario en MySQL.
+- **Panel docente local y centralizado:** resumen de misiones, intentos, precisión y pendientes; filtro EF/Q1/Q2, exportación CSV/JSON y vista de progreso por clase cuando un docente inicia sesión.
+- **Cuentas y clases centralizadas:** estudiantes y docentes con sesiones PHP, clases con código de acceso y progreso sincronizado por usuario en MySQL con métricas monotónicas para evitar regresiones accidentales.
 
 ## Atajos
 
@@ -92,12 +100,12 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `game.js`: catálogo curricular, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
 - `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en un directorio temporal aislado y devuelve diagnósticos JSON.
 - `api/auth.php`: registro, login, logout, sesiones y roles student/teacher/admin.
-- `api/classes.php`: creación de clases docente, unión por código y consulta de miembros/progreso.
-- `api/progress.php`: sincronización centralizada del progreso con upsert transaccional.
+- `api/classes.php`: creación de clases docente, unión por código y consulta GET de progreso por clase con permisos de docente/admin.
+- `api/progress.php`: sincronización centralizada del progreso con upsert transaccional, allowlist de misiones y contadores monotónicos.
 - `api/bootstrap.php`: PDO, sesión HttpOnly/SameSite, respuestas JSON y protección CSRF.
 - `database/schema.sql`: esquema MySQL para usuarios, clases, miembros y progreso.
 - `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
-- `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre y autocierre de pares.
+- `tests/java-werkstatt.spec.js`: smoke tests Playwright de UI, API, modo libre, autocierre de pares y progreso docente.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
 - Con PHP activo, F5 usa `javac` real; sin PHP, la consola vuelve a la validación local y lo comunica.
 - `localStorage`: progreso y preferencias. La carga filtra IDs desconocidos y completa campos nuevos con valores seguros.
@@ -116,7 +124,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`.
+Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`. En Docker XAMPP usá `tools/install-xampp-jdk.sh xampp-php`.
 
 ## Currículo NRW GOSt
 
@@ -134,7 +142,7 @@ Fuentes:
 
 ## Compilación y seguridad
 
-`api/compile.php` acepta únicamente `POST` JSON, limita el código a 48 KB, rechaza nombres de archivo inseguros, usa `-proc:none`, fuerza un locale estable para diagnósticos, impone un timeout de 8 segundos y elimina los artefactos temporales. Los snippets se envuelven en una clase educativa; las clases y métodos se compilan en sus respectivos modos.
+`api/compile.php` acepta únicamente `POST` JSON, limita el código a 48 KB, aplica un límite simple por sesión, rechaza nombres de archivo inseguros, comprueba que `javac` exista, usa `-proc:none`, fuerza un locale estable para diagnósticos, impone un timeout de 8 segundos y elimina los artefactos temporales. Los snippets se envuelven en una clase educativa; las clases y métodos se compilan en sus respectivos modos.
 
 Esto **no es un sandbox de producción**: ejecutar Java arbitrario en el mismo servidor puede consumir recursos o intentar acceder al sistema. Para un aula multiusuario, ejecutá el compilador dentro de un contenedor sin red, con usuario sin privilegios, límites de CPU/memoria y filesystem efímero. La versión incluida está pensada para desarrollo local o servidor de confianza.
 

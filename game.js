@@ -37,6 +37,7 @@ const ui = {
     docsOpen: "Abrir documentación oficial",
     docsSource: "Fuente oficial",
     localValidation: "Validación estructural local",
+    editorLabel: "Editor Java",
     shortcut: "F5 para comprobar · Tab expande plantillas · ⌥⇧↓ duplica",
     themeToggle: "Modo oscuro",
     themeToggleAria: "Cambiar a modo oscuro",
@@ -67,8 +68,13 @@ const ui = {
     compilerHint: "Compilación realizada en PHP; por seguridad, la app no ejecuta el programa.",
     teacherToggle: "Panel docente",
     teacherTitle: "Panel docente",
-    teacherIntro: "Resumen local del grupo o alumno en este navegador. Exportá los datos para analizarlos o compartirlos.",
-    teacherLocalNote: "Sin cuentas ni telemetría: este panel solo ve el progreso guardado en este navegador.",
+    teacherIntro: "Resumen local del alumno y, si iniciás sesión como docente, progreso centralizado de la clase.",
+    teacherLocalNote: "Sin cuenta docente se muestra solo el progreso guardado en este navegador.",
+    teacherCloudEmpty: "Elegí una clase para ver el progreso centralizado.",
+    teacherCloudLoading: "Cargando progreso de clase…",
+    teacherCloudError: "No se pudo cargar el progreso de clase.",
+    teacherCloudStudents: "Estudiantes",
+    teacherLastActivity: "Última actividad",
     teacherSolved: "Misiones resueltas",
     teacherAttempts: "Intentos",
     teacherAccuracy: "Precisión",
@@ -181,6 +187,7 @@ const ui = {
     docsOpen: "Offizielle Dokumentation öffnen",
     docsSource: "Offizielle Quelle",
     localValidation: "Lokale Strukturprüfung",
+    editorLabel: "Java-Editor",
     shortcut: "F5 zum Prüfen · Tab erweitert Vorlagen · ⌥⇧↓ dupliziert",
     themeToggle: "Dunkelmodus",
     themeToggleAria: "Zum Dunkelmodus wechseln",
@@ -211,8 +218,13 @@ const ui = {
     compilerHint: "Kompilierung über PHP; aus Sicherheitsgründen wird das Programm nicht ausgeführt.",
     teacherToggle: "Lehrkräfte-Panel",
     teacherTitle: "Lehrkräfte-Panel",
-    teacherIntro: "Lokale Übersicht für Gruppe oder Lernende in diesem Browser. Daten können exportiert werden.",
-    teacherLocalNote: "Keine Konten und keine Telemetrie: Dieses Panel sieht nur den Fortschritt dieses Browsers.",
+    teacherIntro: "Lokale Übersicht und, mit Lehrkraft-Konto, zentraler Klassenfortschritt.",
+    teacherLocalNote: "Ohne Lehrkraft-Konto wird nur der Fortschritt dieses Browsers angezeigt.",
+    teacherCloudEmpty: "Wähle eine Klasse, um zentralen Fortschritt zu sehen.",
+    teacherCloudLoading: "Klassenfortschritt wird geladen…",
+    teacherCloudError: "Klassenfortschritt konnte nicht geladen werden.",
+    teacherCloudStudents: "Lernende",
+    teacherLastActivity: "Letzte Aktivität",
     teacherSolved: "Gelöste Missionen",
     teacherAttempts: "Versuche",
     teacherAccuracy: "Trefferquote",
@@ -464,7 +476,7 @@ function stripComments(code) {
 }
 
 function clean(code) {
-  return stripComments(code).replace(/\s+/g, " ").trim();
+  return maskJava(stripComments(code)).masked.replace(/\s+/g, " ").trim();
 }
 
 function hasBalancedPairs(code, open, close) {
@@ -1361,6 +1373,7 @@ const elements = {
   teacherStageFilter: document.querySelector("#teacherStageFilter"),
   teacherExport: document.querySelector("#teacherExport"),
   teacherExportJson: document.querySelector("#teacherExportJson"),
+  teacherCloudProgress: document.querySelector("#teacherCloudProgress"),
   authToggle: document.querySelector("#authToggle"),
   authToggleLabel: document.querySelector("#authToggleLabel"),
   authPanel: document.querySelector("#authPanel"),
@@ -1546,6 +1559,7 @@ function createDefaultState(language = "es") {
     xp: 0,
     solved: [],
     answers: {},
+    answerUpdatedAt: {},
     hintsUsed: {},
     solutionShown: {},
     attempts: {},
@@ -1604,6 +1618,10 @@ function normalizeState(stored) {
     xp: Number.isFinite(xpValue) ? Math.max(0, Math.trunc(xpValue)) : 0,
     solved,
     answers: sanitizeMissionMap(stored?.answers ?? stored?.codeByMission, (value) => typeof value === "string" ? value : undefined),
+    answerUpdatedAt: sanitizeMissionMap(stored?.answerUpdatedAt, (value) => {
+      const time = Date.parse(String(value));
+      return Number.isFinite(time) ? new Date(time).toISOString() : undefined;
+    }),
     hintsUsed: sanitizeMissionMap(stored?.hintsUsed ?? stored?.hints, (value, mission) => {
       const number = Number(value);
       const safe = Number.isFinite(number) ? Math.max(0, Math.trunc(number)) : 0;
@@ -1649,7 +1667,16 @@ function loadState() {
 }
 
 let state = loadState();
-let cloudSession = { configured: false, user: null, csrf: "", syncTimer: null, registerMode: false, classes: [] };
+let cloudSession = {
+  configured: false,
+  user: null,
+  csrf: "",
+  syncTimer: null,
+  registerMode: false,
+  classes: [],
+  classProgress: null,
+  classProgressError: "",
+};
 
 async function cloudRequest(path, options = {}) {
   const response = await fetch(path, {
@@ -1691,7 +1718,12 @@ function mergeCloudProgress(progress) {
   progress.forEach((row) => {
     const id = String(row.mission_id || "");
     if (!missions.some((mission) => mission.id === id)) return;
-    if (typeof row.answer === "string") state.answers[id] = row.answer;
+    const remoteUpdated = Date.parse(String(row.updated_at || ""));
+    const localUpdated = Date.parse(String(state.answerUpdatedAt?.[id] || ""));
+    if (typeof row.answer === "string" && (!state.answers[id] || !Number.isFinite(localUpdated) || (Number.isFinite(remoteUpdated) && remoteUpdated >= localUpdated))) {
+      state.answers[id] = row.answer;
+      state.answerUpdatedAt[id] = Number.isFinite(remoteUpdated) ? new Date(remoteUpdated).toISOString() : new Date().toISOString();
+    }
     state.attempts[id] = Math.max(Number(state.attempts[id] || 0), Number(row.attempts || 0));
     state.correctAttempts[id] = Math.max(Number(state.correctAttempts[id] || 0), Number(row.correct_attempts || 0));
     state.hintsUsed[id] = Math.max(Number(state.hintsUsed[id] || 0), Number(row.hints_used || 0));
@@ -1734,6 +1766,7 @@ function renderClasses() {
     elements.classSelect.append(option);
   });
   elements.classSelect.value = selected;
+  renderTeacherCloudProgress();
 }
 
 async function loadClasses() {
@@ -1742,10 +1775,30 @@ async function loadClasses() {
     const result = await cloudRequest("api/classes.php?action=list");
     cloudSession.classes = Array.isArray(result.classes) ? result.classes : [];
     renderClasses();
+    if (elements.classSelect?.value) await loadClassProgress(elements.classSelect.value);
   } catch {
     cloudSession.classes = [];
     renderClasses();
   }
+}
+
+async function loadClassProgress(classId) {
+  if (!cloudSession.user || !classId) {
+    cloudSession.classProgress = null;
+    cloudSession.classProgressError = "";
+    renderTeacherCloudProgress();
+    return;
+  }
+  cloudSession.classProgress = null;
+  cloudSession.classProgressError = "";
+  renderTeacherCloudProgress(true);
+  try {
+    const result = await cloudRequest(`api/classes.php?action=progress&classId=${encodeURIComponent(classId)}`);
+    cloudSession.classProgress = result;
+  } catch (error) {
+    cloudSession.classProgressError = error.message || t("teacherCloudError");
+  }
+  renderTeacherCloudProgress();
 }
 
 async function initCloud() {
@@ -2048,6 +2101,7 @@ function getTeacherRows() {
 
 function renderTeacherPanel() {
   if (!elements.teacherPanel || !elements.teacherStats || !elements.teacherPracticeList) return;
+  renderTeacherCloudProgress();
   const rows = getTeacherRows();
   const allRows = missions.map((mission) => ({
     attempts: Number(state.attempts[mission.id] || 0),
@@ -2086,6 +2140,61 @@ function renderTeacherPanel() {
     item.innerHTML = `<span>${row.stage} · ${row.mission}</span><small>${row.attempts} ${t("teacherAttempts").toLowerCase()}</small>`;
     elements.teacherPracticeList.append(item);
   });
+}
+
+function renderTeacherCloudProgress(loading = false) {
+  if (!elements.teacherCloudProgress) return;
+  elements.teacherCloudProgress.replaceChildren();
+  const classId = elements.classSelect?.value || "";
+  if (!cloudSession.user || !classId) {
+    const empty = document.createElement("p");
+    empty.className = "heuristic-note";
+    empty.textContent = t("teacherCloudEmpty");
+    elements.teacherCloudProgress.append(empty);
+    return;
+  }
+  if (loading) {
+    const status = document.createElement("p");
+    status.className = "heuristic-note";
+    status.textContent = t("teacherCloudLoading");
+    elements.teacherCloudProgress.append(status);
+    return;
+  }
+  if (cloudSession.classProgressError) {
+    const error = document.createElement("p");
+    error.className = "heuristic-note diagnostic-error-text";
+    error.textContent = `${t("teacherCloudError")} ${cloudSession.classProgressError}`;
+    elements.teacherCloudProgress.append(error);
+    return;
+  }
+  const students = cloudSession.classProgress?.students;
+  if (!Array.isArray(students)) return;
+  const title = document.createElement("strong");
+  title.textContent = `${cloudSession.classProgress.class?.name || t("classSelect")} · ${students.length} ${t("teacherCloudStudents")}`;
+  const grid = document.createElement("div");
+  grid.className = "teacher-student-grid";
+  students.forEach((student) => {
+    const attempts = Number(student.attempts || 0);
+    const solved = Number(student.solved || 0);
+    const accuracy = attempts ? Math.round((Number(student.correct_attempts || 0) / attempts) * 100) : 0;
+    const card = document.createElement("article");
+    card.className = "teacher-student-card";
+    card.innerHTML = `
+      <strong></strong>
+      <span></span>
+      <dl>
+        <div><dt>${t("teacherSolved")}</dt><dd>${solved}/${missions.length}</dd></div>
+        <div><dt>${t("teacherAttempts")}</dt><dd>${attempts}</dd></div>
+        <div><dt>${t("teacherAccuracy")}</dt><dd>${accuracy}%</dd></div>
+      </dl>
+      <small></small>
+    `;
+    card.querySelector("strong").textContent = student.name || student.email || `#${student.id}`;
+    card.querySelector("span").textContent = student.email || "";
+    card.querySelector("small").textContent = `${t("teacherLastActivity")}: ${student.last_activity || "—"}`;
+    grid.append(card);
+  });
+  elements.teacherCloudProgress.append(title, grid);
 }
 
 function buildTeacherExport() {
@@ -2201,14 +2310,22 @@ async function compileWithBackend(mission, answer) {
   if (!window.fetch) return { available: false };
   const source = [mission.contextBefore, answer, mission.contextAfter].filter(Boolean).join("\n");
   const mode = detectCompileMode(source);
+  const answerStartLine = mission.contextBefore ? mission.contextBefore.split("\n").length + 1 : 1;
   try {
     const response = await fetch(COMPILER_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ source, fileName: mission.file, mode }),
+      body: JSON.stringify({ source, fileName: mission.file, mode, answerStartLine }),
     });
     const payload = await response.json();
     if (!response.ok && response.status !== 408) return { available: false };
+    if (Array.isArray(payload.diagnostics)) {
+      payload.diagnostics = payload.diagnostics.map((item) => ({
+        ...item,
+        sourceLine: item.line,
+        line: Math.max(1, Number(item.line || 1) - answerStartLine + 1),
+      }));
+    }
     return { available: true, ...payload };
   } catch {
     return { available: false };
@@ -2242,6 +2359,7 @@ async function checkAnswer() {
   const answer = elements.editor.value;
   setConsole(t("consoleChecking"), `> javac ${mission.file}\n… ${t("consoleChecking")}`);
   state.answers[mission.id] = answer;
+  state.answerUpdatedAt[mission.id] = new Date().toISOString();
   state.attempts[mission.id] = Number(state.attempts[mission.id] || 0) + 1;
 
   if (!clean(answer)) {
@@ -2338,6 +2456,7 @@ function revealSolution() {
   state.solutionShown[mission.id] = true;
   state.xp = Math.max(0, state.xp - SOLUTION_COST);
   state.answers[mission.id] = mission.solution;
+  state.answerUpdatedAt[mission.id] = new Date().toISOString();
   elements.editor.value = mission.solution;
   elements.xp.textContent = String(state.xp);
   elements.solutionButton.disabled = true;
@@ -2375,6 +2494,7 @@ function selectMission(index) {
   if (!isUnlocked(index)) return;
   const currentMission = missions[state.current];
   state.answers[currentMission.id] = elements.editor.value;
+  state.answerUpdatedAt[currentMission.id] = new Date().toISOString();
   state.current = index;
   saveState();
   renderMission();
@@ -2903,6 +3023,7 @@ function handleShortcut(event) {
 
 elements.editor.addEventListener("input", () => {
   state.answers[missions[state.current].id] = elements.editor.value;
+  state.answerUpdatedAt[missions[state.current].id] = new Date().toISOString();
   updateLineNumbers();
   scheduleDiagnostics();
   renderCompletion();
@@ -2991,6 +3112,9 @@ elements.teacherToggle?.addEventListener("click", () => {
   if (open) renderTeacherPanel();
 });
 elements.teacherStageFilter?.addEventListener("change", renderTeacherPanel);
+elements.classSelect?.addEventListener("change", (event) => {
+  loadClassProgress(event.target.value);
+});
 elements.teacherExport?.addEventListener("click", exportTeacherCsv);
 elements.teacherExportJson?.addEventListener("click", exportTeacherJson);
 
@@ -3036,7 +3160,7 @@ elements.logoutButton?.addEventListener("click", async () => {
   } catch {
     // La sesión local se limpia aunque el servidor ya no responda.
   }
-  cloudSession = { configured: cloudSession.configured, user: null, csrf: "", syncTimer: null, registerMode: false, classes: [] };
+  cloudSession = { configured: cloudSession.configured, user: null, csrf: "", syncTimer: null, registerMode: false, classes: [], classProgress: null, classProgressError: "" };
   renderAccount();
 });
 

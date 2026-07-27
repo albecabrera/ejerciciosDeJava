@@ -5,8 +5,10 @@
   "type": "module",
   "description": "Playwright smoke tests for Java Werkstatt",
   "scripts": {
+    "test:syntax": "node --check game.js && node --check playwright.config.js && php -l api/auth.php && php -l api/bootstrap.php && php -l api/classes.php && php -l api/compile.php && php -l api/progress.php",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "playwright:install": "playwright install chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"

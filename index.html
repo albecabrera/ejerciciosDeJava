@@ -183,6 +183,7 @@
           <div class="editor-row">
             <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
             <div class="editor-input-wrap">
+              <label class="sr-only" for="editor" data-i18n="editorLabel">Editor Java</label>
               <textarea
                 id="editor"
                 rows="7"
@@ -262,13 +263,14 @@
               <button id="teacherExportJson" class="button button-text button-compact" type="button" data-i18n="teacherExportJson">Exportar JSON</button>
             </div>
           </div>
-          <p class="teacher-intro" data-i18n="teacherIntro">Resumen local del grupo o alumno en este navegador. Exportá los datos para analizarlos o compartirlos.</p>
-          <p class="heuristic-note" data-i18n="teacherLocalNote">Sin cuentas ni telemetría: este panel solo ve el progreso guardado en este navegador.</p>
+          <p class="teacher-intro" data-i18n="teacherIntro">Resumen local del alumno y, si iniciás sesión como docente, progreso centralizado de la clase.</p>
+          <p class="heuristic-note" data-i18n="teacherLocalNote">Sin cuenta docente se muestra solo el progreso guardado en este navegador.</p>
           <div class="class-tools">
             <label><span data-i18n="classSelect">Clase</span><select id="classSelect"><option value="" data-i18n="classNone">Sin clase seleccionada</option></select></label>
-            <form id="createClassForm" class="class-inline"><input id="className" type="text" placeholder="Nombre de clase" data-i18n-placeholder="className" maxlength="120" /><button class="button button-secondary button-compact" type="submit" data-i18n="classCreate">Crear clase</button></form>
-            <form id="joinClassForm" class="class-inline"><input id="joinCode" type="text" placeholder="Código" data-i18n-placeholder="classCode" maxlength="8" /><button class="button button-text button-compact" type="submit" data-i18n="classJoin">Unirse</button></form>
+            <form id="createClassForm" class="class-inline"><label class="sr-only" for="className" data-i18n="className">Nombre de clase</label><input id="className" type="text" placeholder="Nombre de clase" data-i18n-placeholder="className" maxlength="120" /><button class="button button-secondary button-compact" type="submit" data-i18n="classCreate">Crear clase</button></form>
+            <form id="joinClassForm" class="class-inline"><label class="sr-only" for="joinCode" data-i18n="classCode">Código de acceso</label><input id="joinCode" type="text" placeholder="Código" data-i18n-placeholder="classCode" maxlength="8" /><button class="button button-text button-compact" type="submit" data-i18n="classJoin">Unirse</button></form>
           </div>
+          <div id="teacherCloudProgress" class="teacher-cloud-progress" aria-live="polite"></div>
           <div id="teacherStats" class="teacher-stats"></div>
           <label class="teacher-filter">
             <span data-i18n="teacherStage">Nivel</span>

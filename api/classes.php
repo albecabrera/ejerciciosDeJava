@@ -12,6 +12,37 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     apiResponse(['ok' => true, 'classes' => $statement->fetchAll()]);
 }
 
+if ($action === 'progress' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    if ($user['role'] !== 'teacher' && $user['role'] !== 'admin') apiResponse(['ok' => false, 'error' => 'Solo docentes pueden ver el progreso de una clase.'], 403);
+    $classId = max(0, (int) ($_GET['classId'] ?? 0));
+    if ($classId === 0) apiResponse(['ok' => false, 'error' => 'Clase inválida.'], 422);
+
+    $ownershipSql = $user['role'] === 'admin' ? 'c.id = ?' : 'c.id = ? AND c.teacher_id = ?';
+    $ownershipParams = $user['role'] === 'admin' ? [$classId] : [$classId, (int) $user['id']];
+    $ownerStatement = $pdo->prepare("SELECT c.id, c.name FROM classes c WHERE $ownershipSql LIMIT 1");
+    $ownerStatement->execute($ownershipParams);
+    $class = $ownerStatement->fetch();
+    if (!$class) apiResponse(['ok' => false, 'error' => 'Clase no encontrada o sin permisos.'], 404);
+
+    $statement = $pdo->prepare(
+        'SELECT u.id, u.name, u.email,
+                COUNT(p.mission_id) AS touched,
+                COALESCE(SUM(CASE WHEN p.solved_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS solved,
+                COALESCE(SUM(p.attempts), 0) AS attempts,
+                COALESCE(SUM(p.correct_attempts), 0) AS correct_attempts,
+                COALESCE(SUM(p.hints_used), 0) AS hints_used,
+                MAX(p.updated_at) AS last_activity
+           FROM class_members cm
+           JOIN users u ON u.id = cm.user_id
+      LEFT JOIN progress p ON p.user_id = u.id
+          WHERE cm.class_id = ?
+       GROUP BY u.id, u.name, u.email
+       ORDER BY u.name'
+    );
+    $statement->execute([$classId]);
+    apiResponse(['ok' => true, 'class' => $class, 'students' => $statement->fetchAll()]);
+}
+
 requireMethod('POST');
 requireCsrf();
 $body = requestJson();
@@ -35,14 +66,6 @@ if ($action === 'join') {
     $statement = $pdo->prepare('INSERT IGNORE INTO class_members (class_id, user_id) VALUES (?, ?)');
     $statement->execute([(int) $class['id'], (int) $user['id']]);
     apiResponse(['ok' => true]);
-}
-
-if ($action === 'progress' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    if ($user['role'] !== 'teacher' && $user['role'] !== 'admin') apiResponse(['ok' => false, 'error' => 'Solo docentes pueden ver el progreso de una clase.'], 403);
-    $classId = max(0, (int) ($_GET['classId'] ?? 0));
-    $statement = $pdo->prepare('SELECT u.id, u.name, u.email, COUNT(p.id) AS touched, SUM(p.solved_at IS NOT NULL) AS solved, COALESCE(SUM(p.attempts), 0) AS attempts FROM class_members cm JOIN classes c ON c.id = cm.class_id AND c.teacher_id = ? JOIN users u ON u.id = cm.user_id LEFT JOIN progress p ON p.user_id = u.id WHERE cm.class_id = ? GROUP BY u.id, u.name, u.email ORDER BY u.name');
-    $statement->execute([(int) $user['id'], $classId]);
-    apiResponse(['ok' => true, 'students' => $statement->fetchAll()]);
 }
 
 apiResponse(['ok' => false, 'error' => 'Acción de clase desconocida.'], 404);

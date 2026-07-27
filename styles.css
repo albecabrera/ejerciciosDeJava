@@ -1655,3 +1655,112 @@ kbd {
     grid-column: 1 / -1;
   }
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.teacher-cloud-progress {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1rem 0;
+}
+
+.teacher-student-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.8rem;
+}
+
+.teacher-student-card {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel-soft);
+}
+
+.teacher-student-card > strong,
+.teacher-student-card > span,
+.teacher-student-card > small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.teacher-student-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.teacher-student-card div {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.45rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--paper-deep) 56%, transparent);
+}
+
+.teacher-student-card dt {
+  color: var(--muted-strong);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.teacher-student-card dd {
+  margin: 0;
+  font: 800 0.95rem var(--mono);
+}
+
+.diagnostic-error-text {
+  color: var(--error);
+}
+
+:root[data-theme="dark"] .site-header,
+:root[data-theme="dark"] .mission-rail,
+:root[data-theme="dark"] .brief,
+:root[data-theme="dark"] .docs-card,
+:root[data-theme="dark"] .progress-card,
+:root[data-theme="dark"] .teacher-panel,
+:root[data-theme="dark"] .diagnostics-card,
+:root[data-theme="dark"] .collapsible-card,
+:root[data-theme="dark"] .auth-panel {
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42);
+}
+
+:root[data-theme="dark"] .ide-shell,
+:root[data-theme="dark"] .editor-console {
+  border-color: #6f94a3;
+  box-shadow: 0 0 0 1px rgba(168, 224, 242, 0.14), 0 22px 58px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="dark"] .line-numbers,
+:root[data-theme="dark"] .ide-status,
+:root[data-theme="dark"] .validation-badge,
+:root[data-theme="dark"] .heuristic-note,
+:root[data-theme="dark"] .teacher-student-card dt,
+:root[data-theme="dark"] .teacher-student-card small {
+  color: #d9edf3;
+}
+
+:root[data-theme="dark"] .button-secondary,
+:root[data-theme="dark"] .button-text,
+:root[data-theme="dark"] .editor-tool-button,
+:root[data-theme="dark"] .teacher-toggle,
+:root[data-theme="dark"] .theme-toggle,
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select {
+  background: #203943;
+  color: #f6fcff;
+  border-color: #7da6b5;
+}

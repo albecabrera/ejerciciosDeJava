@@ -11,6 +11,7 @@ test("renders the curriculum and teacher panel", async ({ page }) => {
   await page.getByRole("button", { name: /panel docente|lehrkräfte-panel/i }).click();
   await expect(page.locator("#teacherPanel")).toBeVisible();
   await expect(page.locator("#teacherStats .teacher-stat")).toHaveCount(4);
+  await expect(page.locator("#teacherCloudProgress")).toContainText(/clase|klasse/i);
 });
 
 test("allows free practice and closes pairs in the editor", async ({ page }) => {
@@ -41,4 +42,12 @@ test("reports a real javac diagnostic with line information", async ({ request }
   const body = await response.json();
   expect(body.ok).toBeFalsy();
   expect(body.diagnostics[0].line).toBeGreaterThan(0);
+});
+
+test("keeps diagnostics and official docs visible on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("#docsLinks a").first()).toBeVisible();
+  await expect(page.locator("#diagnosticsList")).toBeVisible();
+  await page.locator("#editor").fill("if (true) {\nSystem.out.println(\"ok\")");
+  await expect(page.locator("#diagnosticsList")).toContainText(/línea|zeile/i);
 });
