@@ -105,6 +105,74 @@ body {
   font-family: var(--sans);
 }
 
+/* A tangible sense of progress: the lab surface reacts to the learner without
+   compromising contrast, keyboard focus, or reduced-motion preferences. */
+.site-header,
+.mission-rail,
+.docs-card,
+.project-context,
+.compile-rail,
+.editor-shell,
+.progress-card,
+.diagnostics-card {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--white) 42%, transparent) inset;
+}
+
+.mission-header::before {
+  width: 4.5rem;
+  height: 0.35rem;
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--copper), var(--java-blue));
+  content: "";
+}
+
+.project-navigator {
+  position: relative;
+  overflow: hidden;
+}
+
+.project-navigator::after {
+  position: absolute;
+  right: -2rem;
+  bottom: -3.5rem;
+  width: 9rem;
+  height: 9rem;
+  border: 1px solid color-mix(in srgb, var(--copper) 38%, transparent);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.mission-list button,
+.project-steps button,
+.docs-links a,
+.button,
+.editor-tool-button {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.mission-list button:hover:not(:disabled),
+.project-steps button:hover:not(:disabled) {
+  transform: translateX(3px);
+}
+
+.project-steps button.is-checkpoint strong::after {
+  margin-left: 0.35rem;
+  color: var(--copper);
+  content: "✦";
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mission-list button,
+  .project-steps button,
+  .docs-links a,
+  .button,
+  .editor-tool-button {
+    transition: none;
+  }
+}
+
 button,
 textarea {
   font: inherit;

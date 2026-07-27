@@ -50,8 +50,9 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 
 ## Qué incluye
 
-- **Exactamente 45 misiones:** EF (15), Q1 (15) y Q2 (15). Cada nivel termina con un proyecto ejecutable.
-- **Tres proyectos monofichero y deterministas:** Terminal de Mensa (arrays/bucles/cálculo), Biblioteca escolar (List/Queue/Deque/parsing) y Chat seguro del campus (parser, lenguaje regular, Set y minimización de datos). El alumno implementa un método reutilizable y un harness visible lo ejecuta con dos fixtures distintos.
+- **49 misiones:** EF (17), Q1 (16) y Q2 (16). La ruta suma práctica de lógica de juego, ranking y proyectos verificables.
+- **Cinco proyectos monofichero y deterministas:** Terminal de Mensa (arrays/bucles/cálculo), Biblioteca escolar (List/Queue/Deque/parsing), Chat seguro del campus (parser, lenguaje regular, Set y minimización de datos), Habit Tracker (proyecto inicial) y Snake Arena (reto avanzado). El alumno implementa un método reutilizable y un harness visible lo ejecuta con dos fixtures distintos.
+- **Práctica inspirada en juegos reales:** Combo Counter introduce estado y rachas; Leaderboard ordena puntajes de forma descendente; Habit Tracker convierte eventos en una métrica semanal; Snake Arena implementa el núcleo de movimiento, límites y obstáculos de una grilla.
 - **Rutas de proyecto aditivas:** cada misión conserva su ID histórico y suma `projectId`, orden, checkpoint, entregable y evidencia; el modo libre permite abrir cualquier proyecto y cualquier misión.
 - Recorrido razonable por sintaxis, tipos, control, métodos, arrays/Strings, POO/UML, herencia, polimorfismo, colecciones, List/Stack/Queue, recursión, búsqueda, ordenamiento, eficiencia, BST, grafos, autómatas, gramáticas, SQL, normalización, redes, cifrado educativo, privacidad, Von Neumann y límites de la computación.
 - Los contenidos no-Java se trabajan como simulaciones, modelos, cadenas o comentarios Java; no se finge una base de datos, red, CPU o autómata real.
@@ -59,7 +60,7 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Diagnósticos locales con debounce para pares, strings/comentarios, mezcla de tabs/espacios, indentación por llaves y puntos y coma simples.
 - Formateador de indentación a cuatro espacios.
 - Progreso local con XP, intentos, aciertos, pistas, soluciones, competencias, campos y una estimación de dominio cuya fórmula se muestra en pantalla.
-- Temas claro/oscuro, diseño responsive, navegación por teclado y respeto por `prefers-reduced-motion`.
+- Temas claro/oscuro, diseño responsive, navegación por teclado y respeto por `prefers-reduced-motion`. La interfaz enfatiza checkpoints de proyecto, transiciones sutiles y jerarquía visual sin sacrificar foco ni contraste.
 - **Modo de práctica libre:** podés abrir cualquier misión sin resolver la anterior; el recorrido secuencial sigue disponible como modo guiado.
 - Autocierre de `""`, `''`, `()`, `[]` y `{}` con el cursor dentro; si el cierre ya existe, el editor lo salta.
 - Consola educativa dentro del IDE: F5 muestra comandos reales, diagnósticos por línea y salida stdout/stderr solo si el programa imprime con `System.out.print(...)`, `System.out.println(...)` o `System.out.printf(...)`. Las misiones ejecutables obligan al alumno a escribir también la impresión cuando el resultado debe observarse.
@@ -238,6 +239,6 @@ Sin backend configurado, todo se procesa en el navegador. Con backend, las cuent
 
 La estimación mostrada se calcula así, con un máximo de 100:
 
-`70 × misiones resueltas / 45 + 20 × aciertos / intentos + max(0, 10 − pistas − 2 × soluciones reveladas)`
+`70 × misiones resueltas / 49 + 20 × aciertos / intentos + max(0, 10 − pistas − 2 × soluciones reveladas)`
 
 Un **acierto** se registra únicamente la primera vez que una misión se resuelve; volver a comprobar una misión ya resuelta suma un intento, pero no infla los aciertos. Esta métrica local sirve para orientar la práctica: no es una calificación oficial.

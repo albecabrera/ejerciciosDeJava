@@ -80,7 +80,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("renders the curriculum and teacher panel", async ({ page }) => {
-  await expect(page.locator("#missionList button")).toHaveCount(45);
+  await expect(page.locator("#missionList button")).toHaveCount(49);
   await page.getByRole("button", { name: /panel docente|lehrkräfte-panel/i }).click();
   await expect(page.locator("#teacherPanel")).toBeVisible();
   await expect(page.locator("#teacherStats .teacher-stat")).toHaveCount(4);
@@ -191,12 +191,12 @@ test("describes real javac and java execution without contradictory local copy",
   await expect(page.locator("#explanation")).not.toContainText(/NO compila|NICHT kompiliert/i);
 });
 
-test("navigates three project routes and exposes every mission in free mode", async ({ page }) => {
-  await expect(page.locator("#projectSelect option")).toHaveCount(3);
-  await expect(page.locator("#projectSteps button")).toHaveCount(13);
+test("navigates five project routes and exposes every mission in free mode", async ({ page }) => {
+  await expect(page.locator("#projectSelect option")).toHaveCount(5);
+  await expect(page.locator("#projectSteps button")).toHaveCount(16);
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
   await page.locator("#projectSelect").selectOption("safe-chat");
-  await expect(page.locator("#projectSteps button")).toHaveCount(13);
+  await expect(page.locator("#projectSteps button")).toHaveCount(15);
   await expect(page.locator("#projectSteps button:disabled")).toHaveCount(0);
   await page.locator('#projectSteps button[data-mission-id="project-safe-chat"]').click();
   await expect(page.locator("#missionTitle")).toContainText(/chat/i);
@@ -317,7 +317,7 @@ test("rejects the three verified capstone hardcoding cheats", async ({ page }) =
 test("all official solutions pass local rules, javac and their runtime evaluator", async ({ page }) => {
   test.setTimeout(90_000);
   const contracts = await page.evaluate(() => window.__JAVA_WERKSTATT_E2E__.officialContracts());
-  expect(contracts).toHaveLength(45);
+  expect(contracts).toHaveLength(49);
   expect(contracts.filter((contract) => contract.localError)).toEqual([]);
   expect(contracts.every((contract) => ["source", "snippet", "member"].includes(contract.compileRequest.mode))).toBeTruthy();
   expect(contracts.filter((contract) => contract.compileRequest.run && !contract.evaluatorRule?.run)).toEqual([]);

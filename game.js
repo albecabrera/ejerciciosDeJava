@@ -32,7 +32,7 @@ const ui = {
     brandTagline: "Laboratorio de código",
     courseLabel: "Ruta práctica",
     courseTitle: "Java desde los cimientos",
-    courseIntro: "45 misiones y 3 proyectos de EF a Q2. Escribís, compilás y explicás por qué funciona.",
+    courseIntro: "49 misiones y 5 proyectos de EF a Q2. Escribís, compilás y construís productos reales.",
     freePractice: "Practicar cualquier misión",
     freePracticeOn: "Modo libre activo",
     projectNavigatorLabel: "Proyecto actual",
@@ -206,7 +206,7 @@ const ui = {
     resetConfirm: "¿Querés borrar respuestas, XP y progreso guardado?",
     allDoneTitle: "Ruta completada",
     allDoneMessage:
-      "Terminaste las 45 misiones y sus tres entregas. Repetí las que te costaron sin pistas: ahí se consolida el aprendizaje.",
+      "Terminaste las 49 misiones y sus cinco entregas. Repetí las que te costaron sin pistas: ahí se consolida el aprendizaje.",
   },
   de: {
     documentTitle: "Java Werkstatt · Code-Labor",
@@ -223,7 +223,7 @@ const ui = {
     brandTagline: "Code-Labor",
     courseLabel: "Praxispfad",
     courseTitle: "Java vom Fundament an",
-    courseIntro: "45 Missionen und 3 Projekte von EF bis Q2. Du schreibst, kompilierst und erklärst, warum es funktioniert.",
+    courseIntro: "49 Missionen und 5 Projekte von EF bis Q2. Du schreibst, kompilierst und baust echte Produkte.",
     freePractice: "Jede Mission frei üben",
     freePracticeOn: "Freier Modus aktiv",
     projectNavigatorLabel: "Aktuelles Projekt",
@@ -397,7 +397,7 @@ const ui = {
     resetConfirm: "Antworten, XP und gespeicherten Fortschritt löschen?",
     allDoneTitle: "Lernpfad abgeschlossen",
     allDoneMessage:
-      "Du hast alle 45 Missionen und drei Abgaben geschafft. Wiederhole schwierige Aufgaben ohne Hinweise – dort festigt sich dein Wissen.",
+      "Du hast alle 49 Missionen und fünf Abgaben geschafft. Wiederhole schwierige Aufgaben ohne Hinweise – dort festigt sich dein Wissen.",
   },
 };
 
@@ -1494,6 +1494,22 @@ const extraMissions = [
     es: { short: "Streams", title: "Filtrá una colección", objective: "Expresar una consulta de datos sin mutar la lista.", prompt: "Contá con stream/filter/count los nombres que contienen la letra a e imprimí count.", concept: "Streams, lambda y consulta", hint: "stream() crea la tubería; filter conserva elementos; count produce el resultado.", explanation: "Streams sirven cuando pensás en transformación de datos. No reemplazan entender bucles: LOS ABSTRAEN.", error: "Faltan stream, lambda de filtro, count o impresión." },
     de: { short: "Streams", title: "Filtere eine Sammlung", objective: "Eine Datenabfrage ohne Mutation der Liste ausdrücken.", prompt: "Zähle mit stream/filter/count die Namen mit Buchstabe a und gib count aus.", concept: "Streams, Lambda und Abfrage", hint: "stream() startet die Pipeline; filter behält Elemente; count liefert das Ergebnis.", explanation: "Streams helfen bei Datentransformation. Sie ersetzen Schleifenverständnis nicht, sie abstrahieren es.", error: "stream, Filter-Lambda, count oder Ausgabe fehlt." },
   },
+  {
+    id: "combo-counter", stage: "EF", field: "algorithms", competencies: ["I", "D"], difficulty: "easy", file: "ComboCounter.java",
+    compileMode: "snippet", before: `int[] hits = {1, 1, 0, 1, 1, 1};`,
+    solution: `int combo = 0;\nint best = 0;\nfor (int hit : hits) {\n    combo = hit == 1 ? combo + 1 : 0;\n    best = Math.max(best, combo);\n}\nSystem.out.println(best);`,
+    required: [/int\s+combo\s*=\s*0/, /for\s*\(\s*int\s+hit\s*:\s*hits\s*\)/, /hit\s*==\s*1/, /Math\.max\s*\(\s*best\s*,\s*combo\s*\)/, /System\.out\.println\s*\(\s*best\s*\)/],
+    es: { short: "Juego · Combo", title: "Medí una racha", objective: "Actualizar estado de juego sin perder el mejor resultado.", prompt: "Recorré hits: acumulá combo mientras hit sea 1, reinicialo con 0 y guardá el máximo en best. Imprimí best.", concept: "Estado, acumulador y máximo", hint: "Una racha depende del estado anterior: combo + 1 o vuelta a cero.", explanation: "La mecánica de un juego es una transición de estado. Nombrarla evita una solución opaca.", error: "Faltan la racha, el recorrido, el reinicio, el máximo o la salida." },
+    de: { short: "Spiel · Combo", title: "Miss eine Serie", objective: "Spielzustand aktualisieren, ohne das beste Ergebnis zu verlieren.", prompt: "Durchlaufe hits: erhöhe combo bei 1, setze bei 0 zurück und speichere das Maximum in best. Gib best aus.", concept: "Zustand, Akkumulator und Maximum", hint: "Eine Serie hängt vom vorherigen Zustand ab: combo + 1 oder zurück auf null.", explanation: "Spielmechanik ist eine Zustandsänderung. Benennung verhindert eine undurchsichtige Lösung.", error: "Serie, Schleife, Reset, Maximum oder Ausgabe fehlt." },
+  },
+  {
+    id: "leaderboard-sort", stage: "Q1", field: "data", competencies: ["A", "I", "D"], difficulty: "medium", file: "Leaderboard.java",
+    compileMode: "member", before: "",
+    solution: `public static void sortDescending(int[] scores) {\n    for (int i = 0; i < scores.length - 1; i++) {\n        for (int j = 0; j < scores.length - 1 - i; j++) {\n            if (scores[j] < scores[j + 1]) {\n                int swap = scores[j];\n                scores[j] = scores[j + 1];\n                scores[j + 1] = swap;\n            }\n        }\n    }\n}`,
+    required: [/void\s+sortDescending\s*\(\s*int\s*\[\s*]\s*scores\s*\)/, /for\s*\(\s*int\s+i\s*=\s*0\s*;\s*i\s*<\s*scores\.length\s*-\s*1/, /scores\s*\[\s*j\s*]\s*<\s*scores\s*\[\s*j\s*\+\s*1\s*]/, /int\s+swap\s*=\s*scores\s*\[\s*j\s*]/],
+    es: { short: "Juego · Ranking", title: "Ordená un leaderboard", objective: "Transformar una lista mutable en un ranking descendente.", prompt: "Implementá sortDescending(scores) con burbuja: compará vecinos y permutalos cuando el de la izquierda sea menor.", concept: "Ordenamiento y mutación controlada", hint: "El valor temporal swap evita perder un puntaje al intercambiar.", explanation: "No memorices el algoritmo: seguí el invariante, los puntajes más altos avanzan hacia el inicio.", error: "Faltan firma, recorridos, comparación descendente o intercambio." },
+    de: { short: "Spiel · Rangliste", title: "Sortiere ein Leaderboard", objective: "Eine veränderliche Liste in eine absteigende Rangliste transformieren.", prompt: "Implementiere sortDescending(scores) mit Bubble Sort: Vergleiche Nachbarn und tausche, wenn links kleiner ist.", concept: "Sortieren und kontrollierte Mutation", hint: "Die temporäre Variable swap verhindert den Verlust eines Punktestands beim Tausch.", explanation: "Lerne nicht nur den Algorithmus auswendig: Höhere Punktzahlen wandern nach vorn.", error: "Signatur, Schleifen, absteigender Vergleich oder Tausch fehlt." },
+  },
 ];
 
 missions.push(...extraMissions.map(curriculumMission));
@@ -1572,9 +1588,53 @@ const PROJECTS = [
       },
     },
   },
+  {
+    id: "habit-tracker",
+    stage: "EF",
+    checkpointId: "project-habit-tracker",
+    extension: true,
+    text: {
+      es: { name: "Reto · Habit Tracker", deliverable: "Un resumen semanal que cuenta hábitos cumplidos desde una colección recibida.", evidence: "stdout exacto con dos semanas y sus resúmenes calculados." },
+      de: { name: "Challenge · Habit Tracker", deliverable: "Eine Wochenübersicht, die erledigte Gewohnheiten aus einer übergebenen Sammlung zählt.", evidence: "Exakte stdout-Ausgabe für zwei Wochen und ihre berechneten Zusammenfassungen." },
+    },
+  },
+  {
+    id: "snake-arena",
+    stage: "Q2",
+    checkpointId: "project-snake-arena",
+    extension: true,
+    text: {
+      es: { name: "Reto avanzado · Snake Arena", deliverable: "Un motor de movimiento en grilla que encuentra la ficha, respeta bordes y detecta obstáculos.", evidence: "stdout exacto de dos tableros que prueban movimiento y bloqueo reales." },
+      de: { name: "Fortgeschritten · Snake Arena", deliverable: "Eine Raster-Engine, die die Figur findet, Grenzen respektiert und Hindernisse erkennt.", evidence: "Exakte stdout-Ausgabe zweier Bretter für echte Bewegung und Blockierung." },
+    },
+  },
 ];
 
 const capstoneMissions = [
+  curriculumMission({
+    id: "project-habit-tracker", stage: "EF", field: "data", competencies: ["M", "I", "D", "K"], difficulty: "medium", file: "HabitTracker.java",
+    compileMode: "source", before: `public class HabitTracker {`, xp: 55, minutes: 25,
+    solution: `public static String summary(String[] days) {
+        int completed = 0;
+        for (String day : days) {
+            if ("DONE".equals(day)) completed++;
+        }
+        return completed + "/" + days.length;
+    }`,
+    after: `    private static void printWeek(int number, String[] days) {
+        System.out.println("WEEK=" + number);
+        System.out.println("SUMMARY=" + summary(days));
+    }
+
+    public static void main(String[] args) {
+        printWeek(1, new String[] {"DONE", "SKIP", "DONE", "DONE", "SKIP"});
+        printWeek(2, new String[] {"DONE", "DONE", "SKIP"});
+    }
+}`,
+    required: [/public\s+static\s+String\s+summary\s*\(\s*String\s*\[\s*]\s+days\s*\)/, /for\s*\(\s*String\s+day\s*:\s*days\s*\)/, /"DONE"\.equals\s*\(\s*day\s*\)/, /completed\s*\+\+/, /completed\s*\+\s*"\/"\s*\+\s*days\.length/],
+    es: { short: "Proyecto · Hábitos", title: "Entregá un Habit Tracker", objective: "Convertir una colección semanal en un resumen útil y verificable.", prompt: "Implementá summary(days). Contá solamente DONE y devolvé completados/total. El harness prueba dos semanas distintas.", concept: "Recorrido causal + método reutilizable", hint: "No hay valores mágicos: days.length sale del parámetro y cada día se evalúa.", hint2: "Usá \"DONE\".equals(day) para comparar texto de forma segura.", explanation: "Dos semanas obligan a que el resumen se calcule desde la entrada y no desde una respuesta memorizada.", error: "summary debe recorrer days, contar DONE y devolver completados/total derivados." },
+    de: { short: "Projekt · Gewohnheiten", title: "Liefere einen Habit Tracker", objective: "Eine Wochenliste in eine nützliche und prüfbare Zusammenfassung verwandeln.", prompt: "Implementiere summary(days). Zähle nur DONE und gib erledigt/gesamt zurück. Der Harness prüft zwei verschiedene Wochen.", concept: "Kausale Schleife + wiederverwendbare Methode", hint: "Keine magischen Werte: days.length kommt vom Parameter und jeder Tag wird geprüft.", hint2: "Nutze \"DONE\".equals(day) für einen sicheren Textvergleich.", explanation: "Zwei Wochen erzwingen eine Berechnung aus der Eingabe statt einer gemerkten Antwort.", error: "summary muss days durchlaufen, DONE zählen und erledigt/gesamt ableiten." },
+  }),
   curriculumMission({
     id: "project-mensa-terminal", stage: "EF", field: "algorithms", competencies: ["M", "I", "D", "K"], difficulty: "hard", file: "MensaTerminal.java",
     compileMode: "source", before: `public class MensaTerminal {`, xp: 60, minutes: 30,
@@ -1779,6 +1839,42 @@ public class SafeChat {`, xp: 80, minutes: 45,
       error: "filter muss messages durchlaufen, allowed abfragen und abgeleitete Zähler sowie Absender zurückgeben.",
     },
   }),
+  curriculumMission({
+    id: "project-snake-arena", stage: "Q2", field: "algorithms", competencies: ["M", "I", "D", "K"], difficulty: "hard", file: "SnakeArena.java",
+    compileMode: "source", before: `public class SnakeArena {`, xp: 90, minutes: 50,
+    solution: `public static String move(String[] board, char direction) {
+        int x = -1;
+        int y = -1;
+        for (int row = 0; row < board.length; row++) {
+            int column = board[row].indexOf('S');
+            if (column >= 0) {
+                x = column;
+                y = row;
+            }
+        }
+        int dx = direction == 'R' ? 1 : direction == 'L' ? -1 : 0;
+        int dy = direction == 'D' ? 1 : direction == 'U' ? -1 : 0;
+        int nextX = x + dx;
+        int nextY = y + dy;
+        if (nextY < 0 || nextY >= board.length || nextX < 0 || nextX >= board[nextY].length() || board[nextY].charAt(nextX) == '#') {
+            return "BLOCKED";
+        }
+        return nextX + "," + nextY;
+    }`,
+    after: `    private static void printCase(int number, String[] board, char direction) {
+        System.out.println("CASE=" + number);
+        System.out.println("RESULT=" + move(board, direction));
+    }
+
+    public static void main(String[] args) {
+        printCase(1, new String[] {"....", ".S..", "...."}, 'R');
+        printCase(2, new String[] {"....", ".S#.", "...."}, 'R');
+    }
+}`,
+    required: [/public\s+static\s+String\s+move\s*\(\s*String\s*\[\s*]\s+board\s*,\s*char\s+direction\s*\)/, /for\s*\(\s*int\s+row\s*=\s*0\s*;\s*row\s*<\s*board\.length/, /board\s*\[\s*row\s*]\.indexOf\s*\(\s*'S'\s*\)/, /nextX\s*=\s*x\s*\+\s*dx/, /nextY\s*=\s*y\s*\+\s*dy/, /charAt\s*\(\s*nextX\s*\)\s*==\s*'#'/, /return\s+"BLOCKED"/],
+    es: { short: "Proyecto · Snake", title: "Construí una Snake Arena", objective: "Integrar búsqueda, coordenadas, transición de estado y límites en un motor de juego real.", prompt: "Implementá move(board, direction): encontrá S, calculá la siguiente celda y devolvé x,y o BLOCKED si hay borde u obstáculo. El harness prueba ambos caminos.", concept: "Estado espacial + validación de límites", hint: "Primero encontrá la posición actual; recién después derivá dx/dy y la siguiente celda.", hint2: "Validá los límites antes de leer board[nextY].charAt(nextX).", explanation: "El proyecto no dibuja una UI ficticia: modela el núcleo verificable de un juego de grilla.", error: "move debe encontrar S, derivar el próximo punto, comprobar límites/obstáculo y devolver un resultado calculado." },
+    de: { short: "Projekt · Snake", title: "Baue eine Snake Arena", objective: "Suche, Koordinaten, Zustandsübergang und Grenzen in einer echten Spiel-Engine verbinden.", prompt: "Implementiere move(board, direction): Finde S, berechne die nächste Zelle und gib x,y oder BLOCKED bei Rand/Hindernis zurück. Der Harness prüft beide Wege.", concept: "Räumlicher Zustand + Grenzprüfung", hint: "Finde zuerst die aktuelle Position; leite erst dann dx/dy und die nächste Zelle ab.", hint2: "Prüfe Grenzen vor board[nextY].charAt(nextX).", explanation: "Das Projekt zeichnet keine Schein-UI, sondern modelliert den prüfbaren Kern eines Rasterspiels.", error: "move muss S finden, den nächsten Punkt ableiten, Grenze/Hindernis prüfen und ein berechnetes Resultat zurückgeben." },
+  }),
 ];
 
 capstoneMissions.forEach((capstone) => {
@@ -1789,7 +1885,7 @@ capstoneMissions.forEach((capstone) => {
   missions.splice(lastStageIndex + 1, 0, capstone);
 });
 
-PROJECTS.forEach((project) => {
+PROJECTS.filter((project) => !project.extension).forEach((project) => {
   const routeMissions = missions.filter((mission) => mission.stage === project.stage);
   routeMissions.forEach((mission, index) => {
     mission.projectId = project.id;
@@ -1803,6 +1899,15 @@ PROJECTS.forEach((project) => {
       ? { es: project.text.es.evidence, de: project.text.de.evidence }
       : { es: mission.text.es.objective, de: mission.text.de.objective };
   });
+});
+
+capstoneMissions.filter((mission) => mission.id === "project-habit-tracker" || mission.id === "project-snake-arena").forEach((mission) => {
+  const project = PROJECTS.find((item) => item.checkpointId === mission.id);
+  mission.projectId = project.id;
+  mission.projectOrder = 1;
+  mission.checkpoint = true;
+  mission.deliverable = { es: project.text.es.deliverable, de: project.text.de.deliverable };
+  mission.evidence = { es: project.text.es.evidence, de: project.text.de.evidence };
 });
 
 const elements = {

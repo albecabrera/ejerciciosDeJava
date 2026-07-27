@@ -160,6 +160,14 @@
         de: "Alle drei Namen enthalten nach Kleinschreibung a; die Ausgabe muss 3 sein.",
       },
     },
+    "combo-counter": {
+      run: true,
+      cases: [{ stdoutEquals: "3" }],
+      feedback: {
+        es: "La racha más larga de hits debe ser exactamente 3.",
+        de: "Die längste Treffer-Serie muss genau 3 sein.",
+      },
+    },
     "project-mensa-terminal": {
       run: true,
       cases: [{
@@ -168,6 +176,14 @@
       feedback: {
         es: "La terminal debe calcular y emitir las tres líneas exactas de total, descuento e importe.",
         de: "Das Terminal muss die drei exakten Zeilen für Summe, Rabatt und Zahlbetrag berechnen und ausgeben.",
+      },
+    },
+    "project-habit-tracker": {
+      run: true,
+      cases: [{ stdoutEquals: "WEEK=1\nSUMMARY=3/5\nWEEK=2\nSUMMARY=2/3" }],
+      feedback: {
+        es: "El tracker debe calcular los dos resúmenes semanales desde los arrays recibidos.",
+        de: "Der Tracker muss beide Wochenzusammenfassungen aus den erhaltenen Arrays berechnen.",
       },
     },
     "project-school-library": {
@@ -188,6 +204,14 @@
       feedback: {
         es: "El chat debe aceptar dos mensajes, rechazar uno y listar solo los remitentes permitidos.",
         de: "Der Chat muss zwei Nachrichten annehmen, eine ablehnen und nur erlaubte Absender ausgeben.",
+      },
+    },
+    "project-snake-arena": {
+      run: true,
+      cases: [{ stdoutEquals: "CASE=1\nRESULT=2,1\nCASE=2\nRESULT=BLOCKED" }],
+      feedback: {
+        es: "Snake Arena debe mover la ficha en el primer tablero y bloquearla ante el obstáculo del segundo.",
+        de: "Snake Arena muss die Figur im ersten Brett bewegen und sie am Hindernis des zweiten blockieren.",
       },
     },
   };
