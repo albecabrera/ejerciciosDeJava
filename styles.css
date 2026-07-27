@@ -129,6 +129,7 @@ body {
 
 .project-navigator {
   position: relative;
+  flex: 0 0 auto;
   overflow: hidden;
 }
 
@@ -421,6 +422,7 @@ a:focus-visible {
 
 .project-navigator {
   min-width: 0;
+  flex-shrink: 0;
   margin: 1rem 0 1.25rem;
   padding: 0.9rem;
   border: 1px solid color-mix(in srgb, var(--copper) 45%, var(--line));

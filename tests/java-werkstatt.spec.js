@@ -203,6 +203,15 @@ test("navigates five project routes and exposes every mission in free mode", asy
   await expect(page.locator("#projectStep")).toContainText(/checkpoint/i);
 });
 
+test("keeps the desktop project navigator discoverable", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator("#projectSelect")).toBeVisible();
+  await expect(page.locator("#projectDeliverable")).toBeVisible();
+  await expect(page.locator("#projectSteps")).toBeVisible();
+  await expect(page.locator("#projectSteps button").first()).toBeVisible();
+  await expect(page.locator("#projectContinueButton")).toBeVisible();
+});
+
 test("connects Compile Rail to the real F5 pipeline", async ({ page }) => {
   await expect(page.locator('[data-compile-phase="write"]')).toHaveAttribute("data-state", "active");
   let releaseRequest;
@@ -272,13 +281,34 @@ test("migrates v2 current index through the historical 36-mission order", async 
   }, historicalSolved);
   await page.reload();
   await expect(page.locator("#fileName")).toHaveText("Shape.java");
-  await expect(page.locator('#missionList button[data-index="13"]')).toHaveAttribute("aria-current", "step");
+  await expect(page.locator('#missionList button[data-mission-id="inheritance"]')).toHaveAttribute("aria-current", "step");
   const migrated = await page.evaluate(() => JSON.parse(localStorage.getItem("java-werkstatt-state-v3")));
   expect(migrated.currentMissionId).toBe("inheritance");
 });
 
-test("rejects the three verified capstone hardcoding cheats", async ({ page }) => {
+test("runs every capstone project with exact stdout", async ({ page }) => {
+  const expectedStdout = {
+    "project-habit-tracker": "WEEK=1\nSUMMARY=3/5\nWEEK=2\nSUMMARY=2/3",
+    "project-mensa-terminal": "CASE=1\nTOTAL_CENTS=1020\nDISCOUNT_CENTS=102\nDUE_CENTS=918\nCASE=2\nTOTAL_CENTS=500\nDISCOUNT_CENTS=100\nDUE_CENTS=400",
+    "project-school-library": "CASE=1\nBOOKS=3\nNEXT=Lina:Java\nUNDO=Java\nCASE=2\nBOOKS=4\nNEXT=Mika:Networks\nUNDO=Networks",
+    "project-safe-chat": "CASE=1\nACCEPTED=2\nREJECTED=1\nSENDERS=[ALICE, BOB]\nCASE=2\nACCEPTED=2\nREJECTED=2\nSENDERS=[ALICE, BOB]",
+    "project-snake-arena": "CASE=1\nRESULT=2,1\nCASE=2\nRESULT=BLOCKED",
+  };
+  const contracts = await page.evaluate(() => window.__JAVA_WERKSTATT_E2E__.officialContracts());
+  const capstones = Object.keys(expectedStdout).map((id) => {
+    const contract = contracts.find((mission) => mission.id === id);
+    if (!contract) throw new Error(`Missing project contract: ${id}`);
+    return contract;
+  });
+  const runtimeResults = await mapWithConcurrency(capstones, 3, verifyJavaContract);
+  expect(Object.fromEntries(runtimeResults.map((result) => [result.id, result.stdout.trim()]))).toEqual(expectedStdout);
+});
+
+test("rejects the five verified capstone hardcoding cheats", async ({ page }) => {
   const cheats = {
+    "project-habit-tracker": `public static String summary(String[] days) {
+      return days.length == 5 ? "3/5" : "2/3";
+    }`,
     "project-mensa-terminal": `public static int[] calculate(int[] itemCents, int discountPercent) {
       int[] decorative = {1020};
       return new int[] {1020, 102, 918};
@@ -302,15 +332,21 @@ test("rejects the three verified capstone hardcoding cheats", async ({ page }) =
       acceptedSenders.add("BOB");
       return new String[] {"2", "1", acceptedSenders.toString()};
     }`,
+    "project-snake-arena": `public static String move(String[] board, char direction) {
+      String decorative = board[0];
+      return board[1].contains("#") ? "BLOCKED" : "2,1";
+    }`,
   };
   const results = await page.evaluate((answers) => Object.entries(answers).map(([id, answer]) => ({
     id,
     ...window.__JAVA_WERKSTATT_E2E__.validateMission(id, answer),
   })), cheats);
   expect(results.map(({ id, localError }) => ({ id, rejected: Boolean(localError) }))).toEqual([
+    { id: "project-habit-tracker", rejected: true },
     { id: "project-mensa-terminal", rejected: true },
     { id: "project-school-library", rejected: true },
     { id: "project-safe-chat", rejected: true },
+    { id: "project-snake-arena", rejected: true },
   ]);
 });
 

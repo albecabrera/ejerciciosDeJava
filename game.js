@@ -2769,6 +2769,7 @@ function renderMissionList() {
     button.type = "button";
     button.disabled = !unlocked;
     button.dataset.index = String(index);
+    button.dataset.missionId = mission.id;
     button.className = solved ? "is-complete" : "";
     button.setAttribute(
       "aria-label",
