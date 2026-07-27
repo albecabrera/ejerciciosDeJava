@@ -63,7 +63,7 @@ $sandboxMode = (string) (getenv('JAVA_SANDBOX_MODE') ?: ($config['compiler']['sa
 $dockerImage = (string) (getenv('JAVA_SANDBOX_IMAGE') ?: ($config['compiler']['docker_image'] ?? 'eclipse-temurin:21-jre'));
 $workerQueue = (string) (getenv('JAVA_SANDBOX_QUEUE') ?: ($config['compiler']['worker_queue'] ?? '/var/lib/java-werkstatt/queue'));
 
-if (!isJavacAvailable($javac)) {
+if ($sandboxMode !== 'worker' && !isJavacAvailable($javac)) {
     respond([
         'ok' => false,
         'phase' => 'compile',
@@ -78,12 +78,6 @@ if ($shouldRun && !isJavaAvailable($java) && !in_array($sandboxMode, ['docker', 
     respond(['ok' => false, 'phase' => 'run', 'error' => 'java no está instalado o no está en PATH.', 'diagnostics' => []], 503);
 }
 
-$workDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'java-werkstatt-' . bin2hex(random_bytes(8));
-$classesDir = $workDir . DIRECTORY_SEPARATOR . 'classes';
-if (!mkdir($classesDir, 0700, true)) {
-    respond(['ok' => false, 'error' => 'No se pudo crear el espacio temporal.'], 500);
-}
-
 $mainClass = pathinfo($fileName, PATHINFO_FILENAME);
 $compiledSource = $source;
 if ($mode === 'snippet') {
@@ -94,6 +88,45 @@ if ($mode === 'snippet') {
     $compiledSource = "import java.util.*;\npublic class WerkstattMember {\n" . indent($source, 4) . "\n}\n";
     $fileName = 'WerkstattMember.java';
     $mainClass = 'WerkstattMember';
+}
+
+if ($sandboxMode === 'worker') {
+    $worker = compileInWorkerSandbox(
+        $workerQueue,
+        $compiledSource,
+        $fileName,
+        $mainClass,
+        $stdin,
+        $shouldRun && $mode !== 'member'
+    );
+    $phase = (string) ($worker['phase'] ?? 'compile');
+    $compileOutput = trim(limitOutput((string) ($worker['compileOutput'] ?? '')));
+    $timedOut = !empty($worker['timedOut']);
+    $exitCode = (int) ($worker['exitCode'] ?? 1);
+    respond([
+        'ok' => $exitCode === 0 && !$timedOut,
+        'phase' => $phase,
+        'diagnostics' => $phase === 'compile' ? parseDiagnostics($compileOutput) : [],
+        'rawOutput' => $compileOutput,
+        'stdout' => limitOutput((string) ($worker['stdout'] ?? '')),
+        'stderr' => limitOutput((string) ($worker['stderr'] ?? '')),
+        'exitCode' => $exitCode,
+        'timedOut' => $timedOut,
+        'durationMs' => (int) ($worker['durationMs'] ?? 0),
+        'compileDurationMs' => (int) ($worker['compileDurationMs'] ?? 0),
+        'runDurationMs' => (int) ($worker['runDurationMs'] ?? 0),
+        'compiler' => 'javac(worker)',
+        'runtime' => 'java(worker)',
+        'sandbox' => (string) ($worker['sandbox'] ?? 'worker-unavailable'),
+        'mode' => $mode,
+        'runnable' => $mode !== 'member',
+    ]);
+}
+
+$workDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'java-werkstatt-' . bin2hex(random_bytes(8));
+$classesDir = $workDir . DIRECTORY_SEPARATOR . 'classes';
+if (!mkdir($classesDir, 0700, true)) {
+    respond(['ok' => false, 'error' => 'No se pudo crear el espacio temporal.'], 500);
 }
 
 $sourcePath = $workDir . DIRECTORY_SEPARATOR . $fileName;
@@ -124,7 +157,6 @@ if ($compile['exitCode'] !== 0 || !$shouldRun || $mode === 'member') {
 }
 
 $run = match ($sandboxMode) {
-    'worker' => runInWorkerSandbox($workerQueue, $classesDir, $mainClass, $stdin),
     'docker' => isDockerAvailable()
         ? runInDockerSandbox($dockerImage, $classesDir, $mainClass, $stdin)
         : runInJvmSandbox($java, $classesDir, $mainClass, $stdin),
@@ -177,7 +209,14 @@ function runInDockerSandbox(string $image, string $classesDir, string $mainClass
     return $result;
 }
 
-function runInWorkerSandbox(string $queueRoot, string $classesDir, string $mainClass, string $stdin): array
+function compileInWorkerSandbox(
+    string $queueRoot,
+    string $source,
+    string $fileName,
+    string $mainClass,
+    string $stdin,
+    bool $shouldRun
+): array
 {
     $started = microtime(true);
     $jobId = bin2hex(random_bytes(16));
@@ -193,18 +232,25 @@ function runInWorkerSandbox(string $queueRoot, string $classesDir, string $mainC
     if (!@mkdir($jobDir, 0700, true)) {
         return workerFailure('No se pudo crear el trabajo del sandbox worker.', $started);
     }
-    copyDirectory($classesDir, $jobDir . DIRECTORY_SEPARATOR . 'classes');
-    file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'job.json', json_encode([
-        'mainClass' => $mainClass,
-        'stdin' => $stdin,
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
+    file_put_contents($jobDir . DIRECTORY_SEPARATOR . $fileName, $source, LOCK_EX);
+    file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'file-name.txt', $fileName, LOCK_EX);
+    file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'main-class.txt', $mainClass, LOCK_EX);
+    file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'stdin.bin', $stdin, LOCK_EX);
+    file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'run.txt', $shouldRun ? '1' : '0', LOCK_EX);
     file_put_contents($jobDir . DIRECTORY_SEPARATOR . 'READY', '1', LOCK_EX);
 
-    $deadline = microtime(true) + RUN_TIMEOUT_SECONDS + 3.0;
+    $deadline = microtime(true) + COMPILE_TIMEOUT_SECONDS + ($shouldRun ? RUN_TIMEOUT_SECONDS : 0) + 3.0;
     $resultPath = $outputDir . DIRECTORY_SEPARATOR . $jobId . '.json';
     while (microtime(true) < $deadline) {
         if (is_file($resultPath)) {
             $result = json_decode((string) file_get_contents($resultPath), true);
+            if (is_array($result)) {
+                foreach (['compileOutput', 'stderr'] as $field) {
+                    if (is_string($result[$field] ?? null)) {
+                        $result[$field] = str_replace($jobDir . DIRECTORY_SEPARATOR, '', $result[$field]);
+                    }
+                }
+            }
             removeDirectory($jobDir);
             @unlink($resultPath);
             if (is_array($result)) {
@@ -217,23 +263,30 @@ function runInWorkerSandbox(string $queueRoot, string $classesDir, string $mainC
         usleep(WORKER_POLL_INTERVAL_MICROSECONDS);
     }
     removeDirectory($jobDir);
-    return ['exitCode' => 124, 'stdout' => '', 'stderr' => 'El sandbox worker no respondió a tiempo.', 'timedOut' => true, 'duration' => microtime(true) - $started, 'sandbox' => 'worker-no-network'];
+    return [
+        'phase' => 'worker',
+        'exitCode' => 124,
+        'stdout' => '',
+        'stderr' => 'El sandbox worker no respondió a tiempo.',
+        'compileOutput' => '',
+        'timedOut' => true,
+        'durationMs' => (int) round((microtime(true) - $started) * 1000),
+        'sandbox' => 'worker-no-network',
+    ];
 }
 
 function workerFailure(string $message, float $started): array
 {
-    return ['exitCode' => 1, 'stdout' => '', 'stderr' => $message, 'timedOut' => false, 'duration' => microtime(true) - $started, 'sandbox' => 'worker-unavailable'];
-}
-
-function copyDirectory(string $source, string $destination): void
-{
-    @mkdir($destination, 0700, true);
-    foreach (scandir($source) ?: [] as $entry) {
-        if ($entry === '.' || $entry === '..') continue;
-        $from = $source . DIRECTORY_SEPARATOR . $entry;
-        $to = $destination . DIRECTORY_SEPARATOR . $entry;
-        is_dir($from) ? copyDirectory($from, $to) : @copy($from, $to);
-    }
+    return [
+        'phase' => 'worker',
+        'exitCode' => 1,
+        'stdout' => '',
+        'stderr' => $message,
+        'compileOutput' => '',
+        'timedOut' => false,
+        'durationMs' => (int) round((microtime(true) - $started) * 1000),
+        'sandbox' => 'worker-unavailable',
+    ];
 }
 
 function runProcess(array $command, string $cwd, float $timeout, string $stdin = '', array $extraEnvironment = []): array

@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Playwright smoke tests for Java Werkstatt",
   "scripts": {
-    "test:syntax": "node --check game.js && node --check playwright.config.js && php -l api/auth.php && php -l api/attempts.php && php -l api/bootstrap.php && php -l api/classes.php && php -l api/compile.php && php -l api/progress.php && php -l sandbox/worker.php",
+    "test:syntax": "node --check game.js && node --check playwright.config.js && php -l api/auth.php && php -l api/attempts.php && php -l api/bootstrap.php && php -l api/classes.php && php -l api/compile.php && php -l api/progress.php",
+    "test:worker": "bash tools/test-sandbox-worker.sh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "playwright:install": "playwright install chromium"

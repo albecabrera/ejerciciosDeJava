@@ -6,11 +6,13 @@ services:
     read_only: true
     user: "33:33"
     command: ["java", "/opt/java-werkstatt/Worker.java"]
+    environment:
+      JAVA_WORKER_QUEUE: /var/lib/java-werkstatt/queue
     tmpfs:
       - /tmp:size=64m,noexec,nosuid,nodev
     volumes:
-      - ./Worker.java:/opt/java-werkstatt/Worker.java:ro
-      - ${JAVA_WORKER_QUEUE_HOST:-./.sandbox-queue}:/var/lib/java-werkstatt/queue
+      - ${JAVA_WERKSTATT_ROOT}/sandbox/Worker.java:/opt/java-werkstatt/Worker.java:ro
+      - ${JAVA_WORKER_QUEUE_HOST}:/var/lib/java-werkstatt/queue
     cpus: 0.50
     mem_limit: 192m
     pids_limit: 80

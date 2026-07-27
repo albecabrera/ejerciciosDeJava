@@ -167,7 +167,7 @@ En modo Docker, el runner usa `docker run --rm --network none --cpus 0.5 --memor
 
 #### Worker recomendado para producción
 
-La alternativa recomendada evita exponer el socket Docker a Apache/PHP. El worker procesa una cola compartida dentro de un contenedor dedicado configurado con `network_mode: none`, usuario sin privilegios, filesystem de solo lectura y límites de CPU/RAM/PIDs.
+La alternativa recomendada evita exponer el socket Docker a Apache/PHP. El worker compila y ejecuta el código dentro de un contenedor dedicado configurado con `network_mode: none`, usuario sin privilegios, filesystem de solo lectura y límites de CPU/RAM/PIDs. En este modo PHP no necesita tener `javac` ni `java`.
 
 1. Montá la misma cola en PHP y en el worker (por ejemplo `/var/lib/java-werkstatt/queue`).
 2. En `config/config.php` configurá:
@@ -179,15 +179,37 @@ La alternativa recomendada evita exponer el socket Docker a Apache/PHP. El worke
 ],
 ```
 
-3. Desde la raíz del proyecto iniciá el worker en producción:
+3. Prepará la cola para el UID compartido por PHP y el worker e iniciá el servicio:
 
 ```bash
-docker compose -f sandbox/docker-compose.worker.yml up -d --build
+mkdir -p sandbox/.sandbox-queue
+chmod 0770 sandbox/.sandbox-queue
+JAVA_WORKER_QUEUE_HOST="$PWD/sandbox/.sandbox-queue" \
+  docker compose -f sandbox/docker-compose.worker.yml up -d
 ```
 
-El endpoint PHP entrega las clases al worker mediante la cola y espera el resultado. Si el worker no responde, la ejecución falla cerradamente: no vuelve silenciosamente a `jvm-limited`.
+El worker usa directamente la imagen oficial `eclipse-temurin:21-jdk`; no necesita exponer Docker ni construir una imagen propia. El endpoint PHP entrega el código fuente mediante la cola y espera los diagnósticos de `javac` y el resultado de ejecución. Si el worker no responde, la operación falla cerradamente: no vuelve silenciosamente a `jvm-limited`.
 
-En XAMPP, montá el volumen de cola también en `xampp-php`; no habilites `/var/run/docker.sock` salvo que aceptes el riesgo de otorgar control del daemon Docker al proceso web.
+Para el XAMPP Docker local se incluye `sandbox/xampp-worker.override.yml`. La cola debe ser una ruta visible tanto dentro de `xampp-php` como desde el host. No habilites `/var/run/docker.sock` salvo que aceptes el riesgo de otorgar control del daemon Docker al proceso web.
+
+```bash
+export JAVA_WORKER_QUEUE_HOST="$HOME/xampp-data/htdocs/.java-werkstatt-queue"
+export JAVA_WERKSTATT_ROOT="$PWD"
+mkdir -p "$JAVA_WORKER_QUEUE_HOST"/{in,out}
+chmod -R 0777 "$JAVA_WORKER_QUEUE_HOST" # solo desarrollo local
+docker compose -p xampp \
+  -f /ruta/a/xampp-docker/docker-compose.yml \
+  -f sandbox/xampp-worker.override.yml \
+  up -d --no-build java-sandbox-worker
+```
+
+En el `config/config.php` desplegado dentro de XAMPP, usá `worker_queue => /var/www/html/.java-werkstatt-queue`. Protegé esa carpeta desde Apache; la instalación local verificada usa un `.htaccess` con `Require all denied`.
+
+Podés comprobar el protocolo completo sin Docker con:
+
+```bash
+npm run test:worker
+```
 
 ## Validación, límites y privacidad
 
