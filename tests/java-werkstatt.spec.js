@@ -35,8 +35,16 @@ test("compiles a valid snippet through the PHP endpoint", async ({ request }) =>
 });
 
 
-test("shows real stdout in the simulated editor console after F5", async ({ page }) => {
+
+test("requires students to write console output for executable missions", async ({ page }) => {
   await page.locator("#editor").fill('String name = "Mara";\nint age = 27;');
+  await page.keyboard.press("F5");
+  await expect(page.locator("#feedbackPanel")).toContainText(/imprimir|print|ausgeben/i);
+  await expect(page.locator("#consoleOutput")).toContainText(/no imprimió nada|nothing|nichts/i);
+});
+
+test("shows real stdout in the simulated editor console after F5", async ({ page }) => {
+  await page.locator("#editor").fill('String name = "Mara";\nint age = 27;\nSystem.out.println(name + " · " + age);');
   await page.keyboard.press("F5");
   await expect(page.locator("#consoleOutput")).toContainText("stdout:");
   await expect(page.locator("#consoleOutput")).toContainText("Mara");

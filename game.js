@@ -533,28 +533,29 @@ const missions = [
     xp: BASE_XP,
     file: "Profile.java",
     contextBefore: `public class Profile {\n    public static void main(String[] args) {`,
-    contextAfter: `        System.out.println(name + " · " + age);\n    }\n}`,
-    solution: `String name = "Mara";\nint age = 27;`,
+    contextAfter: `    }\n}`,
+    solution: `String name = "Mara";\nint age = 27;\nSystem.out.println(name + " · " + age);`,
     text: {
       es: {
         short: "Variables y tipos",
         title: "Dale tipo a los datos",
         objective: "Diferenciar texto y números usando tipos explícitos.",
         prompt:
-          'Declará una variable String llamada name con "Mara" y una variable int llamada age con 27.',
+          'Declará una variable String llamada name con "Mara", una variable int llamada age con 27 e imprimí ambos valores en consola.',
         concept: "Tipado estático y declaración",
         hints: [
           "Java necesita el tipo antes del nombre: String para texto, int para enteros.",
           'La forma completa es: tipo nombre = valor; Recordá las comillas de "Mara".',
         ],
         explanation:
-          "Java comprueba los tipos antes de ejecutar. String acepta texto; int, enteros. El punto y coma cierra cada sentencia.",
+          "Java comprueba los tipos antes de ejecutar. String acepta texto; int, enteros. System.out.println hace visible el resultado.",
         errors: {
           nameType: "Falta declarar name con el tipo String.",
           nameValue: 'name debe inicializarse exactamente con el texto "Mara".',
           ageType: "Falta declarar age con el tipo int.",
           ageValue: "age debe inicializarse con el número 27.",
           semicolon: "Cada declaración debe terminar con punto y coma.",
+          print: "Falta imprimir name y age con System.out.println(...).",
         },
       },
       de: {
@@ -562,20 +563,21 @@ const missions = [
         title: "Gib den Daten einen Typ",
         objective: "Text und Zahlen mit expliziten Typen unterscheiden.",
         prompt:
-          'Deklariere eine String-Variable name mit "Mara" und eine int-Variable age mit 27.',
+          'Deklariere eine String-Variable name mit "Mara", eine int-Variable age mit 27 und gib beide Werte in der Konsole aus.',
         concept: "Statische Typisierung und Deklaration",
         hints: [
           "In Java steht der Typ vor dem Namen: String für Text, int für Ganzzahlen.",
           'Die vollständige Form lautet: Typ name = Wert; Denke an die Anführungszeichen bei "Mara".',
         ],
         explanation:
-          "Java prüft Typen vor der Ausführung. String speichert Text, int ganze Zahlen. Das Semikolon beendet eine Anweisung.",
+          "Java prüft Typen vor der Ausführung. String speichert Text, int ganze Zahlen. System.out.println macht das Ergebnis sichtbar.",
         errors: {
           nameType: "name muss mit dem Typ String deklariert werden.",
           nameValue: 'name muss genau mit dem Text "Mara" initialisiert werden.',
           ageType: "age muss mit dem Typ int deklariert werden.",
           ageValue: "age muss mit der Zahl 27 initialisiert werden.",
           semicolon: "Jede Deklaration muss mit einem Semikolon enden.",
+          print: "Es fehlt die Ausgabe von name und age mit System.out.println(...).",
         },
       },
     },
@@ -586,7 +588,8 @@ const missions = [
       if (!/\bString\s+name\s*=\s*"Mara"\s*;/.test(value)) return e.nameValue;
       if (!/\bint\s+age\b/.test(value)) return e.ageType;
       if (!/\bint\s+age\s*=\s*27\s*;/.test(value)) return e.ageValue;
-      if ((value.match(/;/g) || []).length < 2) return e.semicolon;
+      if ((value.match(/;/g) || []).length < 3) return e.semicolon;
+      if (!/System\.out\.println\s*\([^;]*(name[^;]*age|age[^;]*name)[^;]*\)\s*;/.test(value)) return e.print;
       return null;
     },
   },
@@ -792,15 +795,15 @@ const missions = [
     xp: BASE_XP,
     file: "ScoreTotal.java",
     contextBefore: `public class ScoreTotal {\n    public static void main(String[] args) {`,
-    contextAfter: `        System.out.println(total);\n    }\n}`,
-    solution: `int[] scores = {8, 10, 7, 9};\nint total = 0;\nfor (int score : scores) {\n    total += score;\n}`,
+    contextAfter: `    }\n}`,
+    solution: `int[] scores = {8, 10, 7, 9};\nint total = 0;\nfor (int score : scores) {\n    total += score;\n}\nSystem.out.println(total);`,
     text: {
       es: {
         short: "Arrays",
         title: "Acumulá una colección fija",
         objective: "Crear un array y reducirlo a un único valor.",
         prompt:
-          "Creá scores con 8, 10, 7 y 9. Inicializá total en 0 y sumá cada score usando un for-each.",
+          "Creá scores con 8, 10, 7 y 9. Inicializá total en 0, sumá cada score con for-each e imprimí total.",
         concept: "Array, for-each y acumulador",
         hints: [
           "Un array de enteros se declara con int[] y los valores van entre llaves.",
@@ -814,6 +817,7 @@ const missions = [
           accumulator: "Declará total como int e inicializalo en 0.",
           foreach: "Usá un for-each con int score : scores.",
           sum: "Dentro del bucle, sumá score a total.",
+          print: "Falta imprimir total con System.out.println(total).",
         },
       },
       de: {
@@ -821,7 +825,7 @@ const missions = [
         title: "Summiere eine feste Sammlung",
         objective: "Ein Array erstellen und auf einen Wert reduzieren.",
         prompt:
-          "Erstelle scores mit 8, 10, 7 und 9. Setze total auf 0 und addiere jeden score mit einer for-each-Schleife.",
+          "Erstelle scores mit 8, 10, 7 und 9. Setze total auf 0, addiere jeden score mit for-each und gib total aus.",
         concept: "Array, for-each und Akkumulator",
         hints: [
           "Ein Ganzzahl-Array wird mit int[] deklariert; Werte stehen in geschweiften Klammern.",
@@ -835,6 +839,7 @@ const missions = [
           accumulator: "Deklariere total als int und initialisiere es mit 0.",
           foreach: "Verwende for-each mit int score : scores.",
           sum: "Addiere score innerhalb der Schleife zu total.",
+          print: "Es fehlt System.out.println(total).",
         },
       },
     },
@@ -848,6 +853,7 @@ const missions = [
       if (!/\bint\s+total\s*=\s*0\s*;/.test(value)) return e.accumulator;
       if (!/\bfor\s*\(\s*int\s+score\s*:\s*scores\s*\)\s*\{/.test(value)) return e.foreach;
       if (!/(?:total\s*\+=\s*score|total\s*=\s*total\s*\+\s*score)\s*;/.test(value)) return e.sum;
+      if (!/System\.out\.println\s*\(\s*total\s*\)\s*;/.test(value)) return e.print;
       return commonStructureChecks(value, language);
     },
   },
@@ -925,15 +931,15 @@ const missions = [
     xp: BASE_XP,
     file: "TaskBoard.java",
     contextBefore: `import java.util.ArrayList;\nimport java.util.List;\n\npublic class TaskBoard {\n    public static void main(String[] args) {`,
-    contextAfter: `        System.out.println(tasks.size());\n    }\n}`,
-    solution: `List<String> tasks = new ArrayList<>();\ntasks.add("Learn Java");\ntasks.add("Write tests");`,
+    contextAfter: `    }\n}`,
+    solution: `List<String> tasks = new ArrayList<>();\ntasks.add("Learn Java");\ntasks.add("Write tests");\nSystem.out.println(tasks.size());`,
     text: {
       es: {
         short: "Listas",
         title: "Usá una colección dinámica",
         objective: "Programar contra la interfaz List y agregar elementos.",
         prompt:
-          'Creá tasks como List<String> usando ArrayList<>. Agregá "Learn Java" y "Write tests" con add.',
+          'Creá tasks como List<String> usando ArrayList<>. Agregá "Learn Java" y "Write tests" con add e imprimí tasks.size().',
         concept: "Genéricos, List y ArrayList",
         hints: [
           "Usá List<String> para declarar el contrato y new ArrayList<>() para crear el objeto.",
@@ -946,6 +952,7 @@ const missions = [
           implementation: "Inicializá tasks con new ArrayList<>().",
           first: 'Agregá "Learn Java" mediante tasks.add(...).',
           second: 'Agregá "Write tests" mediante tasks.add(...).',
+          print: "Falta imprimir tasks.size() con System.out.println(...).",
         },
       },
       de: {
@@ -953,7 +960,7 @@ const missions = [
         title: "Nutze eine dynamische Sammlung",
         objective: "Gegen das List-Interface programmieren und Elemente hinzufügen.",
         prompt:
-          'Erstelle tasks als List<String> mit ArrayList<>. Füge "Learn Java" und "Write tests" über add hinzu.',
+          'Erstelle tasks als List<String> mit ArrayList<>. Füge "Learn Java" und "Write tests" über add hinzu und gib tasks.size() aus.',
         concept: "Generics, List und ArrayList",
         hints: [
           "Deklariere den Vertrag mit List<String> und erzeuge das Objekt mit new ArrayList<>().",
@@ -966,6 +973,7 @@ const missions = [
           implementation: "Initialisiere tasks mit new ArrayList<>().",
           first: 'Füge "Learn Java" über tasks.add(...) hinzu.',
           second: 'Füge "Write tests" über tasks.add(...) hinzu.',
+          print: "Es fehlt System.out.println(tasks.size()).",
         },
       },
     },
@@ -978,6 +986,7 @@ const missions = [
       }
       if (!/\btasks\.add\s*\(\s*"Learn Java"\s*\)\s*;/.test(value)) return e.first;
       if (!/\btasks\.add\s*\(\s*"Write tests"\s*\)\s*;/.test(value)) return e.second;
+      if (!/System\.out\.println\s*\(\s*tasks\.size\s*\(\s*\)\s*\)\s*;/.test(value)) return e.print;
       return commonStructureChecks(value, language);
     },
   },
@@ -1158,24 +1167,24 @@ const extraMissions = [
   },
   {
     id: "stack", stage: "Q1", field: "data", competencies: ["M", "I"], difficulty: "medium", file: "Undo.java",
-    solution: `Deque<String> history = new ArrayDeque<>();\nhistory.push("type A");\nString last = history.pop();`,
-    required: [/Deque\s*<\s*String\s*>\s+history/, /new\s+ArrayDeque/, /history\.push/, /history\.pop/],
-    es: { short: "Stack", title: "Deshacé en orden LIFO", objective: "Modelar historial con pila.", prompt: "Creá history como Deque, apilá una acción y recuperá la última.", concept: "Stack / LIFO", hint: "ArrayDeque ofrece push y pop.", explanation: "La última acción ingresada es la primera en salir.", error: "Faltan Deque/ArrayDeque, push o pop." },
-    de: { short: "Stack", title: "Mache in LIFO-Reihenfolge rückgängig", objective: "Verlauf als Stapel modellieren.", prompt: "Erstelle history als Deque, lege eine Aktion ab und hole die letzte.", concept: "Stack / LIFO", hint: "ArrayDeque bietet push und pop.", explanation: "Die zuletzt eingefügte Aktion wird zuerst entfernt.", error: "Deque/ArrayDeque, push oder pop fehlt." },
+    solution: `Deque<String> history = new ArrayDeque<>();\nhistory.push("type A");\nString last = history.pop();\nSystem.out.println(last);`,
+    required: [/Deque\s*<\s*String\s*>\s+history/, /new\s+ArrayDeque/, /history\.push/, /history\.pop/, /System\.out\.println\s*\(\s*last\s*\)/],
+    es: { short: "Stack", title: "Deshacé en orden LIFO", objective: "Modelar historial con pila.", prompt: "Creá history como Deque, apilá una acción, recuperá la última e imprimí last.", concept: "Stack / LIFO", hint: "ArrayDeque ofrece push y pop.", explanation: "La última acción ingresada es la primera en salir.", error: "Faltan Deque/ArrayDeque, push, pop o la impresión de last." },
+    de: { short: "Stack", title: "Mache in LIFO-Reihenfolge rückgängig", objective: "Verlauf als Stapel modellieren.", prompt: "Erstelle history als Deque, lege eine Aktion ab, hole die letzte und gib last aus.", concept: "Stack / LIFO", hint: "ArrayDeque bietet push und pop.", explanation: "Die zuletzt eingefügte Aktion wird zuerst entfernt.", error: "Deque/ArrayDeque, push, pop oder die Ausgabe von last fehlt." },
   },
   {
     id: "queue", stage: "Q1", field: "data", competencies: ["M", "I"], difficulty: "medium", file: "PrintQueue.java",
-    solution: `Queue<String> jobs = new ArrayDeque<>();\njobs.offer("report.pdf");\nString next = jobs.poll();`,
-    required: [/Queue\s*<\s*String\s*>\s+jobs/, /jobs\.offer/, /jobs\.poll/],
-    es: { short: "Queue", title: "Atendé en orden FIFO", objective: "Modelar una cola de trabajo.", prompt: "Creá jobs, agregá report.pdf y retiralo de forma segura.", concept: "Queue / FIFO", hint: "offer y poll evitan excepciones por capacidad/vacío.", explanation: "La primera tarea ingresada es la primera atendida.", error: "Faltan Queue, offer o poll." },
-    de: { short: "Queue", title: "Bearbeite in FIFO-Reihenfolge", objective: "Eine Arbeitswarteschlange modellieren.", prompt: "Erstelle jobs, füge report.pdf hinzu und entnimm es sicher.", concept: "Queue / FIFO", hint: "offer und poll sind sichere Queue-Operationen.", explanation: "Der zuerst eingefügte Auftrag wird zuerst bearbeitet.", error: "Queue, offer oder poll fehlt." },
+    solution: `Queue<String> jobs = new ArrayDeque<>();\njobs.offer("report.pdf");\nString next = jobs.poll();\nSystem.out.println(next);`,
+    required: [/Queue\s*<\s*String\s*>\s+jobs/, /jobs\.offer/, /jobs\.poll/, /System\.out\.println\s*\(\s*next\s*\)/],
+    es: { short: "Queue", title: "Atendé en orden FIFO", objective: "Modelar una cola de trabajo.", prompt: "Creá jobs, agregá report.pdf, retiralo de forma segura e imprimí next.", concept: "Queue / FIFO", hint: "offer y poll evitan excepciones por capacidad/vacío.", explanation: "La primera tarea ingresada es la primera atendida.", error: "Faltan Queue, offer, poll o la impresión de next." },
+    de: { short: "Queue", title: "Bearbeite in FIFO-Reihenfolge", objective: "Eine Arbeitswarteschlange modellieren.", prompt: "Erstelle jobs, füge report.pdf hinzu, entnimm es sicher und gib next aus.", concept: "Queue / FIFO", hint: "offer und poll sind sichere Queue-Operationen.", explanation: "Der zuerst eingefügte Auftrag wird zuerst bearbeitet.", error: "Queue, offer, poll oder die Ausgabe von next fehlt." },
   },
   {
     id: "linked-list", stage: "Q1", field: "data", competencies: ["A", "M", "I"], difficulty: "medium", file: "Playlist.java",
-    solution: `List<String> songs = new LinkedList<>();\nsongs.add("Intro");\nsongs.add(0, "Overture");\nsongs.remove("Intro");`,
-    required: [/List\s*<\s*String\s*>\s+songs\s*=\s*new\s+LinkedList/, /songs\.add/, /songs\.remove/],
-    es: { short: "List", title: "Editá una secuencia", objective: "Usar una lista con inserción y borrado.", prompt: "Creá songs como LinkedList, insertá dos títulos y eliminá Intro.", concept: "Interfaz List y LinkedList", hint: "Declarar contra List reduce acoplamiento.", explanation: "List define el contrato; LinkedList la implementación.", error: "Faltan List/LinkedList, add o remove." },
-    de: { short: "List", title: "Bearbeite eine Sequenz", objective: "Eine Liste mit Einfügen und Löschen verwenden.", prompt: "Erstelle songs als LinkedList, füge zwei Titel ein und entferne Intro.", concept: "List-Schnittstelle und LinkedList", hint: "Die Deklaration gegen List reduziert Kopplung.", explanation: "List definiert den Vertrag, LinkedList die Umsetzung.", error: "List/LinkedList, add oder remove fehlt." },
+    solution: `List<String> songs = new LinkedList<>();\nsongs.add("Intro");\nsongs.add(0, "Overture");\nsongs.remove("Intro");\nSystem.out.println(songs);`,
+    required: [/List\s*<\s*String\s*>\s+songs\s*=\s*new\s+LinkedList/, /songs\.add/, /songs\.remove/, /System\.out\.println\s*\(\s*songs\s*\)/],
+    es: { short: "List", title: "Editá una secuencia", objective: "Usar una lista con inserción y borrado.", prompt: "Creá songs como LinkedList, insertá dos títulos, eliminá Intro e imprimí la lista final.", concept: "Interfaz List y LinkedList", hint: "Declarar contra List reduce acoplamiento.", explanation: "List define el contrato; LinkedList la implementación.", error: "Faltan List/LinkedList, add, remove o la impresión de songs." },
+    de: { short: "List", title: "Bearbeite eine Sequenz", objective: "Eine Liste mit Einfügen und Löschen verwenden.", prompt: "Erstelle songs als LinkedList, füge zwei Titel ein, entferne Intro und gib die finale Liste aus.", concept: "List-Schnittstelle und LinkedList", hint: "Die Deklaration gegen List reduziert Kopplung.", explanation: "List definiert den Vertrag, LinkedList die Umsetzung.", error: "List/LinkedList, add, remove oder die Ausgabe von songs fehlt." },
   },
   {
     id: "recursion", stage: "Q1", field: "algorithms", competencies: ["A", "M", "I"], difficulty: "hard", file: "Factorial.java",
@@ -1207,10 +1216,11 @@ const extraMissions = [
   },
   {
     id: "efficiency", stage: "Q1", field: "algorithms", competencies: ["A", "D", "K"], difficulty: "medium", file: "Complexity.java",
-    solution: `// Búsqueda lineal: O(n), no requiere orden.\n// Búsqueda binaria: O(log n), requiere datos ordenados.\nString choice = sorted ? "binary" : "linear";`,
-    required: [/O\s*\(\s*n\s*\)/, /O\s*\(\s*log\s*n\s*\)/i, /sorted\s*\?\s*"binary"\s*:\s*"linear"/],
-    es: { short: "Eficiencia", title: "Justificá el algoritmo", objective: "Comparar costo y precondiciones.", prompt: "Documentá lineal vs binaria y elegí según sorted.", concept: "Complejidad y trade-offs", hint: "No mires solo Big-O: anotá la precondición de orden.", explanation: "La opción asintóticamente mejor puede exigir preparación adicional.", error: "Faltan ambas complejidades o la decisión según sorted." },
-    de: { short: "Effizienz", title: "Begründe den Algorithmus", objective: "Kosten und Vorbedingungen vergleichen.", prompt: "Dokumentiere linear vs. binär und wähle anhand sorted.", concept: "Komplexität und Trade-offs", hint: "Nicht nur Big-O: Sortierung ist eine Vorbedingung.", explanation: "Die asymptotisch bessere Wahl kann Vorbereitung verlangen.", error: "Beide Komplexitäten oder die Auswahl nach sorted fehlt." },
+    before: `boolean sorted = true;`,
+    solution: `// Búsqueda lineal: O(n), no requiere orden.\n// Búsqueda binaria: O(log n), requiere datos ordenados.\nString choice = sorted ? "binary" : "linear";\nSystem.out.println(choice);`,
+    required: [/O\s*\(\s*n\s*\)/, /O\s*\(\s*log\s*n\s*\)/i, /sorted\s*\?\s*"binary"\s*:\s*"linear"/, /System\.out\.println\s*\(\s*choice\s*\)/],
+    es: { short: "Eficiencia", title: "Justificá el algoritmo", objective: "Comparar costo y precondiciones.", prompt: "Documentá lineal vs binaria, elegí según sorted e imprimí la decisión.", concept: "Complejidad y trade-offs", hint: "No mires solo Big-O: anotá la precondición de orden.", explanation: "La opción asintóticamente mejor puede exigir preparación adicional.", error: "Faltan ambas complejidades, la decisión según sorted o su impresión." },
+    de: { short: "Effizienz", title: "Begründe den Algorithmus", objective: "Kosten und Vorbedingungen vergleichen.", prompt: "Dokumentiere linear vs. binär, wähle anhand sorted und gib die Entscheidung aus.", concept: "Komplexität und Trade-offs", hint: "Nicht nur Big-O: Sortierung ist eine Vorbedingung.", explanation: "Die asymptotisch bessere Wahl kann Vorbereitung verlangen.", error: "Beide Komplexitäten, die Auswahl nach sorted oder ihre Ausgabe fehlt." },
   },
   {
     id: "bst", stage: "Q1", field: "data", competencies: ["M", "I", "D"], difficulty: "hard", file: "BinarySearchTree.java",
@@ -1305,10 +1315,11 @@ const extraMissions = [
   },
   {
     id: "hash-map", stage: "Q2", field: "data", competencies: ["A", "I"], difficulty: "medium", file: "Frequency.java",
-    solution: `Map<String, Integer> counts = new HashMap<>();\nfor (String word : words) {\n    counts.merge(word, 1, Integer::sum);\n}`,
-    required: [/Map\s*<\s*String\s*,\s*Integer\s*>\s+counts/, /new\s+HashMap/, /counts\.merge\s*\(\s*word\s*,\s*1\s*,\s*Integer::sum/],
-    es: { short: "Map", title: "Contá por clave", objective: "Construir una tabla de frecuencias.", prompt: "Contá cada palabra con HashMap.merge.", concept: "Map, hashing y frecuencia", hint: "merge cubre alta y actualización en una operación.", explanation: "El acceso esperado es O(1), no una garantía absoluta.", error: "Faltan Map/HashMap o merge para contar." },
-    de: { short: "Map", title: "Zähle nach Schlüssel", objective: "Eine Häufigkeitstabelle aufbauen.", prompt: "Zähle jedes Wort mit HashMap.merge.", concept: "Map, Hashing und Häufigkeit", hint: "merge behandelt Einfügen und Aktualisieren.", explanation: "Erwarteter Zugriff ist O(1), keine absolute Garantie.", error: "Map/HashMap oder merge zum Zählen fehlt." },
+    before: `String[] words = {"java", "oop", "java"};`,
+    solution: `Map<String, Integer> counts = new HashMap<>();\nfor (String word : words) {\n    counts.merge(word, 1, Integer::sum);\n}\nSystem.out.println(counts);`,
+    required: [/Map\s*<\s*String\s*,\s*Integer\s*>\s+counts/, /new\s+HashMap/, /counts\.merge\s*\(\s*word\s*,\s*1\s*,\s*Integer::sum/, /System\.out\.println\s*\(\s*counts\s*\)/],
+    es: { short: "Map", title: "Contá por clave", objective: "Construir una tabla de frecuencias.", prompt: "Contá cada palabra con HashMap.merge e imprimí counts.", concept: "Map, hashing y frecuencia", hint: "merge cubre alta y actualización en una operación.", explanation: "El acceso esperado es O(1), no una garantía absoluta.", error: "Faltan Map/HashMap, merge o la impresión de counts." },
+    de: { short: "Map", title: "Zähle nach Schlüssel", objective: "Eine Häufigkeitstabelle aufbauen.", prompt: "Zähle jedes Wort mit HashMap.merge und gib counts aus.", concept: "Map, Hashing und Häufigkeit", hint: "merge behandelt Einfügen und Aktualisieren.", explanation: "Erwarteter Zugriff ist O(1), keine absolute Garantie.", error: "Map/HashMap, merge oder die Ausgabe von counts fehlt." },
   },
 ];
 
