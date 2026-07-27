@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=15" />
+    <link rel="stylesheet" href="styles.css?v=16" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -223,6 +223,13 @@
               <li data-compile-phase="explain"><span>05</span><strong data-i18n="compileExplain">Explicar</strong></li>
             </ol>
           </section>
+
+          <div class="workbench-hud" aria-label="Estado del espacio de trabajo">
+            <span><b data-i18n="workbenchMission">Misión</b><strong id="workbenchMission">—</strong></span>
+            <span><b data-i18n="workbenchFile">Archivo</b><strong id="workbenchFile">—</strong></span>
+            <span><b data-i18n="workbenchAutosave">Guardado</b><strong data-i18n="workbenchAutosaveValue">Local</strong></span>
+            <span><b data-i18n="workbenchShortcut">Atajo</b><strong>F5</strong></span>
+          </div>
 
           <div class="editor-toolbar" role="toolbar" aria-label="Herramientas del editor">
             <button
@@ -452,6 +459,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=15"></script>
+    <script src="game.js?v=16"></script>
   </body>
 </html>

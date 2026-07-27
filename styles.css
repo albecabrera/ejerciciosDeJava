@@ -458,6 +458,40 @@ a:focus-visible {
   justify-content: center;
 }
 
+.workbench-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 1rem 0 0.75rem;
+}
+
+.workbench-hud span {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, transparent), color-mix(in srgb, var(--panel-soft) 90%, transparent));
+}
+
+.workbench-hud b {
+  color: var(--copper);
+  font: 900 0.58rem var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.workbench-hud strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--java-deep);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .workspace {
   width: min(1440px, 100%);
   min-height: calc(100vh - 82px);
@@ -1540,11 +1574,20 @@ kbd {
 .shortcut-help .details-content { grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1.25fr); }
 
 .action-row {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 8;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.65rem;
   margin-top: 1rem;
+  padding: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  box-shadow: 0 18px 46px rgba(32, 41, 45, 0.14);
+  backdrop-filter: blur(16px);
 }
 
 .button {
@@ -1725,6 +1768,10 @@ kbd {
     grid-template-columns: 1fr;
   }
 
+  .workbench-hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .project-gallery {
     grid-column: 1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1786,6 +1833,10 @@ kbd {
   }
 
   .project-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-hud {
     grid-template-columns: 1fr;
   }
 

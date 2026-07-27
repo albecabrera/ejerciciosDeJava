@@ -75,6 +75,11 @@ const ui = {
     compileRailVerifiedCompile: "javac compiló el contexto; ejecución omitida y evidencia validada.",
     compileRailLocal: "Backend no disponible: solo validación heurística local.",
     compileRailFailed: "El flujo se detuvo en {phase}.",
+    workbenchMission: "Misión",
+    workbenchFile: "Archivo",
+    workbenchAutosave: "Guardado",
+    workbenchAutosaveValue: "Local",
+    workbenchShortcut: "Atajo",
     compileWrite: "Escribir",
     compileCompile: "Compilar",
     compileRun: "Ejecutar",
@@ -277,6 +282,11 @@ const ui = {
     compileRailVerifiedCompile: "javac hat den Kontext kompiliert; Ausführung übersprungen und Nachweis validiert.",
     compileRailLocal: "Backend nicht verfügbar: nur lokale heuristische Prüfung.",
     compileRailFailed: "Die Pipeline wurde bei {phase} gestoppt.",
+    workbenchMission: "Mission",
+    workbenchFile: "Datei",
+    workbenchAutosave: "Speicher",
+    workbenchAutosaveValue: "Lokal",
+    workbenchShortcut: "Kürzel",
     compileWrite: "Schreiben",
     compileCompile: "Kompilieren",
     compileRun: "Ausführen",
@@ -1955,6 +1965,8 @@ const elements = {
   projectEvidence: document.querySelector("#projectEvidence"),
   compileRailStatus: document.querySelector("#compileRailStatus"),
   compileRailSteps: document.querySelector("#compileRailSteps"),
+  workbenchMission: document.querySelector("#workbenchMission"),
+  workbenchFile: document.querySelector("#workbenchFile"),
   missionNumber: document.querySelector("#missionNumber"),
   difficulty: document.querySelector("#difficulty"),
   missionXp: document.querySelector("#missionXp"),
@@ -3149,6 +3161,12 @@ function renderMission(options = {}) {
   elements.objective.textContent = text.objective;
   elements.prompt.textContent = text.prompt;
   elements.concept.textContent = text.concept;
+  if (elements.workbenchMission) {
+    elements.workbenchMission.textContent = `${mission.stage} · ${String(state.current + 1).padStart(2, "0")}`;
+  }
+  if (elements.workbenchFile) {
+    elements.workbenchFile.textContent = mission.file;
+  }
   renderProjectContext(mission);
   renderCommandCenter();
   renderDocumentation(mission);

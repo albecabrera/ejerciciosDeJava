@@ -98,6 +98,16 @@ test("shows a premium command center with project shortcuts", async ({ page }) =
   await expect(page.locator("#commandProjectName")).toContainText(/snake/i);
 });
 
+test("keeps the IDE workbench context close to the editor", async ({ page }) => {
+  await expect(page.locator(".workbench-hud")).toBeVisible();
+  await expect(page.locator("#workbenchMission")).toHaveText("EF · 01");
+  await expect(page.locator("#workbenchFile")).toHaveText("Profile.java");
+  await expect(page.locator("#editorPanel > .action-row")).toBeVisible();
+  await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
+  await page.locator('#projectSteps button[data-mission-id="project-mensa-terminal"]').click();
+  await expect(page.locator("#workbenchFile")).toHaveText("MensaTerminal.java");
+});
+
 test("allows free practice and closes pairs in the editor", async ({ page }) => {
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
   await expect(page.locator("#missionList button:disabled")).toHaveCount(0);
