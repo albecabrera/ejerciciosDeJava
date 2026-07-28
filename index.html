@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=16" />
+    <link rel="stylesheet" href="styles.css?v=17" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -376,6 +376,17 @@
             <strong id="masteryValue">0%</strong>
           </div>
           <p id="masteryExplanation" class="heuristic-note"></p>
+          <article class="mentor-card" aria-labelledby="mentorTitle">
+            <div>
+              <p class="eyebrow" data-i18n="mentorLabel">Mentor de práctica</p>
+              <h4 id="mentorTitle" data-i18n="mentorTitle">Qué haría ahora</h4>
+            </div>
+            <p id="mentorAdvice"></p>
+            <button id="mentorAction" class="button button-secondary button-compact" type="button">
+              <span data-i18n="mentorAction">Practicar recomendación</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </article>
           <div id="progressStats" class="progress-stats"></div>
           <div id="progressInsights" class="progress-insights"></div>
         </section>
@@ -459,6 +470,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=16"></script>
+    <script src="game.js?v=17"></script>
   </body>
 </html>

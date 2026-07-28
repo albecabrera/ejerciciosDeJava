@@ -108,6 +108,16 @@ test("keeps the IDE workbench context close to the editor", async ({ page }) => 
   await expect(page.locator("#workbenchFile")).toHaveText("MensaTerminal.java");
 });
 
+test("shows adaptive mentor guidance based on learner state", async ({ page }) => {
+  await expect(page.locator("#mentorAdvice")).toContainText(/empezá|beginne/i);
+  await page.locator("#editor").fill("int broken = ;");
+  await page.keyboard.press("F5");
+  await page.keyboard.press("F5");
+  await expect(page.locator("#mentorAdvice")).toContainText(/trazando|manueller/i);
+  await page.locator("#mentorAction").click();
+  await expect(page.locator("#missionTitle")).toBeFocused();
+});
+
 test("allows free practice and closes pairs in the editor", async ({ page }) => {
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
   await expect(page.locator("#missionList button:disabled")).toHaveCount(0);

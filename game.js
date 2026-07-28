@@ -143,6 +143,14 @@ const ui = {
     teacherAttempts: "Intentos",
     teacherAccuracy: "Precisión",
     teacherNeedsPractice: "Para seguir practicando",
+    mentorLabel: "Mentor de práctica",
+    mentorTitle: "Qué haría ahora",
+    mentorAction: "Practicar recomendación",
+    mentorAdviceStart: "Empezá por {mission}: fundamentos antes de velocidad.",
+    mentorAdviceHints: "Volvé a {mission} sin pedir pista: entender el concepto vale más que pasar rápido.",
+    mentorAdviceAttempts: "Repetí {mission} trazando valores a mano antes de ejecutar.",
+    mentorAdviceProject: "Buen momento para avanzar en {project}: llevá lo aprendido a un producto real.",
+    mentorAdviceComplete: "Ruta completa: elegí un proyecto avanzado y reescribilo sin mirar soluciones.",
     teacherStage: "Nivel",
     teacherAllStages: "Todos los niveles",
     teacherExport: "Exportar CSV",
@@ -350,6 +358,14 @@ const ui = {
     teacherAttempts: "Versuche",
     teacherAccuracy: "Trefferquote",
     teacherNeedsPractice: "Weiter üben",
+    mentorLabel: "Praxis-Mentor",
+    mentorTitle: "Was ich jetzt tun würde",
+    mentorAction: "Empfehlung üben",
+    mentorAdviceStart: "Beginne mit {mission}: Grundlagen vor Geschwindigkeit.",
+    mentorAdviceHints: "Wiederhole {mission} ohne Hinweis: Konzeptverständnis zählt mehr als schnelles Durchklicken.",
+    mentorAdviceAttempts: "Wiederhole {mission} mit manueller Wertetabelle vor dem Ausführen.",
+    mentorAdviceProject: "Guter Moment für {project}: übertrage das Gelernte in ein echtes Produkt.",
+    mentorAdviceComplete: "Route abgeschlossen: Wähle ein fortgeschrittenes Projekt und schreibe es ohne Lösung neu.",
     teacherStage: "Stufe",
     teacherAllStages: "Alle Stufen",
     teacherExport: "CSV exportieren",
@@ -1986,6 +2002,8 @@ const elements = {
   formatButton: document.querySelector("#formatButton"),
   masteryValue: document.querySelector("#masteryValue"),
   masteryExplanation: document.querySelector("#masteryExplanation"),
+  mentorAdvice: document.querySelector("#mentorAdvice"),
+  mentorAction: document.querySelector("#mentorAction"),
   progressStats: document.querySelector("#progressStats"),
   progressInsights: document.querySelector("#progressInsights"),
   progressValue: document.querySelector("#progressValue"),
@@ -2949,13 +2967,40 @@ function renderProgress() {
     return item;
   }));
 
+  const next = missions.find((mission) => !solved.has(mission.id));
+  const currentMission = missions[state.current];
+  const hintsOnCurrent = Number(state.hintsUsed[currentMission.id] || 0);
+  const attemptsOnCurrent = Number(state.attempts[currentMission.id] || 0);
+  const currentProject = projectById(state.selectedProject);
+  const currentRoute = projectMissions(currentProject.id);
+  const pendingProjectMission = currentRoute.find((mission) => !solved.has(mission.id));
+  let mentorTarget = currentMission;
+  let mentorText = "";
+  if (!next) {
+    mentorText = t("mentorAdviceComplete");
+  } else if (hintsOnCurrent >= 2 && !solved.has(currentMission.id)) {
+    mentorText = interpolate(t("mentorAdviceHints"), { mission: getMissionText(currentMission).short });
+  } else if (attemptsOnCurrent >= 2 && !solved.has(currentMission.id)) {
+    mentorText = interpolate(t("mentorAdviceAttempts"), { mission: getMissionText(currentMission).short });
+  } else if (pendingProjectMission && state.solved.length >= Math.max(3, Math.floor(missions.length * 0.08))) {
+    mentorTarget = pendingProjectMission;
+    mentorText = interpolate(t("mentorAdviceProject"), { project: currentProject.text[state.language].name });
+  } else {
+    mentorTarget = next;
+    mentorText = interpolate(t("mentorAdviceStart"), { mission: getMissionText(next).short });
+  }
+  if (elements.mentorAdvice) elements.mentorAdvice.textContent = mentorText;
+  if (elements.mentorAction) {
+    elements.mentorAction.disabled = !mentorTarget;
+    elements.mentorAction.dataset.missionId = mentorTarget?.id || "";
+  }
+
   const scoreFor = (key, property) => missions.filter((mission) => mission[property]?.includes?.(key) || mission[property] === key)
     .filter((mission) => solved.has(mission.id)).length;
   const competenceScores = Object.keys(COMPETENCE_NAMES).map((key) => [key, scoreFor(key, "competencies")]);
   const fieldScores = Object.keys(CURRICULUM_FIELDS).map((key) => [key, scoreFor(key, "field")]);
   const strongest = [...competenceScores].sort((a, b) => b[1] - a[1])[0];
   const weakest = [...competenceScores].sort((a, b) => a[1] - b[1])[0];
-  const next = missions.find((mission) => !solved.has(mission.id));
   elements.progressInsights.replaceChildren();
   const summary = document.createElement("p");
   summary.textContent = state.language === "es"
@@ -3317,6 +3362,7 @@ async function checkAnswer() {
     renderConsoleResult(mission, answer, t("emptyMessage"));
     recordAttemptEvent(mission, { phase: "local", passed: false, feedback: t("emptyMessage"), answer });
     saveState();
+    renderProgress();
     return;
   }
 
@@ -3344,6 +3390,7 @@ async function checkAnswer() {
         answer,
       });
       saveState();
+      renderProgress();
       return;
     }
     setCompileRail("validate", { runSkipped: compiler.phase !== "run" });
@@ -3353,6 +3400,7 @@ async function checkAnswer() {
       showFeedback("error", t("pedagogicError"), pedagogic.message);
       recordAttemptEvent(mission, { phase: "pedagogic", passed: false, feedback: pedagogic.message, durationMs: compiler.durationMs || 0, answer });
       saveState();
+      renderProgress();
       return;
     }
   } else {
@@ -3375,6 +3423,7 @@ async function checkAnswer() {
     renderConsoleResult(mission, answer, structuralError);
     recordAttemptEvent(mission, { phase: "local", passed: false, feedback: structuralError, diagnosticsCount: analyzeCode(answer).length, answer });
     saveState();
+    renderProgress();
     return;
   }
 
@@ -4128,6 +4177,11 @@ elements.projectGallery?.addEventListener("click", (event) => {
     saveState();
     renderMission({ silent: true });
   }
+});
+
+elements.mentorAction?.addEventListener("click", () => {
+  const index = missions.findIndex((mission) => mission.id === elements.mentorAction.dataset.missionId);
+  if (index >= 0) selectMission(index, { focusHeading: true });
 });
 
 document.querySelectorAll(".language-button").forEach((button) => {
