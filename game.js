@@ -58,6 +58,10 @@ const ui = {
     storageNote: "Progreso guardado en este navegador",
     taskLabel: "Tu tarea",
     conceptLabel: "Concepto",
+    lessonVideoLabel: "Antes de empezar",
+    lessonVideoTitle: "Prepará la misión con un video",
+    lessonVideoOpen: "Abrir video en YouTube",
+    lessonVideoPlay: "Reproducir preparación",
     docsLabel: "Documentación oficial",
     docsTitle: "¿Querés profundizar?",
     docsBadge: "Java SE",
@@ -98,6 +102,7 @@ const ui = {
     themeToggleAria: "Cambiar a modo oscuro",
     themeToggleLight: "Modo claro",
     themeToggleLightAria: "Cambiar a modo claro",
+    debugToggleAria: "Ver diagnósticos de bugs",
     editorToolsAria: "Herramientas del editor",
     sidebarShow: "Mostrar ruta",
     sidebarHide: "Ocultar ruta",
@@ -273,6 +278,10 @@ const ui = {
     storageNote: "Fortschritt in diesem Browser gespeichert",
     taskLabel: "Deine Aufgabe",
     conceptLabel: "Konzept",
+    lessonVideoLabel: "Vor dem Start",
+    lessonVideoTitle: "Bereite die Mission mit einem Video vor",
+    lessonVideoOpen: "Video auf YouTube öffnen",
+    lessonVideoPlay: "Vorbereitung abspielen",
     docsLabel: "Offizielle Dokumentation",
     docsTitle: "Möchtest du tiefer einsteigen?",
     docsBadge: "Java SE",
@@ -313,6 +322,7 @@ const ui = {
     themeToggleAria: "Zum Dunkelmodus wechseln",
     themeToggleLight: "Hellmodus",
     themeToggleLightAria: "Zum Hellmodus wechseln",
+    debugToggleAria: "Bug-Diagnosen anzeigen",
     editorToolsAria: "Editor-Werkzeuge",
     sidebarShow: "Pfad zeigen",
     sidebarHide: "Pfad ausblenden",
@@ -1990,11 +2000,19 @@ const elements = {
   objective: document.querySelector("#objective"),
   prompt: document.querySelector("#prompt"),
   concept: document.querySelector("#concept"),
+  lessonVideo: document.querySelector("#lessonVideo"),
+  lessonVideoPreview: document.querySelector("#lessonVideoPreview"),
+  lessonVideoThumbnail: document.querySelector("#lessonVideoThumbnail"),
+  lessonVideoIntro: document.querySelector("#lessonVideoIntro"),
+  lessonVideoExternal: document.querySelector("#lessonVideoExternal"),
+  lessonVideoBadge: document.querySelector("#lessonVideoBadge"),
   docsLinks: document.querySelector("#docsLinks"),
   fileName: document.querySelector("#fileName"),
   codeBefore: document.querySelector("#codeBefore"),
   codeAfter: document.querySelector("#codeAfter"),
   editor: document.querySelector("#editor"),
+  editorDiagnosticsOverlay: document.querySelector("#editorDiagnosticsOverlay"),
+  editorErrorTooltip: document.querySelector("#editorErrorTooltip"),
   lineNumbers: document.querySelector("#lineNumbers"),
   completionPopup: document.querySelector("#completionPopup"),
   completionList: document.querySelector("#completionList"),
@@ -2023,6 +2041,7 @@ const elements = {
   hintText: document.querySelector("#hintText"),
   resetButton: document.querySelector("#resetButton"),
   themeToggle: document.querySelector("#themeToggle"),
+  debugToggle: document.querySelector("#debugToggle"),
   workspace: document.querySelector("#workspace"),
   missionRail: document.querySelector("#missionRail"),
   freePracticeToggle: document.querySelector("#freePracticeToggle"),
@@ -2136,6 +2155,173 @@ function renderDocumentation(mission = missions[state.current]) {
     return item;
   }));
   elements.docsLinks.setAttribute("aria-label", t("docsAria"));
+}
+
+const JAVA_VIDEO_PLAYLIST = "PLO-P6W97sI0Q-o0oZy8NeUgi0s5WKK8IV";
+
+function javaLessonVideo(key, id, topic, terms, missionIds = []) {
+  return {
+    key,
+    id,
+    topic,
+    terms,
+    missionIds,
+    playlist: JAVA_VIDEO_PLAYLIST,
+    url: `https://www.youtube.com/watch?v=${id}&list=${JAVA_VIDEO_PLAYLIST}`,
+    title: {
+      es: `Java · ${topic.es}`,
+      de: `Java · ${topic.de}`,
+    },
+  };
+}
+
+const LESSON_VIDEO_CATALOG = [
+  javaLessonVideo("variables", "C8hLep5UfYg", { es: "variables", de: "Variablen" },
+    ["variable", "declaracion", "inicializacion"], ["types"]),
+  javaLessonVideo("types", "iOfM6T5zpEo", { es: "tipos de datos", de: "Datentypen" },
+    ["tipo", "tipado", "datentyp", "integer", "boolean", "double"]),
+  javaLessonVideo("if-else", "bduK1FAtHBk", { es: "if/else", de: "if/else" },
+    ["if/else", "if else", "condicional", "beding", "rama", "ternario"],
+    ["condition", "guessing-game", "score-level", "dice-duel"]),
+  javaLessonVideo("logical", "GjB6YrsZEGk", { es: "operadores lógicos", de: "logische Operatoren" },
+    ["operador logico", "boolean", "&&", "||", "logisch"]),
+  javaLessonVideo("scanner", "dz-_Ok5WdVA", { es: "entrada con Scanner", de: "Eingabe mit Scanner" },
+    ["scanner", "entrada", "input", "eingabe"]),
+  javaLessonVideo("while", "mcm84hlxXo8", { es: "bucle while", de: "while-Schleife" },
+    ["while", "terminacion", "schleife"], ["while-input"]),
+  javaLessonVideo("for", "CoEKIbc8B0k", { es: "bucle for", de: "for-Schleife" },
+    ["bucle for", "for-schleife", "indice", "recorrer", "durchlauf"],
+    ["loop", "linear-search", "binary-search", "insertion-sort", "combo-counter", "leaderboard-sort"]),
+  javaLessonVideo("arrays", "-7gk5dgM_5w", { es: "arrays", de: "Arrays" },
+    ["array", "arreglo"], ["arrays", "von-neumann"]),
+  javaLessonVideo("methods", "bvGepmcDqD0", { es: "métodos", de: "Methoden" },
+    ["metodo", "method", "firma", "parametro", "funktion"],
+    ["method", "debug", "halting-limit", "project-habit-tracker", "project-mensa-terminal"]),
+  javaLessonVideo("oop", "Hc3ddOTYzME", { es: "programación orientada a objetos", de: "Objektorientierung" },
+    ["poo", "oop", "orientada a objetos", "objektorient"]),
+  javaLessonVideo("classes-objects", "7o-0IDEHs5M", { es: "clases y objetos", de: "Klassen und Objekte" },
+    ["clase", "objeto", "klasse", "objekt", "modelo"],
+    ["normalization", "network"]),
+  javaLessonVideo("constructors", "cD_u6A5S9Xk", { es: "constructores", de: "Konstruktoren" },
+    ["constructor", "konstruktor"], ["class"]),
+  javaLessonVideo("return", "LlWPVBDV5Yc", { es: "return", de: "return" },
+    ["return", "devolver", "ruckgabe"]),
+  javaLessonVideo("access", "T05n0oumTl0", { es: "modificadores de acceso", de: "Zugriffsmodifikatoren" },
+    ["private", "public", "acceso", "visibilidad", "sichtbarkeit"], ["privacy"]),
+  javaLessonVideo("getter-setter", "O6_pwT1EF3k", { es: "getters y setters", de: "Getter und Setter" },
+    ["getter", "setter", "encapsul"]),
+  javaLessonVideo("foreach", "n0Hb8GNZx50", { es: "for-each", de: "for-each-Schleife" },
+    ["for-each", "foreach", "acumulador"]),
+  javaLessonVideo("break-continue", "XPi-xN_I1-I", { es: "break y continue", de: "break und continue" },
+    ["break", "continue", "cortar", "beenden"]),
+  javaLessonVideo("switch", "q_nZSnmJ5Jw", { es: "switch", de: "switch" },
+    ["switch", "direccion", "richtung"], ["snake-step"]),
+  javaLessonVideo("uml", "Rb9oNcj8mcw", { es: "UML", de: "UML" },
+    ["uml"], ["uml-model"]),
+  javaLessonVideo("2d-arrays", "S3mzLcQaDjE", { es: "arrays bidimensionales", de: "zweidimensionale Arrays" },
+    ["2d", "bidimensional", "matriz", "grilla", "raster"], ["project-snake-arena"]),
+  javaLessonVideo("strings", "FbgZuPNVQsU", { es: "Strings", de: "Strings" },
+    ["string", "texto", "cadena", "zeichen", "token"],
+    ["strings", "dfa", "grammar", "parser", "caesar", "project-safe-chat"]),
+  javaLessonVideo("inheritance", "xXDDVSjogs0", { es: "herencia", de: "Vererbung" },
+    ["herencia", "extends", "vererbung"], ["inheritance"]),
+  javaLessonVideo("overriding", "ud1i5uqOmg8", { es: "sobrescritura de métodos", de: "Methodenüberschreibung" },
+    ["override", "sobrescrit", "uberschreib", "polimorf"], ["polymorphism"]),
+  javaLessonVideo("interfaces", "GcqQDuFUqg8", { es: "interfaces", de: "Interfaces" },
+    ["interface", "contrato", "schnittstelle"]),
+  javaLessonVideo("lists", "crm0yaneCb0", { es: "listas", de: "Listen" },
+    ["list", "arraylist", "lista", "coleccion", "sammlung"],
+    ["list", "sql", "stream-filter", "leaderboard-sort"]),
+  javaLessonVideo("stacks-queues", "a4EpC1Kmb7I", { es: "pilas y colas", de: "Stacks und Queues" },
+    ["stack", "queue", "pila", "cola", "lifo", "fifo", "deque"],
+    ["stack", "queue", "graph-bfs", "project-school-library"]),
+  javaLessonVideo("sets", "gj1zWiXG6hY", { es: "conjuntos", de: "Sets" },
+    ["set", "conjunto", "visited"]),
+  javaLessonVideo("hashmap", "sNrT2hbilsk", { es: "HashMap", de: "HashMap" },
+    ["hashmap", "hash map", "map", "hashing", "frecuencia"], ["hash-map"]),
+  javaLessonVideo("exceptions", "O1yJ9wvlviA", { es: "excepciones", de: "Exceptions" },
+    ["excepcion", "exception", "try", "catch", "fehler"], ["exception-parse"]),
+  javaLessonVideo("recursion", "KwB0gjnYvoY", { es: "recursión", de: "Rekursion" },
+    ["recursion", "rekursion", "caso base"], ["recursion", "bst"]),
+  javaLessonVideo("multithreading", "XHcCh2rmMAY", { es: "multithreading", de: "Multithreading" },
+    ["concurr", "thread", "race", "atomic"], ["concurrency-limits"]),
+  javaLessonVideo("unit-tests", "uTDpMENNbf8", { es: "pruebas unitarias", de: "Unit-Tests" },
+    ["test", "prueba", "caso limite", "grenzfall"], ["tests-thinking"]),
+  javaLessonVideo("linked-list", "jZYVp84RgRE", { es: "ArrayList vs. LinkedList", de: "ArrayList vs. LinkedList" },
+    ["linkedlist", "linked-list", "lista enlazada"], ["linked-list"]),
+];
+
+const LESSON_VIDEO_BY_KEY = Object.fromEntries(
+  LESSON_VIDEO_CATALOG.map((video) => [video.key, video]),
+);
+
+const LESSON_VIDEO_FIELD_FALLBACK = {
+  data: "classes-objects",
+  algorithms: "methods",
+  formal: "strings",
+  systems: "multithreading",
+  society: "access",
+};
+
+let lessonVideoTimer = 0;
+
+function getLessonVideo(mission) {
+  if (!mission) return null;
+  const directMatch = LESSON_VIDEO_CATALOG.find((video) => video.missionIds.includes(mission.id));
+  const text = `${mission.id} ${mission.field || ""} ${Object.values(mission.text || {})
+    .map((copy) => `${copy.title} ${copy.objective} ${copy.prompt} ${copy.concept}`)
+    .join(" ")}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const conceptMatch = LESSON_VIDEO_CATALOG
+    .map((video) => ({
+      video,
+      score: video.terms.reduce((score, term) => score + (text.includes(term) ? term.length : 0), 0),
+    }))
+    .sort((left, right) => right.score - left.score)[0];
+  const video = directMatch
+    || (conceptMatch?.score > 0 ? conceptMatch.video : null)
+    || LESSON_VIDEO_BY_KEY[LESSON_VIDEO_FIELD_FALLBACK[mission.field]]
+    || LESSON_VIDEO_BY_KEY.methods;
+  const concept = getMissionText(mission).concept;
+  return {
+    ...video,
+    description: {
+      es: `Corresponde a esta misión porque «${concept}» necesita ${video.topic.es} en Java.`,
+      de: `Dieses Video passt zur Mission, weil „${concept}“ ${video.topic.de} in Java benötigt.`,
+    },
+  };
+}
+
+function renderLessonVideo(mission = missions[state.current]) {
+  const video = getLessonVideo(mission);
+  if (!elements.lessonVideo || !video) return;
+  const params = new URLSearchParams({
+    rel: "0",
+    modestbranding: "1",
+    playsinline: "1",
+  });
+  if (video.start) params.set("start", String(video.start));
+  if (video.playlist) params.set("list", video.playlist);
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${video.id}?${params.toString()}`;
+  window.clearTimeout(lessonVideoTimer);
+  elements.lessonVideo.src = "about:blank";
+  elements.lessonVideo.hidden = true;
+  elements.lessonVideoPreview.hidden = false;
+  elements.lessonVideoThumbnail.src = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
+  elements.lessonVideoThumbnail.alt = `${video.title[state.language]} · ${getMissionText(mission).title}`;
+  elements.lessonVideoPreview.setAttribute("aria-label", `${t("lessonVideoPlay")}: ${video.title[state.language]}`);
+  lessonVideoTimer = window.setTimeout(() => {
+    elements.lessonVideo.src = embedUrl;
+  }, 0);
+  elements.lessonVideo.title = `${video.title[state.language]} · ${getMissionText(mission).title}`;
+  elements.lessonVideoIntro.textContent = video.description[state.language];
+  elements.lessonVideoExternal.href = video.url;
+  elements.lessonVideoBadge.textContent = video.title[state.language];
+}
+
+function playLessonVideo() {
+  if (!elements.lessonVideo || !elements.lessonVideoPreview) return;
+  elements.lessonVideo.hidden = false;
+  elements.lessonVideoPreview.hidden = true;
 }
 
 function getStoredEditorPrefs() {
@@ -2595,6 +2781,8 @@ function translateInterface() {
   elements.completionList?.setAttribute("aria-label", t("suggestionsAria"));
   elements.liveTemplateList?.setAttribute("aria-label", t("templatesAria"));
   elements.teacherToggle?.setAttribute("aria-label", t("teacherToggle"));
+  elements.debugToggle?.setAttribute("aria-label", t("debugToggleAria"));
+  elements.debugToggle?.setAttribute("title", t("debugToggleAria"));
   elements.teacherStageFilter?.setAttribute("aria-label", t("teacherStage"));
   elements.freePracticeToggle?.setAttribute("aria-pressed", String(Boolean(state.freePractice)));
   if (elements.freePracticeToggle) {
@@ -3214,11 +3402,13 @@ function renderMission(options = {}) {
   }
   renderProjectContext(mission);
   renderCommandCenter();
+  renderLessonVideo(mission);
   renderDocumentation(mission);
   elements.fileName.textContent = mission.file;
   elements.codeBefore.textContent = mission.contextBefore;
   elements.codeAfter.textContent = mission.contextAfter;
   elements.editor.value = state.answers[mission.id] || "";
+  setEditorDiagnostics(mergeDiagnostics(analyzeCode(elements.editor.value)));
   setConsole(t("consoleReady"), t("consolePlaceholder"));
   elements.progressValue.textContent = `${completedCount}/${missions.length}`;
   elements.orbitValue.style.strokeDashoffset = String(
@@ -3231,7 +3421,7 @@ function renderMission(options = {}) {
   elements.checkButton.disabled = false;
   elements.hintButton.disabled = hintCount >= text.hints.length;
   elements.solutionButton.disabled = Boolean(state.solutionShown[mission.id]);
-  updateLineNumbers();
+  setEditorDiagnostics(mergeDiagnostics(analyzeCode(elements.editor.value)));
   scheduleDiagnostics();
   renderProgress();
   hideMessages();
@@ -3372,6 +3562,14 @@ async function checkAnswer() {
   if (compiler.available) {
     renderRealCompilerResult(mission, compiler);
     if (!compiler.ok) {
+      setEditorDiagnostics(mergeDiagnostics(
+        analyzeCode(answer),
+        (compiler.diagnostics || []).map((item) => ({
+          severity: item.severity || "error",
+          line: item.line || 1,
+          message: item.message || t("compilerError"),
+        })),
+      ));
       setCompileRail(compiler.phase === "run" ? "run" : "compile", {
         failed: true,
         runSkipped: compiler.phase !== "run",
@@ -3834,11 +4032,96 @@ function analyzeCode(code) {
   return diagnostics.slice(0, 20);
 }
 
+let activeEditorDiagnostics = [];
+
+function diagnosticRank(severity) {
+  return { error: 3, warning: 2, info: 1 }[severity] || 0;
+}
+
+function mergeDiagnostics(...groups) {
+  const byLine = new Map();
+  groups.flat().filter(Boolean).forEach((diagnostic) => {
+    const line = Math.max(1, Number(diagnostic.line || 1));
+    const current = byLine.get(line);
+    const next = {
+      severity: diagnostic.severity || "warning",
+      line,
+      message: diagnostic.message || String(diagnostic.error || ""),
+    };
+    if (!current || diagnosticRank(next.severity) > diagnosticRank(current.severity)) {
+      byLine.set(line, next);
+    }
+  });
+  return [...byLine.values()].sort((a, b) => a.line - b.line).slice(0, 20);
+}
+
+function setEditorDiagnostics(diagnostics) {
+  activeEditorDiagnostics = diagnostics;
+  const lines = new Map(activeEditorDiagnostics.map((item) => [item.line, item.severity]));
+  updateLineNumbers(lines);
+  renderEditorDiagnosticsOverlay();
+}
+
+function renderEditorDiagnosticsOverlay() {
+  if (!elements.editorDiagnosticsOverlay || !elements.editor) return;
+  const diagnosticsByLine = new Map(activeEditorDiagnostics.map((item) => [item.line, item]));
+  const lines = elements.editor.value.split("\n");
+  elements.editorDiagnosticsOverlay.replaceChildren(...lines.map((line, index) => {
+    const row = document.createElement("div");
+    row.className = "editor-diagnostic-line";
+    const diagnostic = diagnosticsByLine.get(index + 1);
+    if (diagnostic) {
+      row.classList.add(`diagnostic-${diagnostic.severity}`);
+      row.dataset.tooltip = diagnostic.message;
+    }
+    row.textContent = line || " ";
+    return row;
+  }));
+  elements.editorDiagnosticsOverlay.scrollTop = elements.editor.scrollTop;
+  elements.editorDiagnosticsOverlay.scrollLeft = elements.editor.scrollLeft;
+}
+
+function diagnosticForEditorEvent(event) {
+  if (!activeEditorDiagnostics.length) return null;
+  const style = getComputedStyle(elements.editor);
+  const lineHeight = Number.parseFloat(style.lineHeight) || 24;
+  const paddingTop = Number.parseFloat(style.paddingTop) || 0;
+  const rect = elements.editor.getBoundingClientRect();
+  const line = Math.floor((event.clientY - rect.top - paddingTop + elements.editor.scrollTop) / lineHeight) + 1;
+  return activeEditorDiagnostics.find((diagnostic) => diagnostic.line === line) || null;
+}
+
+function showEditorTooltip(diagnostic, x, y) {
+  if (!elements.editorErrorTooltip || !diagnostic) return;
+  elements.editorErrorTooltip.textContent = diagnostic.message;
+  elements.editorErrorTooltip.className = `editor-error-tooltip diagnostic-${diagnostic.severity}`;
+  elements.editorErrorTooltip.hidden = false;
+  const wrap = elements.editor.parentElement.getBoundingClientRect();
+  elements.editorErrorTooltip.style.left = `${Math.max(8, Math.min(x - wrap.left + 14, wrap.width - 280))}px`;
+  elements.editorErrorTooltip.style.top = `${Math.max(8, y - wrap.top + 14)}px`;
+}
+
+function hideEditorTooltip() {
+  if (elements.editorErrorTooltip) elements.editorErrorTooltip.hidden = true;
+}
+
+function showCursorDiagnostic() {
+  if (!activeEditorDiagnostics.length) return hideEditorTooltip();
+  const line = elements.editor.value.slice(0, elements.editor.selectionStart).split("\n").length;
+  const diagnostic = activeEditorDiagnostics.find((item) => item.line === line);
+  if (!diagnostic) return hideEditorTooltip();
+  const style = getComputedStyle(elements.editor);
+  const lineHeight = Number.parseFloat(style.lineHeight) || 24;
+  const paddingTop = Number.parseFloat(style.paddingTop) || 0;
+  const top = paddingTop + (line - 1) * lineHeight - elements.editor.scrollTop;
+  const rect = elements.editor.getBoundingClientRect();
+  showEditorTooltip(diagnostic, rect.left + 28, rect.top + top + lineHeight);
+}
+
 let diagnosticsTimer;
 function renderDiagnostics() {
-  const diagnostics = analyzeCode(elements.editor.value);
-  const lines = new Map(diagnostics.map((item) => [item.line, item.severity]));
-  updateLineNumbers(lines);
+  const diagnostics = mergeDiagnostics(analyzeCode(elements.editor.value));
+  setEditorDiagnostics(diagnostics);
   elements.diagnosticsList.replaceChildren();
   if (!diagnostics.length) {
     const empty = document.createElement("li");
@@ -4066,14 +4349,38 @@ function handleShortcut(event) {
   }
 }
 
+elements.lessonVideoPreview?.addEventListener("click", playLessonVideo);
+
 elements.editor.addEventListener("input", () => {
   state.answers[missions[state.current].id] = elements.editor.value;
   state.answerUpdatedAt[missions[state.current].id] = new Date().toISOString();
   updateLineNumbers();
+  hideEditorTooltip();
   scheduleDiagnostics();
   renderCompletion();
   setCompileRail("write");
   saveState();
+});
+
+elements.editor.addEventListener("scroll", () => {
+  renderEditorDiagnosticsOverlay();
+  hideEditorTooltip();
+});
+
+elements.editor.addEventListener("mousemove", (event) => {
+  const diagnostic = diagnosticForEditorEvent(event);
+  if (diagnostic) showEditorTooltip(diagnostic, event.clientX, event.clientY);
+  else hideEditorTooltip();
+});
+
+elements.editor.addEventListener("mouseleave", hideEditorTooltip);
+
+elements.editor.addEventListener("click", showCursorDiagnostic);
+
+elements.editor.addEventListener("keyup", (event) => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
+    showCursorDiagnostic();
+  }
 });
 
 elements.editor.addEventListener("keydown", (event) => {
@@ -4117,6 +4424,7 @@ elements.diagnosticsList?.addEventListener("click", (event) => {
   const position = getEditorPosition(elements.editor.value.split("\n"), line - 1, 0);
   elements.editor.focus();
   elements.editor.setSelectionRange(position, position);
+  showCursorDiagnostic();
 });
 
 elements.formatButton?.addEventListener("click", formatIndentation);

@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=17" />
+    <link rel="stylesheet" href="styles.css?v=21" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -45,6 +45,18 @@
           <span>XP</span>
           <strong id="xp">0</strong>
         </div>
+        <a
+          id="debugToggle"
+          class="debug-toggle"
+          href="#diagnosticsTitle"
+          aria-label="Ver diagnósticos de bugs"
+          title="Ver diagnósticos de bugs"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9 7.5 6.5 5M15 7.5 17.5 5M8 11H4M20 11h-4M8 15H4M20 15h-4M9 18.5 6.5 21M15 18.5l2.5 2.5M9 8.5h6v9a3 3 0 0 1-6 0v-9Z" />
+            <path d="M12 8.5V4M9.5 4h5" />
+          </svg>
+        </a>
         <button id="teacherToggle" class="teacher-toggle" type="button" aria-expanded="false" aria-controls="teacherPanel">
           <span aria-hidden="true">▦</span>
           <span data-i18n="teacherToggle">Panel docente</span>
@@ -174,6 +186,29 @@
           </div>
         </div>
 
+        <section class="lesson-video-card" aria-labelledby="lessonVideoTitle">
+          <div class="lesson-video-heading">
+            <div>
+              <p class="eyebrow" data-i18n="lessonVideoLabel">Antes de empezar</p>
+              <h3 id="lessonVideoTitle" data-i18n="lessonVideoTitle">Prepará la misión con un video</h3>
+            </div>
+            <span id="lessonVideoBadge" class="lesson-video-badge">YouTube</span>
+          </div>
+          <p id="lessonVideoIntro" class="lesson-video-intro"></p>
+          <div class="lesson-video-frame">
+            <button id="lessonVideoPreview" class="lesson-video-preview" type="button" aria-label="Reproducir video preparatorio">
+              <img id="lessonVideoThumbnail" alt="" loading="lazy" />
+              <span class="lesson-video-play" aria-hidden="true">▶</span>
+              <span class="lesson-video-preview-label" data-i18n="lessonVideoPlay">Reproducir preparación</span>
+            </button>
+            <iframe id="lessonVideo" title="Video preparatorio de la lección" loading="lazy" src="about:blank" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+          <a id="lessonVideoExternal" class="lesson-video-link" target="_blank" rel="noopener noreferrer" href="#">
+            <span data-i18n="lessonVideoOpen">Abrir video en YouTube</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </section>
+
         <section class="docs-card" aria-labelledby="docsTitle">
           <div class="docs-heading">
             <div>
@@ -276,6 +311,7 @@
             <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
             <div class="editor-input-wrap">
               <label class="sr-only" for="editor" data-i18n="editorLabel">Editor Java</label>
+              <div id="editorDiagnosticsOverlay" class="editor-diagnostics-overlay" aria-hidden="true"></div>
               <textarea
                 id="editor"
                 rows="7"
@@ -294,6 +330,7 @@
                 </div>
                 <ul id="completionList" role="listbox" aria-label="Sugerencias de código"></ul>
               </div>
+              <div id="editorErrorTooltip" class="editor-error-tooltip" role="tooltip" hidden></div>
             </div>
           </div>
 
@@ -470,6 +507,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=17"></script>
+    <script src="game.js?v=20"></script>
   </body>
 </html>

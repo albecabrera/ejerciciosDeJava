@@ -88,6 +88,22 @@ test("renders the curriculum and teacher panel", async ({ page }) => {
   await expect(page.locator("#teacherCloudProgress")).toContainText(/clase|klasse/i);
 });
 
+test("shows a preparatory video before every lesson and changes it by route", async ({ page }) => {
+  const video = page.locator("#lessonVideo");
+  await expect(page.locator("#lessonVideoPreview")).toBeVisible();
+  await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /i\.ytimg\.com\/vi\/e6vPt_e9sRw/);
+  await page.locator("#lessonVideoPreview").click();
+  await expect(video).toBeVisible();
+  await expect(page.locator(".lesson-video-card")).toBeVisible();
+  await expect(video).toHaveAttribute("src", /e6vPt_e9sRw/);
+  await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
+  await page.locator('#missionList button[data-mission-id="graph-bfs"]').click();
+  await expect(video).toHaveAttribute("src", /iLmZpY47VL8/);
+  await page.locator('#missionList button[data-mission-id="project-safe-chat"]').click();
+  await expect(video).toHaveAttribute("src", /la17ZW0SAUY/);
+  await expect(page.locator("#lessonVideoExternal")).toHaveAttribute("href", /youtube\.com\/watch/);
+});
+
 test("shows a premium command center with project shortcuts", async ({ page }) => {
   await expect(page.locator("#commandTitle")).toContainText(/próxima decisión|nächste entscheidung/i);
   await expect(page.locator("#commandNextMission")).toContainText(/variables|variablen/i);
@@ -183,6 +199,17 @@ test("keeps diagnostics and official docs visible on mobile", async ({ page }) =
   await expect(page.locator("#diagnosticsList")).toBeVisible();
   await page.locator("#editor").fill("if (true) {\nSystem.out.println(\"ok\")");
   await expect(page.locator("#diagnosticsList")).toContainText(/línea|zeile/i);
+});
+
+test("underlines editor errors and explains them on hover", async ({ page }) => {
+  const editor = page.locator("#editor");
+  await editor.fill("if (true) {\nSystem.out.println(\"ok\");");
+  await expect(page.locator(".editor-diagnostic-line.diagnostic-error")).toHaveCount(1);
+  const box = await editor.boundingBox();
+  expect(box).toBeTruthy();
+  await page.mouse.move(box.x + 32, box.y + 22);
+  await expect(page.locator("#editorErrorTooltip")).toBeVisible();
+  await expect(page.locator("#editorErrorTooltip")).toContainText(/par sin cerrar|string|comentario|nicht geschlossen/i);
 });
 
 test("has no horizontal overflow at 390px", async ({ page }) => {
