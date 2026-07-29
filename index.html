@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=24" />
+    <link rel="stylesheet" href="styles.css?v=25" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -45,19 +45,29 @@
           <span>XP</span>
           <strong id="xp">0</strong>
         </div>
-        <a
+        <button
           id="debugToggle"
           class="debug-toggle"
-          href="#bugChecklistTitle"
           aria-label="Abrir checklist de bugs"
           title="Abrir checklist de bugs"
+          aria-expanded="false"
+          aria-controls="bugChecklistPanel"
+          type="button"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M9 7.5 6.5 5M15 7.5 17.5 5M8 11H4M20 11h-4M8 15H4M20 15h-4M9 18.5 6.5 21M15 18.5l2.5 2.5M9 8.5h6v9a3 3 0 0 1-6 0v-9Z" />
             <path d="M12 8.5V4M9.5 4h5" />
           </svg>
           <span data-i18n="debugToggle">Bugs</span>
-        </a>
+        </button>
+        <section id="bugChecklistPanel" class="bug-checklist bug-checklist-popover" aria-labelledby="bugChecklistTitle" hidden>
+          <div>
+            <p class="eyebrow" data-i18n="bugChecklistLabel">Cambios pendientes</p>
+            <h4 id="bugChecklistTitle" data-i18n="bugChecklistTitle">Mi checklist de bugs</h4>
+            <p data-i18n="bugChecklistIntro">Anotá lo que querés cambiar. Enter crea una nueva casilla.</p>
+          </div>
+          <ol id="bugChecklist" class="bug-checklist-list"></ol>
+        </section>
         <button id="teacherToggle" class="teacher-toggle" type="button" aria-expanded="false" aria-controls="teacherPanel">
           <span aria-hidden="true">▦</span>
           <span data-i18n="teacherToggle">Panel docente</span>
@@ -403,14 +413,6 @@
             Avisos heurísticos locales: orientan, pero no compilan ni garantizan Java válido.
           </p>
           <ol id="diagnosticsList" class="diagnostics-list" aria-live="polite"></ol>
-          <section class="bug-checklist" aria-labelledby="bugChecklistTitle">
-            <div>
-              <p class="eyebrow" data-i18n="bugChecklistLabel">Cambios pendientes</p>
-              <h4 id="bugChecklistTitle" data-i18n="bugChecklistTitle">Mi checklist de bugs</h4>
-              <p data-i18n="bugChecklistIntro">Anotá lo que querés cambiar. Enter crea una nueva casilla.</p>
-            </div>
-            <ol id="bugChecklist" class="bug-checklist-list"></ol>
-          </section>
         </section>
 
         <section class="progress-card" aria-labelledby="progressTitle">
@@ -516,6 +518,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=23"></script>
+    <script src="game.js?v=24"></script>
   </body>
 </html>

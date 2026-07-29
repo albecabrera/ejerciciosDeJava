@@ -4240,12 +4240,22 @@ function focusBugChecklistItem(id) {
 }
 
 function openBugChecklist(event) {
-  event.preventDefault();
-  const panel = elements.bugChecklist?.closest(".bug-checklist");
+  event?.preventDefault();
+  const panel = document.querySelector("#bugChecklistPanel");
   const firstItem = state.bugChecklist[0];
   if (!panel || !firstItem) return;
-  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  const opening = panel.hidden;
+  panel.hidden = !opening;
+  elements.debugToggle?.setAttribute("aria-expanded", String(opening));
+  if (!opening) return;
   focusBugChecklistItem(firstItem.id);
+}
+
+function closeBugChecklist() {
+  const panel = document.querySelector("#bugChecklistPanel");
+  if (!panel || panel.hidden) return;
+  panel.hidden = true;
+  elements.debugToggle?.setAttribute("aria-expanded", "false");
 }
 
 function scheduleDiagnostics() {
@@ -4573,6 +4583,21 @@ elements.bugChecklist?.addEventListener("click", (event) => {
 });
 
 elements.debugToggle?.addEventListener("click", openBugChecklist);
+
+document.addEventListener("click", (event) => {
+  const panel = document.querySelector("#bugChecklistPanel");
+  if (!panel || panel.hidden || panel.contains(event.target) || elements.debugToggle?.contains(event.target)) return;
+  closeBugChecklist();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  const panel = document.querySelector("#bugChecklistPanel");
+  if (!panel || panel.hidden) return;
+  event.stopPropagation();
+  closeBugChecklist();
+  elements.debugToggle?.focus();
+});
 
 elements.formatButton?.addEventListener("click", formatIndentation);
 

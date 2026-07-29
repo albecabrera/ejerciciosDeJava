@@ -204,6 +204,7 @@ test("keeps diagnostics and official docs visible on mobile", async ({ page }) =
 });
 
 test("keeps a local bug checklist and adds a checkbox with Enter", async ({ page }) => {
+  await page.locator("#debugToggle").click();
   const firstItem = page.locator('#bugChecklist input[type="text"]').first();
   await firstItem.fill("Mejorar el mensaje de error");
   await firstItem.press("Enter");
@@ -217,7 +218,10 @@ test("keeps a local bug checklist and adds a checkbox with Enter", async ({ page
 test("opens the checklist from the Bugs button", async ({ page }) => {
   const firstItem = page.locator('#bugChecklist input[type="text"]').first();
   await page.locator("#debugToggle").click();
+  await expect(page.locator("#bugChecklistPanel")).toBeVisible();
   await expect(firstItem).toBeFocused();
+  await page.locator("#debugToggle").click();
+  await expect(page.locator("#bugChecklistPanel")).toBeHidden();
 });
 
 test("underlines editor errors and explains them on hover", async ({ page }) => {
