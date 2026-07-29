@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=22" />
+    <link rel="stylesheet" href="styles.css?v=23" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -403,6 +403,14 @@
             Avisos heurísticos locales: orientan, pero no compilan ni garantizan Java válido.
           </p>
           <ol id="diagnosticsList" class="diagnostics-list" aria-live="polite"></ol>
+          <section class="bug-checklist" aria-labelledby="bugChecklistTitle">
+            <div>
+              <p class="eyebrow" data-i18n="bugChecklistLabel">Cambios pendientes</p>
+              <h4 id="bugChecklistTitle" data-i18n="bugChecklistTitle">Mi checklist de bugs</h4>
+              <p data-i18n="bugChecklistIntro">Anotá lo que querés cambiar. Enter crea una nueva casilla.</p>
+            </div>
+            <ol id="bugChecklist" class="bug-checklist-list"></ol>
+          </section>
         </section>
 
         <section class="progress-card" aria-labelledby="progressTitle">
@@ -508,6 +516,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=21"></script>
+    <script src="game.js?v=22"></script>
   </body>
 </html>

@@ -203,6 +203,17 @@ test("keeps diagnostics and official docs visible on mobile", async ({ page }) =
   await expect(page.locator("#diagnosticsList")).toContainText(/línea|zeile/i);
 });
 
+test("keeps a local bug checklist and adds a checkbox with Enter", async ({ page }) => {
+  const firstItem = page.locator('#bugChecklist input[type="text"]').first();
+  await firstItem.fill("Mejorar el mensaje de error");
+  await firstItem.press("Enter");
+  await expect(page.locator('#bugChecklist input[type="checkbox"]')).toHaveCount(2);
+  await page.locator('#bugChecklist input[type="checkbox"]').first().check();
+  await page.reload();
+  await expect(page.locator('#bugChecklist input[type="text"]').first()).toHaveValue("Mejorar el mensaje de error");
+  await expect(page.locator('#bugChecklist input[type="checkbox"]').first()).toBeChecked();
+});
+
 test("underlines editor errors and explains them on hover", async ({ page }) => {
   const editor = page.locator("#editor");
   await editor.fill("if (true) {\nSystem.out.println(\"ok\");");

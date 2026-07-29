@@ -202,6 +202,11 @@ const ui = {
     diagnosticsLabel: "Asistencia local",
     diagnosticsTitle: "Diagnósticos e indentación",
     diagnosticsNotice: "Avisos heurísticos locales: orientan, pero no compilan ni garantizan Java válido.",
+    bugChecklistLabel: "Cambios pendientes",
+    bugChecklistTitle: "Mi checklist de bugs",
+    bugChecklistIntro: "Anotá lo que querés cambiar. Enter crea una nueva casilla.",
+    bugChecklistPlaceholder: "Escribí un cambio…",
+    bugChecklistRemove: "Eliminar ítem",
     format: "Formatear a 4 espacios",
     noDiagnostics: "Sin avisos heurísticos en este bloque.",
     progressLabel: "Aprendizaje transparente",
@@ -423,6 +428,11 @@ const ui = {
     diagnosticsLabel: "Lokale Assistenz",
     diagnosticsTitle: "Diagnosen und Einrückung",
     diagnosticsNotice: "Lokale heuristische Hinweise: Sie helfen, kompilieren oder garantieren aber kein gültiges Java.",
+    bugChecklistLabel: "Offene Änderungen",
+    bugChecklistTitle: "Meine Bug-Checkliste",
+    bugChecklistIntro: "Notiere, was du ändern möchtest. Enter erstellt eine neue Checkbox.",
+    bugChecklistPlaceholder: "Änderung notieren…",
+    bugChecklistRemove: "Eintrag löschen",
     format: "Auf 4 Leerzeichen formatieren",
     noDiagnostics: "Keine heuristischen Hinweise in diesem Block.",
     progressLabel: "Transparenter Lernstand",
@@ -2019,6 +2029,7 @@ const elements = {
   completionPopup: document.querySelector("#completionPopup"),
   completionList: document.querySelector("#completionList"),
   diagnosticsList: document.querySelector("#diagnosticsList"),
+  bugChecklist: document.querySelector("#bugChecklist"),
   formatButton: document.querySelector("#formatButton"),
   masteryValue: document.querySelector("#masteryValue"),
   masteryExplanation: document.querySelector("#masteryExplanation"),
@@ -2422,12 +2433,34 @@ function createDefaultState(language = "es") {
     solutionShown: {},
     attempts: {},
     correctAttempts: {},
+    bugChecklist: [createBugChecklistItem()],
     editorPrefs: {
       sidebarCollapsed: false,
       focusMode: false,
       ...getStoredEditorPrefs(),
     },
   };
+}
+
+function createBugChecklistItem() {
+  return {
+    id: `bug-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    text: "",
+    checked: false,
+  };
+}
+
+function sanitizeBugChecklist(value) {
+  if (!Array.isArray(value)) return [createBugChecklistItem()];
+  const items = value.slice(0, 50).flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const text = typeof item.text === "string" ? item.text.slice(0, 240) : "";
+    const id = typeof item.id === "string" && /^bug-[a-z0-9-]+$/i.test(item.id)
+      ? item.id
+      : createBugChecklistItem().id;
+    return [{ id, text, checked: item.checked === true }];
+  });
+  return items.length ? items : [createBugChecklistItem()];
 }
 
 function sanitizeMissionMap(value, sanitize) {
@@ -2515,6 +2548,7 @@ function normalizeState(stored, options = {}) {
     solutionShown: sanitizeMissionMap(stored?.solutionShown ?? stored?.solutionsShown, (value) => value === true),
     attempts,
     correctAttempts,
+    bugChecklist: sanitizeBugChecklist(stored?.bugChecklist),
     editorPrefs: {
       sidebarCollapsed: stored?.editorPrefs?.sidebarCollapsed === true,
       focusMode: stored?.editorPrefs?.focusMode === true,
@@ -2805,6 +2839,7 @@ function translateInterface() {
   elements.editor.placeholder = t("editorPlaceholder");
   applyTheme(state.theme);
   applyEditorPrefs();
+  renderBugChecklist();
   renderTeacherPanel();
   renderAccount();
 }
@@ -4167,6 +4202,43 @@ function renderDiagnostics() {
   });
 }
 
+function renderBugChecklist() {
+  if (!elements.bugChecklist) return;
+  elements.bugChecklist.replaceChildren(...state.bugChecklist.map((item) => {
+    const row = document.createElement("li");
+    row.className = "bug-checklist-item";
+    row.dataset.id = item.id;
+
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = item.checked;
+    check.setAttribute("aria-label", item.text || t("bugChecklistPlaceholder"));
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = item.text;
+    input.maxLength = 240;
+    input.placeholder = t("bugChecklistPlaceholder");
+    input.setAttribute("aria-label", t("bugChecklistPlaceholder"));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.dataset.action = "remove";
+    remove.setAttribute("aria-label", t("bugChecklistRemove"));
+    remove.title = t("bugChecklistRemove");
+    remove.textContent = "×";
+
+    row.append(check, input, remove);
+    return row;
+  }));
+}
+
+function focusBugChecklistItem(id) {
+  requestAnimationFrame(() => {
+    elements.bugChecklist?.querySelector(`li[data-id="${id}"] input[type="text"]`)?.focus();
+  });
+}
+
 function scheduleDiagnostics() {
   clearTimeout(diagnosticsTimer);
   diagnosticsTimer = setTimeout(renderDiagnostics, 220);
@@ -4446,6 +4518,51 @@ elements.diagnosticsList?.addEventListener("click", (event) => {
   showCursorDiagnostic();
 });
 
+elements.bugChecklist?.addEventListener("input", (event) => {
+  const input = event.target.closest('input[type="text"]');
+  const item = input?.closest("li[data-id]");
+  if (!item) return;
+  const checklistItem = state.bugChecklist.find((entry) => entry.id === item.dataset.id);
+  if (!checklistItem) return;
+  checklistItem.text = input.value.slice(0, 240);
+  saveState(false);
+});
+
+elements.bugChecklist?.addEventListener("change", (event) => {
+  const checkbox = event.target.closest('input[type="checkbox"]');
+  const item = checkbox?.closest("li[data-id]");
+  if (!item) return;
+  const checklistItem = state.bugChecklist.find((entry) => entry.id === item.dataset.id);
+  if (!checklistItem) return;
+  checklistItem.checked = checkbox.checked;
+  saveState(false);
+});
+
+elements.bugChecklist?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.target.type !== "text") return;
+  event.preventDefault();
+  const item = event.target.closest("li[data-id]");
+  const index = state.bugChecklist.findIndex((entry) => entry.id === item?.dataset.id);
+  if (index < 0) return;
+  const next = createBugChecklistItem();
+  state.bugChecklist.splice(index + 1, 0, next);
+  saveState(false);
+  renderBugChecklist();
+  focusBugChecklistItem(next.id);
+});
+
+elements.bugChecklist?.addEventListener("click", (event) => {
+  const remove = event.target.closest('button[data-action="remove"]');
+  const item = remove?.closest("li[data-id]");
+  const index = state.bugChecklist.findIndex((entry) => entry.id === item?.dataset.id);
+  if (index < 0) return;
+  state.bugChecklist.splice(index, 1);
+  if (!state.bugChecklist.length) state.bugChecklist.push(createBugChecklistItem());
+  saveState(false);
+  renderBugChecklist();
+  focusBugChecklistItem(state.bugChecklist[Math.min(index, state.bugChecklist.length - 1)].id);
+});
+
 elements.formatButton?.addEventListener("click", formatIndentation);
 
 document.addEventListener("keydown", handleShortcut);
@@ -4689,5 +4806,6 @@ if (new URLSearchParams(window.location.search).get("e2e") === "1") {
 
 renderLiveTemplates();
 renderMission();
+renderBugChecklist();
 renderAccount();
 initCloud();
