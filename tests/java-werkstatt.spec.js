@@ -195,6 +195,8 @@ test("runs a valid Java snippet with backend limits", async ({ request }) => {
 
 test("keeps diagnostics and official docs visible on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("#debugToggle")).toBeVisible();
+  await expect(page.locator("#debugToggle")).toContainText(/bugs/i);
   await expect(page.locator("#docsLinks a").first()).toBeVisible();
   await expect(page.locator("#diagnosticsList")).toBeVisible();
   await page.locator("#editor").fill("if (true) {\nSystem.out.println(\"ok\")");
