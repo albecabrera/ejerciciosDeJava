@@ -214,6 +214,12 @@ test("keeps a local bug checklist and adds a checkbox with Enter", async ({ page
   await expect(page.locator('#bugChecklist input[type="checkbox"]').first()).toBeChecked();
 });
 
+test("opens the checklist from the Bugs button", async ({ page }) => {
+  const firstItem = page.locator('#bugChecklist input[type="text"]').first();
+  await page.locator("#debugToggle").click();
+  await expect(firstItem).toBeFocused();
+});
+
 test("underlines editor errors and explains them on hover", async ({ page }) => {
   const editor = page.locator("#editor");
   await editor.fill("if (true) {\nSystem.out.println(\"ok\");");

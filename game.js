@@ -103,7 +103,7 @@ const ui = {
     themeToggleLight: "Modo claro",
     themeToggleLightAria: "Cambiar a modo claro",
     debugToggle: "Bugs",
-    debugToggleAria: "Ver diagnósticos de bugs",
+    debugToggleAria: "Abrir checklist de bugs",
     editorToolsAria: "Herramientas del editor",
     sidebarShow: "Mostrar ruta",
     sidebarHide: "Ocultar ruta",
@@ -329,7 +329,7 @@ const ui = {
     themeToggleLight: "Hellmodus",
     themeToggleLightAria: "Zum Hellmodus wechseln",
     debugToggle: "Bugs",
-    debugToggleAria: "Bug-Diagnosen anzeigen",
+    debugToggleAria: "Bug-Checkliste öffnen",
     editorToolsAria: "Editor-Werkzeuge",
     sidebarShow: "Pfad zeigen",
     sidebarHide: "Pfad ausblenden",
@@ -4239,6 +4239,15 @@ function focusBugChecklistItem(id) {
   });
 }
 
+function openBugChecklist(event) {
+  event.preventDefault();
+  const panel = elements.bugChecklist?.closest(".bug-checklist");
+  const firstItem = state.bugChecklist[0];
+  if (!panel || !firstItem) return;
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  focusBugChecklistItem(firstItem.id);
+}
+
 function scheduleDiagnostics() {
   clearTimeout(diagnosticsTimer);
   diagnosticsTimer = setTimeout(renderDiagnostics, 220);
@@ -4562,6 +4571,8 @@ elements.bugChecklist?.addEventListener("click", (event) => {
   renderBugChecklist();
   focusBugChecklistItem(state.bugChecklist[Math.min(index, state.bugChecklist.length - 1)].id);
 });
+
+elements.debugToggle?.addEventListener("click", openBugChecklist);
 
 elements.formatButton?.addEventListener("click", formatIndentation);
 

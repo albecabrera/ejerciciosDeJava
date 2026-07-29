@@ -2456,6 +2456,7 @@ kbd {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
+  scroll-margin-top: 1rem;
 }
 
 .bug-checklist h4 {
