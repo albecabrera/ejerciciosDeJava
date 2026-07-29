@@ -4088,7 +4088,29 @@ function diagnosticForEditorEvent(event) {
   const paddingTop = Number.parseFloat(style.paddingTop) || 0;
   const rect = elements.editor.getBoundingClientRect();
   const line = Math.floor((event.clientY - rect.top - paddingTop + elements.editor.scrollTop) / lineHeight) + 1;
-  return activeEditorDiagnostics.find((diagnostic) => diagnostic.line === line) || null;
+  const exact = activeEditorDiagnostics.find((diagnostic) => diagnostic.line === line);
+  if (exact) return exact;
+  // El cálculo del contenido interno de un textarea puede redondear una línea
+  // arriba/abajo según navegador y zoom; conserva el hover útil en ese borde.
+  const nearest = activeEditorDiagnostics.reduce((closest, diagnostic) => (
+    !closest || Math.abs(diagnostic.line - line) < Math.abs(closest.line - line) ? diagnostic : closest
+  ), null);
+  return nearest && Math.abs(nearest.line - line) <= 1 ? nearest : null;
+}
+
+function showHoveredDiagnostic(event) {
+  const diagnostic = diagnosticForEditorEvent(event);
+  if (diagnostic) showEditorTooltip(diagnostic, event.clientX, event.clientY);
+  else hideEditorTooltip();
+}
+
+function handleDiagnosticPointerMove(event) {
+  if (!elements.editor) return;
+  const rect = elements.editor.getBoundingClientRect();
+  const insideEditor = event.clientX >= rect.left && event.clientX <= rect.right
+    && event.clientY >= rect.top && event.clientY <= rect.bottom;
+  if (insideEditor) showHoveredDiagnostic(event);
+  else hideEditorTooltip();
 }
 
 function showEditorTooltip(diagnostic, x, y) {
@@ -4367,13 +4389,8 @@ elements.editor.addEventListener("scroll", () => {
   hideEditorTooltip();
 });
 
-elements.editor.addEventListener("mousemove", (event) => {
-  const diagnostic = diagnosticForEditorEvent(event);
-  if (diagnostic) showEditorTooltip(diagnostic, event.clientX, event.clientY);
-  else hideEditorTooltip();
-});
-
-elements.editor.addEventListener("mouseleave", hideEditorTooltip);
+document.addEventListener("mousemove", handleDiagnosticPointerMove);
+document.addEventListener("pointermove", handleDiagnosticPointerMove);
 
 elements.editor.addEventListener("click", showCursorDiagnostic);
 

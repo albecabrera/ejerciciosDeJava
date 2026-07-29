@@ -91,16 +91,16 @@ test("renders the curriculum and teacher panel", async ({ page }) => {
 test("shows a preparatory video before every lesson and changes it by route", async ({ page }) => {
   const video = page.locator("#lessonVideo");
   await expect(page.locator("#lessonVideoPreview")).toBeVisible();
-  await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /i\.ytimg\.com\/vi\/e6vPt_e9sRw/);
+  await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /i\.ytimg\.com\/vi\/C8hLep5UfYg/);
   await page.locator("#lessonVideoPreview").click();
   await expect(video).toBeVisible();
   await expect(page.locator(".lesson-video-card")).toBeVisible();
-  await expect(video).toHaveAttribute("src", /e6vPt_e9sRw/);
+  await expect(video).toHaveAttribute("src", /C8hLep5UfYg/);
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
   await page.locator('#missionList button[data-mission-id="graph-bfs"]').click();
-  await expect(video).toHaveAttribute("src", /iLmZpY47VL8/);
+  await expect(video).toHaveAttribute("src", /a4EpC1Kmb7I/);
   await page.locator('#missionList button[data-mission-id="project-safe-chat"]').click();
-  await expect(video).toHaveAttribute("src", /la17ZW0SAUY/);
+  await expect(video).toHaveAttribute("src", /FbgZuPNVQsU/);
   await expect(page.locator("#lessonVideoExternal")).toHaveAttribute("href", /youtube\.com\/watch/);
 });
 
@@ -205,6 +205,7 @@ test("underlines editor errors and explains them on hover", async ({ page }) => 
   const editor = page.locator("#editor");
   await editor.fill("if (true) {\nSystem.out.println(\"ok\");");
   await expect(page.locator(".editor-diagnostic-line.diagnostic-error")).toHaveCount(1);
+  await editor.scrollIntoViewIfNeeded();
   const box = await editor.boundingBox();
   expect(box).toBeTruthy();
   await page.mouse.move(box.x + 32, box.y + 22);
