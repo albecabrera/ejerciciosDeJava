@@ -23,6 +23,9 @@ const html = await readText();
 [
   "learning-command",
   "welcome-steps",
+  "src/IMG_0198.JPG",
+  "welcome-cover",
+  "java-signature",
   "onboardingDialog",
   "workspace-topbar",
   "resource-center",
@@ -31,16 +34,17 @@ const html = await readText();
   "mentor-card",
   "49 misiones y 5 proyectos",
   "bugChecklistTitle",
-  "styles.css?v=30",
+  "styles.css?v=32",
   "js/java-evaluators.js?v=3",
-  "game.js?v=31",
+  "game.js?v=32",
 ].forEach((needle) => assert(html.includes(needle), `missing ${needle}`));
 
-const css = await readText("styles.css?v=30");
+const css = await readText("styles.css?v=32");
 [
   "Focused Classroom",
   "Friendly entry point",
-  ".learning-command::before",
+  ".java-signature-cup",
+  ".welcome-cover figcaption",
   ".onboarding-dialog",
   ".workspace-topbar",
   ".resource-center",
@@ -48,7 +52,7 @@ const css = await readText("styles.css?v=30");
   ".view-workspace .workbench-hud",
 ].forEach((needle) => assert(css.includes(needle), `focused CSS missing ${needle}`));
 
-const game = await readText("game.js?v=31");
+const game = await readText("game.js?v=32");
 [
   "function setAppView",
   "function initOnboarding",
@@ -58,6 +62,15 @@ const game = await readText("game.js?v=31");
   "commandProjectLockedAria",
   "resourceTutorialTab.hidden = true",
 ].forEach((needle) => assert(game.includes(needle), `focused JS missing ${needle}`));
+
+const coverResponse = await fetch(new URL("src/IMG_0198.JPG", baseUrl));
+assert(coverResponse.ok, `cover returned HTTP ${coverResponse.status}`);
+assert(
+  String(coverResponse.headers.get("content-type") || "").includes("image/jpeg"),
+  "cover did not return image/jpeg",
+);
+const coverBytes = await coverResponse.arrayBuffer();
+assert(coverBytes.byteLength > 50_000, "cover payload is unexpectedly small");
 
 const auth = await readJson("api/auth.php?action=me");
 assert(Object.prototype.hasOwnProperty.call(auth, "configured"), "auth endpoint did not return configuration status");
@@ -79,7 +92,7 @@ assert(/worker-no-network|docker-no-network|jvm-limited/.test(String(compile.san
 console.log(JSON.stringify({
   ok: true,
   baseUrl,
-  assets: { styles: "v30", evaluators: "v3", game: "v31" },
+  assets: { styles: "v32", evaluators: "v3", game: "v32", cover: "src/IMG_0198.JPG" },
   compiler: compile.compiler,
   runtime: compile.runtime,
   sandbox: compile.sandbox,

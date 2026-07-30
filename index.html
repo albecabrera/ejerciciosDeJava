@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=30" />
+    <link rel="stylesheet" href="styles.css?v=32" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -99,6 +99,23 @@
         <p class="welcome-greeting" data-i18n="welcomeGreeting">Bienvenido a Java Werkstatt</p>
         <h2 id="commandTitle" data-i18n="commandTitle">Tu próxima decisión está clara</h2>
         <p id="commandNarrative"></p>
+        <figure class="welcome-cover">
+          <img
+            id="welcomeCoverImage"
+            src="src/IMG_0198.JPG"
+            width="1200"
+            height="600"
+            decoding="async"
+            fetchpriority="high"
+            alt="Cubos luminosos forman la palabra JAVA bajo el símbolo de la taza Java."
+            data-i18n-alt="welcomeCoverAlt"
+          />
+          <figcaption>
+            <span data-i18n="welcomeCoverLabel">Java Workspace</span>
+            <strong data-i18n="welcomeCoverTitle">Aprendé programando</strong>
+            <small><span aria-hidden="true">⌥R</span> · <span data-i18n="welcomeCoverStatus">Reanudar · guardado local</span></small>
+          </figcaption>
+        </figure>
         <ol class="welcome-steps" aria-label="Cómo empezar">
           <li><span>1</span><span data-i18n="welcomeStepChoose">Elegí una misión</span></li>
           <li><span>2</span><span data-i18n="welcomeStepCode">Escribí y compilá</span></li>
@@ -133,6 +150,18 @@
         </article>
       </div>
       <div id="projectGallery" class="project-gallery" aria-label="Proyectos disponibles"></div>
+      <div class="java-signature" aria-hidden="true">
+        <svg viewBox="0 0 420 420" focusable="false" role="presentation">
+          <circle class="java-signature-halo" cx="210" cy="220" r="150"></circle>
+          <path class="java-signature-steam java-signature-steam-one" d="M164 164c-34-42 45-48 13-92"></path>
+          <path class="java-signature-steam java-signature-steam-two" d="M218 160c-28-35 40-45 13-82"></path>
+          <path class="java-signature-steam java-signature-steam-three" d="M266 174c-23-29 31-39 12-68"></path>
+          <path class="java-signature-cup" d="M112 190h178v78c0 50-40 90-90 90s-88-40-88-90v-78Z"></path>
+          <path class="java-signature-handle" d="M290 216h25c35 0 51 25 51 48s-18 48-56 48h-22"></path>
+          <path class="java-signature-saucer" d="M75 364c44 20 224 22 282-2"></path>
+          <text class="java-signature-monogram" x="155" y="285">J_</text>
+        </svg>
+      </div>
     </section>
 
     <dialog id="onboardingDialog" class="onboarding-dialog" aria-labelledby="onboardingTitle" aria-describedby="onboardingDescription">
@@ -590,6 +619,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=31"></script>
+    <script src="game.js?v=32"></script>
   </body>
 </html>

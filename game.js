@@ -36,6 +36,10 @@ const ui = {
     courseIntro: "49 misiones y 5 proyectos de EF a Q2. Escribís, compilás y construís productos reales.",
     commandLabel: "Mesa de trabajo",
     welcomeGreeting: "Bienvenido a Java Werkstatt",
+    welcomeCoverAlt: "Cubos luminosos forman la palabra JAVA bajo el símbolo de la taza Java.",
+    welcomeCoverLabel: "Java Workspace",
+    welcomeCoverTitle: "Aprendé programando",
+    welcomeCoverStatus: "Reanudar · guardado local",
     commandTitle: "Tu próxima decisión está clara",
     commandNextLabel: "Siguiente misión",
     commandContinue: "Abrir misión",
@@ -291,6 +295,10 @@ const ui = {
     courseIntro: "49 Missionen und 5 Projekte von EF bis Q2. Du schreibst, kompilierst und baust echte Produkte.",
     commandLabel: "Werkbank",
     welcomeGreeting: "Willkommen in der Java Werkstatt",
+    welcomeCoverAlt: "Leuchtende Würfel bilden das Wort JAVA unter dem Java-Tassensymbol.",
+    welcomeCoverLabel: "Java-Arbeitsbereich",
+    welcomeCoverTitle: "Lerne durch Programmieren",
+    welcomeCoverStatus: "Fortsetzen · lokal gespeichert",
     commandTitle: "Deine nächste Entscheidung ist klar",
     commandNextLabel: "Nächste Mission",
     commandContinue: "Mission öffnen",
@@ -2917,6 +2925,10 @@ function translateInterface() {
   document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
     const value = t(element.dataset.i18nPlaceholder);
     if (typeof value === "string") element.placeholder = value;
+  });
+  document.querySelectorAll("[data-i18n-alt]").forEach((element) => {
+    const value = t(element.dataset.i18nAlt);
+    if (typeof value === "string") element.alt = value;
   });
   document.querySelectorAll(".language-button").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.language === state.language));

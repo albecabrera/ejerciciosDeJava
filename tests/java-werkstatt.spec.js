@@ -125,17 +125,49 @@ test("translates the complete dashboard welcome to German", async ({ page }) => 
 
 test("uses a non-interactive vector-like Java mark behind the dashboard", async ({ page }) => {
   await page.goto("/index.html?e2e=1");
-  const decoration = await page.locator("#dashboard").evaluate((node) => {
-    const style = getComputedStyle(node, "::before");
+  const signature = page.locator(".java-signature");
+  await expect(signature).toBeVisible();
+  await expect(signature).toHaveAttribute("aria-hidden", "true");
+  await expect(signature.locator("svg path")).toHaveCount(6);
+  await expect(signature.locator(".java-signature-monogram")).toHaveText("J_");
+  const decoration = await signature.evaluate((node) => {
+    const style = getComputedStyle(node);
     return {
-      content: style.content,
       pointerEvents: style.pointerEvents,
       opacity: Number(style.opacity),
     };
   });
-  expect(decoration.content).toContain("J_");
   expect(decoration.pointerEvents).toBe("none");
-  expect(decoration.opacity).toBeLessThan(0.1);
+  expect(decoration.opacity).toBeGreaterThan(0);
+  expect(decoration.opacity).toBeLessThan(0.25);
+});
+
+test("shows the user-provided Java cover with semantic bilingual copy", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  const cover = page.locator("#welcomeCoverImage");
+  await expect(cover).toBeVisible();
+  await expect(cover).toHaveAttribute("src", "src/IMG_0198.JPG");
+  await expect(cover).toHaveAttribute("alt", /cubos luminosos.*JAVA/i);
+  await expect(page.locator(".welcome-cover figcaption")).toContainText("Aprendé programando");
+  await expect.poll(() => cover.evaluate((image) => image.naturalWidth)).toBe(1200);
+  await page.locator('.language-button[data-language="de"]').click();
+  await expect(cover).toHaveAttribute("alt", /Leuchtende Würfel.*JAVA/i);
+  await expect(page.locator(".welcome-cover figcaption")).toContainText("Lerne durch Programmieren");
+});
+
+test("keeps the welcome cover contained on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/index.html?e2e=1");
+  await expect(page.locator(".welcome-cover")).toBeVisible();
+  const layout = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+    fit: getComputedStyle(document.querySelector("#welcomeCoverImage")).objectFit,
+  }));
+  expect(layout.document).toBeLessThanOrEqual(layout.viewport);
+  expect(layout.body).toBeLessThanOrEqual(layout.viewport);
+  expect(layout.fit).toBe("cover");
 });
 
 test("shows the brief onboarding once and persists its completion", async ({ page }) => {

@@ -4639,20 +4639,99 @@ summary:focus-visible {
 
 .learning-command::before {
   position: absolute;
-  z-index: -1;
-  right: clamp(-2.5rem, -2vw, -0.5rem);
-  bottom: clamp(-5rem, -7vw, -2rem);
-  color: var(--java-blue);
-  content: "J_";
-  font: 800 clamp(15rem, 34vw, 34rem)/0.8 var(--mono);
-  letter-spacing: -0.12em;
-  opacity: 0.035;
+  z-index: 0;
+  right: clamp(-11rem, -8vw, -6rem);
+  bottom: clamp(-13rem, -9vw, -8rem);
+  width: clamp(24rem, 42vw, 40rem);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--java-blue) 12%, transparent);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 38%, color-mix(in srgb, var(--java-blue) 10%, transparent), transparent 48%),
+    radial-gradient(circle at 58% 60%, color-mix(in srgb, var(--mint) 8%, transparent), transparent 66%);
+  content: "";
   pointer-events: none;
   user-select: none;
 }
 
-:root[data-theme="dark"] .learning-command::before {
-  opacity: 0.055;
+.learning-command > :not(.java-signature) {
+  position: relative;
+  z-index: 1;
+}
+
+.java-signature {
+  position: absolute;
+  z-index: 0;
+  right: clamp(-1.5rem, 1vw, 1rem);
+  bottom: clamp(-3.5rem, -2vw, -1rem);
+  width: clamp(18rem, 30vw, 30rem);
+  color: var(--java-blue);
+  filter: drop-shadow(0 18px 36px color-mix(in srgb, var(--java-blue) 13%, transparent));
+  opacity: 0.16;
+  pointer-events: none;
+  user-select: none;
+}
+
+.java-signature svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.java-signature-halo {
+  fill: color-mix(in srgb, var(--java-blue) 8%, transparent);
+  stroke: currentColor;
+  stroke-dasharray: 3 14;
+  stroke-width: 1.5;
+}
+
+.java-signature-steam,
+.java-signature-cup,
+.java-signature-handle,
+.java-signature-saucer {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.java-signature-steam {
+  stroke-width: 7;
+}
+
+.java-signature-steam-two {
+  stroke-width: 5;
+}
+
+.java-signature-steam-three {
+  stroke-width: 3;
+}
+
+.java-signature-cup {
+  fill: color-mix(in srgb, var(--java-blue) 5%, transparent);
+  stroke-width: 5;
+}
+
+.java-signature-handle {
+  stroke-width: 5;
+}
+
+.java-signature-saucer {
+  stroke-width: 4;
+}
+
+.java-signature-monogram {
+  fill: currentColor;
+  font: 800 54px/1 var(--mono);
+  letter-spacing: -5px;
+}
+
+:root[data-theme="dark"] .java-signature {
+  color: color-mix(in srgb, var(--java-blue) 76%, #ffffff);
+  filter: drop-shadow(0 20px 44px color-mix(in srgb, var(--java-blue) 24%, transparent));
+  opacity: 0.2;
 }
 
 .welcome-greeting {
@@ -4753,14 +4832,20 @@ summary:focus-visible {
 
 @media (max-width: 600px) {
   .learning-command::before {
-    right: -3rem;
-    bottom: -2rem;
-    font-size: clamp(13rem, 70vw, 20rem);
-    opacity: 0.025;
+    right: -9rem;
+    bottom: -10rem;
+    width: 24rem;
   }
 
-  :root[data-theme="dark"] .learning-command::before {
-    opacity: 0.045;
+  .java-signature {
+    right: -5rem;
+    bottom: -3rem;
+    width: 20rem;
+    opacity: 0.08;
+  }
+
+  :root[data-theme="dark"] .java-signature {
+    opacity: 0.12;
   }
 
   .welcome-steps {
@@ -4775,5 +4860,115 @@ summary:focus-visible {
 
   .welcome-actions .button {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .java-signature {
+    filter: none;
+  }
+}
+
+/* User-provided Java cover, framed like a compact IntelliJ editor surface. */
+.welcome-cover {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 2 / 1;
+  margin: 0.9rem 0 1rem;
+  border: 1px solid color-mix(in srgb, var(--active-line) 72%, var(--line));
+  border-radius: 8px;
+  background: var(--code);
+  box-shadow: 0 14px 32px rgba(20, 24, 31, 0.14);
+  overflow: hidden;
+}
+
+.welcome-cover::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(20, 26, 36, 0.9) 0%, rgba(20, 26, 36, 0.5) 48%, rgba(20, 26, 36, 0.08) 78%),
+    linear-gradient(0deg, rgba(20, 26, 36, 0.76), transparent 50%);
+  content: "";
+  pointer-events: none;
+}
+
+:root[data-theme="dark"] .welcome-cover::after {
+  background:
+    linear-gradient(90deg, rgba(15, 17, 20, 0.92) 0%, rgba(15, 17, 20, 0.48) 50%, rgba(15, 17, 20, 0.04) 82%),
+    linear-gradient(0deg, rgba(15, 17, 20, 0.8), transparent 52%);
+}
+
+.welcome-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.welcome-cover figcaption {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.18rem;
+  padding: clamp(0.75rem, 3vw, 1.15rem);
+  color: #f4f6fa;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
+}
+
+.welcome-cover figcaption > span {
+  color: #8cb4ff;
+  font: 700 0.64rem/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.welcome-cover figcaption strong {
+  max-width: 16rem;
+  color: #ffffff;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  line-height: 1.05;
+}
+
+.welcome-cover figcaption small {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  margin-top: 0.22rem;
+  color: #c8ccd4;
+  font: 600 0.62rem/1.2 var(--mono);
+}
+
+.java-signature {
+  opacity: 0.07;
+}
+
+:root[data-theme="dark"] .java-signature {
+  opacity: 0.1;
+}
+
+@media (max-width: 600px) {
+  .welcome-cover {
+    min-height: 9.5rem;
+    aspect-ratio: 16 / 9;
+    margin-block: 0.75rem;
+  }
+
+  .welcome-cover img {
+    object-position: 58% center;
+  }
+
+  .java-signature {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-cover {
+    scroll-behavior: auto;
   }
 }
