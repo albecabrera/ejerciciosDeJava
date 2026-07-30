@@ -91,6 +91,87 @@ test("moves from the clean dashboard into a focused workspace", async ({ page })
   await expect(page.locator("#dashboard")).toBeVisible();
 });
 
+test("welcomes learners with three calm steps and clear actions", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  await expect(page.locator(".welcome-greeting")).toContainText(/bienvenido|willkommen/i);
+  await expect(page.locator(".welcome-steps li")).toHaveCount(3);
+  await expect(page.locator("#commandContinueButton")).toContainText(/abrir misión|mission öffnen/i);
+  await page.locator("#exploreProjectsButton").click();
+  await expect(page.locator("#projectGallery button:not(:disabled)").first()).toBeFocused();
+  await page.locator("#commandContinueButton").click();
+  await expect(page.locator("#workspace")).toBeVisible();
+});
+
+test("explores projects without smooth motion when the learner requests reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/index.html?e2e=1");
+  await page.locator("#projectGallery").evaluate((node) => {
+    node.scrollIntoView = (options) => {
+      window.__exploreScrollBehavior = options?.behavior || "";
+    };
+  });
+  await page.locator("#exploreProjectsButton").click();
+  await expect.poll(() => page.evaluate(() => window.__exploreScrollBehavior)).toBe("auto");
+});
+
+test("translates the complete dashboard welcome to German", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  await page.locator('.language-button[data-language="de"]').click();
+  await expect(page.locator(".welcome-greeting")).toHaveText("Willkommen in der Java Werkstatt");
+  await expect(page.locator(".welcome-steps")).toHaveAttribute("aria-label", "So startest du");
+  await expect(page.locator(".welcome-steps")).toContainText("Mission auswählen");
+  await expect(page.locator("#exploreProjectsButton")).toContainText("Projekte erkunden");
+});
+
+test("uses a non-interactive vector-like Java mark behind the dashboard", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  const decoration = await page.locator("#dashboard").evaluate((node) => {
+    const style = getComputedStyle(node, "::before");
+    return {
+      content: style.content,
+      pointerEvents: style.pointerEvents,
+      opacity: Number(style.opacity),
+    };
+  });
+  expect(decoration.content).toContain("J_");
+  expect(decoration.pointerEvents).toBe("none");
+  expect(decoration.opacity).toBeLessThan(0.1);
+});
+
+test("shows the brief onboarding once and persists its completion", async ({ page }) => {
+  await page.goto("/index.html?e2e=1&onboarding=1");
+  await expect(page.locator("#onboardingDialog")).toBeVisible();
+  await expect(page.locator("#onboardingDialog")).toHaveAttribute("aria-labelledby", "onboardingTitle");
+  await page.locator("#onboardingClose").click();
+  await expect(page.locator("#onboardingDialog")).toBeHidden();
+  await expect(page.locator("#commandContinueButton")).toBeFocused();
+  await page.reload();
+  await expect(page.locator("#onboardingDialog")).toBeHidden();
+});
+
+test("offers a resume shortcut when the current mission has work", async ({ page }) => {
+  await page.locator("#editor").fill("int draft = 1;");
+  await page.locator("#dashboardBackButton").click();
+  await expect(page.locator("#commandContinueButton")).toContainText(/reanudar misión|mission fortsetzen/i);
+  await expect(page.locator("#commandContinueButton")).toHaveAttribute("aria-keyshortcuts", "Alt+R");
+  const ctrlPrevented = await page.evaluate(() => {
+    const event = new KeyboardEvent("keydown", {
+      key: "r",
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(event);
+    return event.defaultPrevented;
+  });
+  expect(ctrlPrevented).toBeFalsy();
+  await expect(page.locator("#dashboard")).toBeVisible();
+  await page.keyboard.press("Alt+r");
+  await expect(page.locator("#workspace")).toBeVisible();
+  await expect(page.locator("#missionTitle")).toBeFocused();
+  await expect(page.locator("#editor")).toHaveValue("int draft = 1;");
+});
+
 test("opens and focuses the teacher panel from the dashboard", async ({ page }) => {
   await page.goto("/index.html?e2e=1");
   await page.getByRole("button", { name: /panel docente|lehrkräfte-panel/i }).click();

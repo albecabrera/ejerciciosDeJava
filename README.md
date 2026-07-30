@@ -54,7 +54,8 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - **Cinco proyectos monofichero y deterministas:** Terminal de Mensa (arrays/bucles/cálculo), Biblioteca escolar (List/Queue/Deque/parsing), Chat seguro del campus (parser, lenguaje regular, Set y minimización de datos), Habit Tracker (proyecto inicial) y Snake Arena (reto avanzado). El alumno implementa un método reutilizable y un harness visible lo ejecuta con dos fixtures distintos.
 - **Práctica inspirada en juegos reales:** Combo Counter introduce estado y rachas; Leaderboard ordena puntajes de forma descendente; Habit Tracker convierte eventos en una métrica semanal; Snake Arena implementa el núcleo de movimiento, límites y obstáculos de una grilla.
 - **Rutas de proyecto aditivas:** cada misión conserva su ID histórico y suma `projectId`, orden, checkpoint, entregable y evidencia; el modo libre permite abrir cualquier proyecto y cualquier misión.
-- **Dashboard separado del workspace:** la portada muestra siguiente misión, progreso y proyectos; al abrir una misión deja paso a un área de trabajo enfocada, con una acción clara para volver.
+- **Bienvenida y dashboard separados del workspace:** la portada explica el flujo en tres pasos, ofrece abrir/reanudar la misión con `Alt+R` y permite explorar proyectos; al entrar deja paso a un área de trabajo enfocada, con una acción clara para volver.
+- **Onboarding de primera visita:** una introducción breve y persistente presenta el flujo sin volver a interrumpir al alumno después de cerrarla.
 - Recorrido razonable por sintaxis, tipos, control, métodos, arrays/Strings, POO/UML, herencia, polimorfismo, colecciones, List/Stack/Queue, recursión, búsqueda, ordenamiento, eficiencia, BST, grafos, autómatas, gramáticas, SQL, normalización, redes, cifrado educativo, privacidad, Von Neumann y límites de la computación.
 - Los contenidos no-Java se trabajan como simulaciones, modelos, cadenas o comentarios Java; no se finge una base de datos, red, CPU o autómata real.
 - Popup de completado para Live Templates y términos contextuales, accesible como `listbox`.
@@ -98,7 +99,7 @@ Antes de resolver una misión, la tarjeta de preparación muestra solo un video 
 
 El botón **Bugs** despliega una checklist persistente junto a la navegación: escribí un cambio y pulsá `Enter` para crear otra casilla. En el editor, los errores aparecen subrayados y al pasar el cursor sobre la línea se muestra una explicación. Estos avisos orientan el aprendizaje: la validación definitiva, cuando está disponible, la realiza `javac` mediante F5.
 
-La interfaz adopta un **workspace inspirado en IntelliJ IDEA**: la aplicación y el editor comparten la misma familia cromática, los paneles tienen separación clara y las acciones usan un único azul de selección. La portada y el workspace son vistas separadas; dentro de la misión se priorizan tarea, editor y validación. Recursos y herramientas se revelan de forma progresiva. Los modos claro y oscuro conservan contraste, foco de teclado y `prefers-reduced-motion`.
+La interfaz adopta un **workspace inspirado en IntelliJ IDEA**: la aplicación y el editor comparten la misma familia cromática, los paneles tienen separación clara y las acciones usan un único azul de selección. La portada incorpora una marca vectorial `J_` de baja opacidad —sin imagen pesada ni interacción— para ocupar el espacio sin sumar contenido. Portada y workspace son vistas separadas; dentro de la misión se priorizan tarea, editor y validación. Recursos y herramientas se revelan de forma progresiva. Los modos claro y oscuro conservan contraste, foco de teclado y `prefers-reduced-motion`.
 
 ## Documentación contextual
 
@@ -124,7 +125,7 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `api/bootstrap.php`: PDO, sesión HttpOnly/SameSite, respuestas JSON y protección CSRF.
 - `database/schema.sql`: esquema MySQL para usuarios, clases, miembros y progreso.
 - `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
-- `tests/java-werkstatt.spec.js`: 35 pruebas Playwright de UI, dashboard/workspace, acceso docente, skip-link, rutas bloqueadas, recursos progresivos, Tool Window, labels ES/DE, sidebar móvil transitoria, videos temáticos verificados, checklist, diagnósticos, API, modo libre, overflow a 390/320 px, foco, migración v2→v3, proyectos, Compile Rail, stdout exacto y contratos positivos/adversariales.
+- `tests/java-werkstatt.spec.js`: 41 pruebas Playwright de UI, bienvenida/onboarding, reanudación real con Alt+R, reduced motion, dashboard/workspace, acceso docente, skip-link, rutas bloqueadas, recursos progresivos, Tool Window, labels ES/DE, sidebar móvil transitoria, videos temáticos verificados, checklist, diagnósticos, API, modo libre, overflow a 390/320 px, foco, migración v2→v3, proyectos, Compile Rail, stdout exacto y contratos positivos/adversariales.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
 - `tools/xampp-smoke.mjs`: smoke test para la instancia XAMPP real; comprueba assets versionados, dashboard/mentor/HUD y compilación por API.
 - `docs/architecture-roadmap.md`: plan de modularización sin romper XAMPP ni exigir build.
@@ -155,7 +156,7 @@ npm run test:xampp
 npm run test:e2e
 ```
 
-`test:e2e` cubre 35 contratos de producto. Incluye la transición dashboard→workspace, acceso docente y skip-link desde portada, bloqueo explícito de rutas, revelado de recursos, exclusividad y labels ES/DE de la Tool Window, sidebar móvil transitoria entre renders, selección estricta de videos temáticos, checklist de Bugs, tooltip de diagnósticos y ausencia de overflow a 390/320 px. El contrato oficial obtiene los 49 casos desde una API encapsulada que solo existe bajo `?e2e=1`, exige una regla para las misiones ejecutables, prueba salidas incorrectas y compila en paralelo con concurrencia limitada. Los cinco cheats verificados de capstone también deben ser rechazados. Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`. En Docker XAMPP usá `tools/install-xampp-jdk.sh xampp-php`.
+`test:e2e` cubre 41 contratos de producto. Incluye bienvenida bilingüe, onboarding persistente con retorno de foco, fondo decorativo no interactivo, reanudación real con Alt+R sin interceptar Ctrl+R, reduced motion al explorar, transición dashboard→workspace, acceso docente y skip-link desde portada, bloqueo explícito de rutas, revelado de recursos, exclusividad y labels ES/DE de la Tool Window, sidebar móvil transitoria entre renders, selección estricta de videos temáticos, checklist de Bugs, tooltip de diagnósticos y ausencia de overflow a 390/320 px. El contrato oficial obtiene los 49 casos desde una API encapsulada que solo existe bajo `?e2e=1`, exige una regla para las misiones ejecutables, prueba salidas incorrectas y compila en paralelo con concurrencia limitada. Los cinco cheats verificados de capstone también deben ser rechazados. Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`. En Docker XAMPP usá `tools/install-xampp-jdk.sh xampp-php`.
 
 `test:xampp` espera por defecto `http://127.0.0.1/java-werkstatt/`. Podés cambiarlo con:
 

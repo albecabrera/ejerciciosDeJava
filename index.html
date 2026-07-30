@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=29" />
+    <link rel="stylesheet" href="styles.css?v=30" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -96,18 +96,30 @@
     <section id="dashboard" class="learning-command" aria-labelledby="commandTitle">
       <div class="command-copy">
         <p class="eyebrow" data-i18n="commandLabel">Mesa de trabajo</p>
+        <p class="welcome-greeting" data-i18n="welcomeGreeting">Bienvenido a Java Werkstatt</p>
         <h2 id="commandTitle" data-i18n="commandTitle">Tu próxima decisión está clara</h2>
         <p id="commandNarrative"></p>
+        <ol class="welcome-steps" aria-label="Cómo empezar">
+          <li><span>1</span><span data-i18n="welcomeStepChoose">Elegí una misión</span></li>
+          <li><span>2</span><span data-i18n="welcomeStepCode">Escribí y compilá</span></li>
+          <li><span>3</span><span data-i18n="welcomeStepProgress">Guardá tu progreso</span></li>
+        </ol>
+        <div class="welcome-actions">
+          <button id="commandContinueButton" class="button button-primary" type="button" accesskey="r" aria-keyshortcuts="Alt+R">
+            <span data-i18n="commandContinue">Abrir misión</span>
+            <span aria-hidden="true">→</span>
+          </button>
+          <button id="exploreProjectsButton" class="button button-text" type="button" aria-controls="projectGallery">
+            <span data-i18n="exploreProjects">Explorar proyectos</span>
+            <span aria-hidden="true">↓</span>
+          </button>
+        </div>
       </div>
       <div class="command-grid" aria-label="Resumen de aprendizaje">
         <article class="command-card command-card-primary">
           <span data-i18n="commandNextLabel">Siguiente misión</span>
           <strong id="commandNextMission">—</strong>
           <small id="commandNextMeta">—</small>
-          <button id="commandContinueButton" class="button button-primary button-compact" type="button">
-            <span data-i18n="commandContinue">Abrir misión</span>
-            <span aria-hidden="true">→</span>
-          </button>
         </article>
         <article class="command-card">
           <span data-i18n="commandProgressLabel">Progreso</span>
@@ -122,6 +134,16 @@
       </div>
       <div id="projectGallery" class="project-gallery" aria-label="Proyectos disponibles"></div>
     </section>
+
+    <dialog id="onboardingDialog" class="onboarding-dialog" aria-labelledby="onboardingTitle" aria-describedby="onboardingDescription">
+      <form method="dialog">
+        <span class="onboarding-mark" aria-hidden="true">J_</span>
+        <p class="eyebrow" data-i18n="onboardingLabel">Primera visita</p>
+        <h2 id="onboardingTitle" data-i18n="onboardingTitle">Tu taller Java, sin distracciones</h2>
+        <p id="onboardingDescription" data-i18n="onboardingDescription">Elegí una misión, escribí código y validalo. Tutoriales y ayudas aparecen solo cuando los necesitás.</p>
+        <button id="onboardingClose" class="button button-primary" value="close" type="submit" data-i18n="onboardingClose">Empezar</button>
+      </form>
+    </dialog>
 
     <main id="workspace" class="workspace" hidden>
       <div class="workspace-topbar">
@@ -568,6 +590,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=29"></script>
+    <script src="game.js?v=31"></script>
   </body>
 </html>

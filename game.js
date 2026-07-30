@@ -2,6 +2,7 @@ const STORAGE_KEY = "java-werkstatt-state-v3";
 const LEGACY_STORAGE_KEYS = ["java-werkstatt-state-v2", "java-werkstatt-state", "javaWerkstattState"];
 const THEME_STORAGE_KEY = "java-werkstatt-theme";
 const EDITOR_PREFS_STORAGE_KEY = "java-werkstatt-editor-prefs";
+const ONBOARDING_STORAGE_KEY = "java-werkstatt-onboarding-v1";
 const BASE_XP = 30;
 const HINT_COST = 5;
 const SOLUTION_COST = 15;
@@ -34,9 +35,22 @@ const ui = {
     courseTitle: "Java desde los cimientos",
     courseIntro: "49 misiones y 5 proyectos de EF a Q2. Escribís, compilás y construís productos reales.",
     commandLabel: "Mesa de trabajo",
+    welcomeGreeting: "Bienvenido a Java Werkstatt",
     commandTitle: "Tu próxima decisión está clara",
     commandNextLabel: "Siguiente misión",
     commandContinue: "Abrir misión",
+    commandContinueAria: "Abrir misión. Atajo Alt más R.",
+    commandResume: "Reanudar misión",
+    commandResumeAria: "Reanudar misión. Atajo Alt más R.",
+    welcomeStepsAria: "Cómo empezar",
+    welcomeStepChoose: "Elegí una misión",
+    welcomeStepCode: "Escribí y compilá",
+    welcomeStepProgress: "Guardá tu progreso",
+    exploreProjects: "Explorar proyectos",
+    onboardingLabel: "Primera visita",
+    onboardingTitle: "Tu taller Java, sin distracciones",
+    onboardingDescription: "Elegí una misión, escribí código y validalo. Tutoriales y ayudas aparecen solo cuando los necesitás.",
+    onboardingClose: "Empezar",
     commandProgressLabel: "Progreso",
     commandProjectLabel: "Proyecto activo",
     commandNarrative: "No adivines por dónde seguir: el tablero une misión, proyecto y evidencia en una ruta visible.",
@@ -276,9 +290,22 @@ const ui = {
     courseTitle: "Java vom Fundament an",
     courseIntro: "49 Missionen und 5 Projekte von EF bis Q2. Du schreibst, kompilierst und baust echte Produkte.",
     commandLabel: "Werkbank",
+    welcomeGreeting: "Willkommen in der Java Werkstatt",
     commandTitle: "Deine nächste Entscheidung ist klar",
     commandNextLabel: "Nächste Mission",
     commandContinue: "Mission öffnen",
+    commandContinueAria: "Mission öffnen. Tastenkürzel Alt plus R.",
+    commandResume: "Mission fortsetzen",
+    commandResumeAria: "Mission fortsetzen. Tastenkürzel Alt plus R.",
+    welcomeStepsAria: "So startest du",
+    welcomeStepChoose: "Mission auswählen",
+    welcomeStepCode: "Schreiben und kompilieren",
+    welcomeStepProgress: "Fortschritt speichern",
+    exploreProjects: "Projekte erkunden",
+    onboardingLabel: "Erster Besuch",
+    onboardingTitle: "Deine Java-Werkstatt ohne Ablenkung",
+    onboardingDescription: "Wähle eine Mission, schreibe Code und validiere ihn. Tutorials und Hilfen erscheinen nur bei Bedarf.",
+    onboardingClose: "Starten",
     commandProgressLabel: "Fortschritt",
     commandProjectLabel: "Aktives Projekt",
     commandNarrative: "Rätsle nicht über den nächsten Schritt: Das Dashboard verbindet Mission, Projekt und Nachweis in einem sichtbaren Pfad.",
@@ -2026,6 +2053,7 @@ const elements = {
   commandNextMission: document.querySelector("#commandNextMission"),
   commandNextMeta: document.querySelector("#commandNextMeta"),
   commandContinueButton: document.querySelector("#commandContinueButton"),
+  exploreProjectsButton: document.querySelector("#exploreProjectsButton"),
   commandProgress: document.querySelector("#commandProgress"),
   commandProgressMeta: document.querySelector("#commandProgressMeta"),
   commandProjectName: document.querySelector("#commandProjectName"),
@@ -2059,6 +2087,8 @@ const elements = {
   resourcePanels: [...document.querySelectorAll("[data-resource-panel]")],
   toolTabs: document.querySelector(".tool-tabs"),
   toolPanels: [...document.querySelectorAll("[data-tool-panel]")],
+  onboardingDialog: document.querySelector("#onboardingDialog"),
+  onboardingClose: document.querySelector("#onboardingClose"),
   fileName: document.querySelector("#fileName"),
   codeBefore: document.querySelector("#codeBefore"),
   codeAfter: document.querySelector("#codeAfter"),
@@ -2866,6 +2896,7 @@ function translateInterface() {
   document.querySelector(".editor-toolbar")?.setAttribute("aria-label", t("editorToolsAria"));
   elements.resourceTabs?.setAttribute("aria-label", t("resourcesAria"));
   elements.toolTabs?.setAttribute("aria-label", t("toolsAria"));
+  document.querySelector(".welcome-steps")?.setAttribute("aria-label", t("welcomeStepsAria"));
   document.querySelector(".progress-orbit")?.setAttribute("aria-label", t("progressAria"));
   elements.masteryValue?.setAttribute("aria-label", t("masteryAria"));
   elements.completionList?.setAttribute("aria-label", t("suggestionsAria"));
@@ -2957,12 +2988,41 @@ function setAppView(view, options = {}) {
     applySidebarState(true);
   } else if (workspaceOpen) {
     applySidebarState(Boolean(state.editorPrefs?.sidebarCollapsed));
+  } else {
+    renderCommandCenter();
   }
 
   if (workspaceOpen && options.focusHeading) {
     focusMissionHeading();
   } else if (!workspaceOpen && options.focusDashboard !== false) {
     window.requestAnimationFrame(() => elements.commandContinueButton?.focus());
+  }
+}
+
+function initOnboarding() {
+  if (!elements.onboardingDialog || activeAppView !== "dashboard") return;
+  const params = new URLSearchParams(window.location.search);
+  const e2e = params.get("e2e") === "1";
+  if (e2e && params.get("onboarding") !== "1") return;
+  let completed = false;
+  try {
+    completed = localStorage.getItem(ONBOARDING_STORAGE_KEY) === "done";
+  } catch {
+    // La bienvenida sigue siendo usable aunque storage esté bloqueado.
+  }
+  if (completed) return;
+  if (typeof elements.onboardingDialog.showModal === "function") {
+    elements.onboardingDialog.showModal();
+  } else {
+    elements.onboardingDialog.setAttribute("open", "");
+  }
+}
+
+function completeOnboarding() {
+  try {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, "done");
+  } catch {
+    // Cerrar la bienvenida no depende de poder persistirla.
   }
 }
 
@@ -3101,7 +3161,10 @@ function renderCommandCenter() {
   if (!elements.commandNextMission || !elements.projectGallery) return;
   const solved = new Set(state.solved);
   const currentMission = missions[state.current];
-  const nextMission = missions.find((mission, index) => !solved.has(mission.id) && isUnlocked(index))
+  const currentHasWork = Boolean(String(state.answers[currentMission.id] || "").trim())
+    && !solved.has(currentMission.id);
+  const nextMission = (currentHasWork ? currentMission : null)
+    || missions.find((mission, index) => !solved.has(mission.id) && isUnlocked(index))
     || missions.find((mission) => !solved.has(mission.id))
     || currentMission;
   const currentProject = projectById(state.selectedProject);
@@ -3116,6 +3179,16 @@ function renderCommandCenter() {
     : t("commandComplete");
   elements.commandContinueButton.disabled = !nextMission;
   elements.commandContinueButton.dataset.missionId = nextMission?.id || "";
+  const continueLabel = elements.commandContinueButton.querySelector("[data-i18n]");
+  const resume = currentHasWork || state.solved.length > 0;
+  if (continueLabel) {
+    continueLabel.dataset.i18n = resume ? "commandResume" : "commandContinue";
+    continueLabel.textContent = t(continueLabel.dataset.i18n);
+  }
+  elements.commandContinueButton.setAttribute(
+    "aria-label",
+    t(resume ? "commandResumeAria" : "commandContinueAria"),
+  );
   elements.commandProgress.textContent = `${percentage}%`;
   elements.commandProgressMeta.textContent = interpolate(t("commandMissionsSolved"), {
     solved: state.solved.length,
@@ -4724,6 +4797,25 @@ elements.dashboardBackButton?.addEventListener("click", () => {
   setAppView("dashboard");
 });
 
+elements.exploreProjectsButton?.addEventListener("click", () => {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  elements.projectGallery?.scrollIntoView({
+    block: "center",
+    behavior: reduceMotion ? "auto" : "smooth",
+  });
+  window.requestAnimationFrame(() => {
+    elements.projectGallery?.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
+  });
+});
+
+elements.onboardingDialog?.addEventListener("close", () => {
+  completeOnboarding();
+  if (activeAppView === "dashboard") {
+    window.requestAnimationFrame(() => elements.commandContinueButton?.focus());
+  }
+});
+elements.onboardingClose?.addEventListener("click", completeOnboarding);
+
 elements.resourceTabs?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-resource-tab]");
   if (!button) return;
@@ -4808,6 +4900,20 @@ elements.commandContinueButton?.addEventListener("click", () => {
   const missionId = elements.commandContinueButton.dataset.missionId;
   const index = missions.findIndex((mission) => mission.id === missionId);
   if (index >= 0) selectMission(index, { focusHeading: true });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (
+    event.defaultPrevented
+    || activeAppView !== "dashboard"
+    || elements.onboardingDialog?.open
+    || !event.altKey
+    || event.ctrlKey
+    || event.key.toLowerCase() !== "r"
+    || elements.commandContinueButton?.disabled
+  ) return;
+  event.preventDefault();
+  elements.commandContinueButton?.click();
 });
 
 elements.projectGallery?.addEventListener("click", (event) => {
@@ -5022,6 +5128,7 @@ setAppView(
   new URLSearchParams(window.location.search).get("workspace") === "1" ? "workspace" : "dashboard",
   { focusDashboard: false },
 );
+initOnboarding();
 renderBugChecklist();
 renderAccount();
 initCloud();

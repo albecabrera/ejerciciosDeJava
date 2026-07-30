@@ -22,6 +22,8 @@ async function readJson(path, options = {}) {
 const html = await readText();
 [
   "learning-command",
+  "welcome-steps",
+  "onboardingDialog",
   "workspace-topbar",
   "resource-center",
   "tool-window",
@@ -29,23 +31,28 @@ const html = await readText();
   "mentor-card",
   "49 misiones y 5 proyectos",
   "bugChecklistTitle",
-  "styles.css?v=29",
+  "styles.css?v=30",
   "js/java-evaluators.js?v=3",
-  "game.js?v=29",
+  "game.js?v=31",
 ].forEach((needle) => assert(html.includes(needle), `missing ${needle}`));
 
-const css = await readText("styles.css?v=29");
+const css = await readText("styles.css?v=30");
 [
   "Focused Classroom",
+  "Friendly entry point",
+  ".learning-command::before",
+  ".onboarding-dialog",
   ".workspace-topbar",
   ".resource-center",
   ".tool-window",
   ".view-workspace .workbench-hud",
 ].forEach((needle) => assert(css.includes(needle), `focused CSS missing ${needle}`));
 
-const game = await readText("game.js?v=29");
+const game = await readText("game.js?v=31");
 [
   "function setAppView",
+  "function initOnboarding",
+  "ONBOARDING_STORAGE_KEY",
   "function activateResourceTab",
   "function activateToolTab",
   "commandProjectLockedAria",
@@ -72,7 +79,7 @@ assert(/worker-no-network|docker-no-network|jvm-limited/.test(String(compile.san
 console.log(JSON.stringify({
   ok: true,
   baseUrl,
-  assets: { styles: "v29", evaluators: "v3", game: "v29" },
+  assets: { styles: "v30", evaluators: "v3", game: "v31" },
   compiler: compile.compiler,
   runtime: compile.runtime,
   sandbox: compile.sandbox,
