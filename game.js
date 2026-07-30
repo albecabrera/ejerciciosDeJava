@@ -44,6 +44,22 @@ const ui = {
     commandMissionsSolved: "{solved}/{total} misiones resueltas",
     commandProjectProgress: "{solved}/{total} pasos",
     commandOpenProject: "Abrir proyecto",
+    commandProjectLocked: "Bloqueado",
+    commandProjectLockedAria: "{project} bloqueado. Completá la ruta anterior para abrirlo.",
+    dashboardBack: "Proyectos",
+    workspaceLabel: "Espacio de trabajo",
+    workspaceFocus: "Tarea · Editor · Validación",
+    resourcesLabel: "Recursos",
+    resourcesTitle: "Ayuda cuando la necesites",
+    resourcesAria: "Recursos de la misión",
+    resourceTutorial: "Tutorial",
+    resourceDocs: "Documentación",
+    resourceGuidance: "Pistas y solución",
+    toolWindowTitle: "Herramientas",
+    toolsAria: "Herramientas del espacio de trabajo",
+    toolConsole: "Consola",
+    toolProblems: "Problemas",
+    toolProgress: "Progreso",
     freePractice: "Practicar cualquier misión",
     freePracticeOn: "Modo libre activo",
     projectNavigatorLabel: "Proyecto actual",
@@ -270,6 +286,22 @@ const ui = {
     commandMissionsSolved: "{solved}/{total} Missionen gelöst",
     commandProjectProgress: "{solved}/{total} Schritte",
     commandOpenProject: "Projekt öffnen",
+    commandProjectLocked: "Gesperrt",
+    commandProjectLockedAria: "{project} ist gesperrt. Schließe zuerst den vorherigen Pfad ab.",
+    dashboardBack: "Projekte",
+    workspaceLabel: "Arbeitsbereich",
+    workspaceFocus: "Aufgabe · Editor · Validierung",
+    resourcesLabel: "Ressourcen",
+    resourcesTitle: "Hilfe genau dann, wenn du sie brauchst",
+    resourcesAria: "Ressourcen der Mission",
+    resourceTutorial: "Tutorial",
+    resourceDocs: "Dokumentation",
+    resourceGuidance: "Hinweise und Lösung",
+    toolWindowTitle: "Werkzeuge",
+    toolsAria: "Werkzeuge des Arbeitsbereichs",
+    toolConsole: "Konsole",
+    toolProblems: "Probleme",
+    toolProgress: "Fortschritt",
     freePractice: "Jede Mission frei üben",
     freePracticeOn: "Freier Modus aktiv",
     projectNavigatorLabel: "Aktuelles Projekt",
@@ -1981,6 +2013,8 @@ capstoneMissions.filter((mission) => mission.id === "project-habit-tracker" || m
 });
 
 const elements = {
+  dashboard: document.querySelector("#dashboard"),
+  dashboardBackButton: document.querySelector("#dashboardBackButton"),
   xp: document.querySelector("#xp"),
   missionList: document.querySelector("#missionList"),
   projectSelect: document.querySelector("#projectSelect"),
@@ -2020,6 +2054,11 @@ const elements = {
   lessonVideoExternal: document.querySelector("#lessonVideoExternal"),
   lessonVideoBadge: document.querySelector("#lessonVideoBadge"),
   docsLinks: document.querySelector("#docsLinks"),
+  resourceTabs: document.querySelector(".resource-tabs"),
+  resourceTutorialTab: document.querySelector("#resourceTutorialTab"),
+  resourcePanels: [...document.querySelectorAll("[data-resource-panel]")],
+  toolTabs: document.querySelector(".tool-tabs"),
+  toolPanels: [...document.querySelectorAll("[data-tool-panel]")],
   fileName: document.querySelector("#fileName"),
   codeBefore: document.querySelector("#codeBefore"),
   codeAfter: document.querySelector("#codeAfter"),
@@ -2067,6 +2106,7 @@ const elements = {
   consoleOutput: document.querySelector("#consoleOutput"),
   teacherToggle: document.querySelector("#teacherToggle"),
   teacherPanel: document.querySelector("#teacherPanel"),
+  teacherTitle: document.querySelector("#teacherTitle"),
   teacherStats: document.querySelector("#teacherStats"),
   teacherPracticeList: document.querySelector("#teacherPracticeList"),
   teacherStageFilter: document.querySelector("#teacherStageFilter"),
@@ -2090,6 +2130,8 @@ const elements = {
   joinClassForm: document.querySelector("#joinClassForm"),
   joinCode: document.querySelector("#joinCode"),
 };
+
+let activeAppView = "dashboard";
 
 const OFFICIAL_DOCS = [
   {
@@ -2304,8 +2346,15 @@ function renderLessonVideo(mission = missions[state.current]) {
     elements.lessonVideo.src = "about:blank";
     delete elements.lessonVideo.dataset.embedUrl;
     elements.lessonVideoCard.hidden = true;
+    elements.resourceTutorialTab.hidden = true;
+    elements.resourceTutorialTab.disabled = true;
+    if (elements.resourceTutorialTab.getAttribute("aria-expanded") === "true") {
+      activateResourceTab();
+    }
     return;
   }
+  elements.resourceTutorialTab.hidden = false;
+  elements.resourceTutorialTab.disabled = false;
   elements.lessonVideoCard.hidden = false;
   const params = new URLSearchParams({
     autoplay: "1",
@@ -2815,6 +2864,8 @@ function translateInterface() {
   document.querySelector(".xp-display").setAttribute("aria-label", t("xpAria"));
   document.querySelector(".code-context").setAttribute("aria-label", t("contextAria"));
   document.querySelector(".editor-toolbar")?.setAttribute("aria-label", t("editorToolsAria"));
+  elements.resourceTabs?.setAttribute("aria-label", t("resourcesAria"));
+  elements.toolTabs?.setAttribute("aria-label", t("toolsAria"));
   document.querySelector(".progress-orbit")?.setAttribute("aria-label", t("progressAria"));
   elements.masteryValue?.setAttribute("aria-label", t("masteryAria"));
   elements.completionList?.setAttribute("aria-label", t("suggestionsAria"));
@@ -2848,22 +2899,12 @@ function translateInterface() {
 }
 
 function applyEditorPrefs() {
-  const sidebarCollapsed = Boolean(state.editorPrefs?.sidebarCollapsed);
+  const mobileWorkspace = activeAppView === "workspace"
+    && window.matchMedia("(max-width: 760px)").matches;
+  const sidebarCollapsed = mobileWorkspace || Boolean(state.editorPrefs?.sidebarCollapsed);
   const focusMode = Boolean(state.editorPrefs?.focusMode);
 
-  elements.workspace?.classList.toggle("is-sidebar-collapsed", sidebarCollapsed);
-  elements.missionRail?.toggleAttribute("hidden", sidebarCollapsed);
-  elements.sidebarToggle?.setAttribute("aria-expanded", String(!sidebarCollapsed));
-  elements.sidebarToggle?.setAttribute(
-    "aria-label",
-    sidebarCollapsed ? t("sidebarShowAria") : t("sidebarHideAria"),
-  );
-  if (elements.sidebarToggle) {
-    elements.sidebarToggle.title = sidebarCollapsed ? t("sidebarShowAria") : t("sidebarHideAria");
-    elements.sidebarToggle.querySelector("[data-i18n]").textContent = sidebarCollapsed
-      ? t("sidebarShow")
-      : t("sidebarHide");
-  }
+  applySidebarState(sidebarCollapsed);
 
   document.body.classList.toggle("editor-focus-active", focusMode);
   elements.editorPanel?.classList.toggle("is-focus-mode", focusMode);
@@ -2880,6 +2921,22 @@ function applyEditorPrefs() {
   }
 }
 
+function applySidebarState(sidebarCollapsed) {
+  elements.workspace?.classList.toggle("is-sidebar-collapsed", sidebarCollapsed);
+  elements.missionRail?.toggleAttribute("hidden", sidebarCollapsed);
+  elements.sidebarToggle?.setAttribute("aria-expanded", String(!sidebarCollapsed));
+  elements.sidebarToggle?.setAttribute(
+    "aria-label",
+    sidebarCollapsed ? t("sidebarShowAria") : t("sidebarHideAria"),
+  );
+  if (elements.sidebarToggle) {
+    elements.sidebarToggle.title = sidebarCollapsed ? t("sidebarShowAria") : t("sidebarHideAria");
+    elements.sidebarToggle.querySelector("[data-i18n]").textContent = sidebarCollapsed
+      ? t("sidebarShow")
+      : t("sidebarHide");
+  }
+}
+
 function setSidebarCollapsed(collapsed) {
   state.editorPrefs = {
     ...state.editorPrefs,
@@ -2889,11 +2946,62 @@ function setSidebarCollapsed(collapsed) {
   saveEditorPrefs();
 }
 
+function setAppView(view, options = {}) {
+  const workspaceOpen = view === "workspace";
+  activeAppView = workspaceOpen ? "workspace" : "dashboard";
+  elements.dashboard.hidden = workspaceOpen;
+  elements.workspace.hidden = !workspaceOpen;
+  document.body.classList.toggle("view-workspace", workspaceOpen);
+
+  if (workspaceOpen && window.matchMedia("(max-width: 760px)").matches) {
+    applySidebarState(true);
+  } else if (workspaceOpen) {
+    applySidebarState(Boolean(state.editorPrefs?.sidebarCollapsed));
+  }
+
+  if (workspaceOpen && options.focusHeading) {
+    focusMissionHeading();
+  } else if (!workspaceOpen && options.focusDashboard !== false) {
+    window.requestAnimationFrame(() => elements.commandContinueButton?.focus());
+  }
+}
+
+function activateResourceTab(name = "") {
+  const selected = name || "";
+  elements.resourceTabs?.querySelectorAll("[data-resource-tab]").forEach((button) => {
+    const active = button.dataset.resourceTab === selected;
+    button.setAttribute("aria-expanded", String(active));
+    button.classList.toggle("is-active", active);
+  });
+  elements.resourcePanels.forEach((panel) => {
+    panel.hidden = panel.dataset.resourcePanel !== selected;
+  });
+}
+
+function activateToolTab(name = "console", options = {}) {
+  const selected = elements.toolPanels.some((panel) => panel.dataset.toolPanel === name)
+    ? name
+    : "console";
+  elements.toolTabs?.querySelectorAll("[data-tool-tab]").forEach((button) => {
+    const active = button.dataset.toolTab === selected;
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+    button.classList.toggle("is-active", active);
+  });
+  elements.toolPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.toolPanel !== selected;
+  });
+  if (options.focus) {
+    elements.toolTabs?.querySelector(`[data-tool-tab="${selected}"]`)?.focus();
+  }
+}
+
 function setFreePractice(enabled) {
   state.freePractice = Boolean(enabled);
   saveState();
   translateInterface();
   renderMissionList();
+  renderCommandCenter();
 }
 
 async function setFocusMode(enabled, options = {}) {
@@ -3026,17 +3134,19 @@ function renderCommandCenter() {
       || (state.freePractice ? route.find((mission) => !solved.has(mission.id)) : null)
       || route.find((mission) => mission.id === project.checkpointId)
       || route[0];
+    const projectUnlocked = Boolean(nextProjectMission && isUnlocked(missions.indexOf(nextProjectMission)));
     const card = document.createElement("article");
     card.className = "project-gallery-card";
     if (project.id === currentProject.id) card.classList.add("is-active");
+    if (!projectUnlocked) card.classList.add("is-locked");
     card.innerHTML = `
       <div>
         <span>${project.stage}</span>
         <strong></strong>
         <small></small>
       </div>
-      <button class="button button-text button-compact" type="button" data-project-id="${project.id}" data-mission-id="${nextProjectMission?.id || ""}">
-        ${t("commandOpenProject")}
+      <button class="button button-text button-compact" type="button" data-project-id="${project.id}" data-mission-id="${nextProjectMission?.id || ""}" ${projectUnlocked ? "" : "disabled"}>
+        ${projectUnlocked ? t("commandOpenProject") : t("commandProjectLocked")}
       </button>
     `;
     card.querySelector("strong").textContent = project.text[state.language].name;
@@ -3044,6 +3154,13 @@ function renderCommandCenter() {
       solved: projectSolved,
       total: route.length,
     });
+    const button = card.querySelector("button");
+    button.setAttribute(
+      "aria-label",
+      projectUnlocked
+        ? `${t("commandOpenProject")}: ${project.text[state.language].name}`
+        : interpolate(t("commandProjectLockedAria"), { project: project.text[state.language].name }),
+    );
     return card;
   }));
 }
@@ -3442,6 +3559,7 @@ function renderMission(options = {}) {
   }
   renderProjectContext(mission);
   renderCommandCenter();
+  activateResourceTab();
   renderLessonVideo(mission);
   renderDocumentation(mission);
   elements.fileName.textContent = mission.file;
@@ -3581,6 +3699,7 @@ function showSuccess(wasAlreadySolved = false, compiler = null) {
 async function checkAnswer() {
   const mission = missions[state.current];
   const answer = elements.editor.value;
+  activateToolTab("console");
   setConsole(t("consoleChecking"), `> javac ${mission.file}\n… ${t("consoleChecking")}`);
   state.answers[mission.id] = answer;
   state.answerUpdatedAt[mission.id] = new Date().toISOString();
@@ -3709,6 +3828,7 @@ function requestHint() {
   const currentCount = Number(state.hintsUsed[mission.id]) || 0;
 
   if (currentCount >= text.hints.length) {
+    activateResourceTab("guidance");
     elements.hintPanel.hidden = false;
     elements.hintText.textContent = t("noMoreHints");
     return;
@@ -3718,6 +3838,7 @@ function requestHint() {
   state.xp = Math.max(0, state.xp - HINT_COST);
   elements.xp.textContent = String(state.xp);
   elements.hintButton.disabled = state.hintsUsed[mission.id] >= text.hints.length;
+  activateResourceTab("guidance");
   showCurrentHint();
   renderProgress();
   saveState();
@@ -3734,6 +3855,7 @@ function revealSolution() {
   elements.editor.value = mission.solution;
   elements.xp.textContent = String(state.xp);
   elements.solutionButton.disabled = true;
+  activateResourceTab("guidance");
   updateLineNumbers();
   scheduleDiagnostics();
   renderProgress();
@@ -3780,7 +3902,7 @@ function selectMission(index, options = {}) {
   state.selectedProject = missions[index].projectId;
   saveState();
   renderMission();
-  if (options.focusHeading) focusMissionHeading();
+  setAppView("workspace", { focusHeading: options.focusHeading });
 }
 
 function changeLanguage(language) {
@@ -4587,6 +4709,45 @@ elements.bugChecklist?.addEventListener("click", (event) => {
 
 elements.debugToggle?.addEventListener("click", openBugChecklist);
 
+document.querySelector(".brand")?.addEventListener("click", (event) => {
+  event.preventDefault();
+  setAppView("dashboard");
+});
+
+document.querySelector(".skip-link")?.addEventListener("click", (event) => {
+  event.preventDefault();
+  setAppView("workspace");
+  window.requestAnimationFrame(() => elements.editor?.focus());
+});
+
+elements.dashboardBackButton?.addEventListener("click", () => {
+  setAppView("dashboard");
+});
+
+elements.resourceTabs?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-resource-tab]");
+  if (!button) return;
+  activateResourceTab(button.getAttribute("aria-expanded") === "true" ? "" : button.dataset.resourceTab);
+});
+
+elements.toolTabs?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-tool-tab]");
+  if (button) activateToolTab(button.dataset.toolTab);
+});
+
+elements.toolTabs?.addEventListener("keydown", (event) => {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const tabs = [...elements.toolTabs.querySelectorAll("[data-tool-tab]")];
+  const current = Math.max(0, tabs.indexOf(document.activeElement));
+  const next = event.key === "Home"
+    ? 0
+    : event.key === "End"
+      ? tabs.length - 1
+      : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+  activateToolTab(tabs[next].dataset.toolTab, { focus: true });
+});
+
 document.addEventListener("click", (event) => {
   const panel = document.querySelector("#bugChecklistPanel");
   if (!panel || panel.hidden || panel.contains(event.target) || elements.debugToggle?.contains(event.target)) return;
@@ -4677,6 +4838,10 @@ elements.themeToggle?.addEventListener("click", () => {
 });
 
 elements.sidebarToggle?.addEventListener("click", () => {
+  if (window.matchMedia("(max-width: 760px)").matches) {
+    applySidebarState(!elements.missionRail.hidden);
+    return;
+  }
   setSidebarCollapsed(!state.editorPrefs?.sidebarCollapsed);
 });
 
@@ -4685,10 +4850,17 @@ elements.freePracticeToggle?.addEventListener("click", () => {
 });
 
 elements.teacherToggle?.addEventListener("click", () => {
+  if (elements.workspace.hidden) setAppView("workspace");
   const open = elements.teacherPanel.hidden;
   elements.teacherPanel.hidden = !open;
   elements.teacherToggle.setAttribute("aria-expanded", String(open));
-  if (open) renderTeacherPanel();
+  if (open) {
+    renderTeacherPanel();
+    window.requestAnimationFrame(() => {
+      elements.teacherTitle?.scrollIntoView({ block: "start", behavior: "smooth" });
+      elements.teacherTitle?.focus({ preventScroll: true });
+    });
+  }
 });
 elements.teacherStageFilter?.addEventListener("change", renderTeacherPanel);
 elements.classSelect?.addEventListener("change", (event) => {
@@ -4845,6 +5017,11 @@ if (new URLSearchParams(window.location.search).get("e2e") === "1") {
 
 renderLiveTemplates();
 renderMission();
+activateToolTab("console");
+setAppView(
+  new URLSearchParams(window.location.search).get("workspace") === "1" ? "workspace" : "dashboard",
+  { focusDashboard: false },
+);
 renderBugChecklist();
 renderAccount();
 initCloud();

@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=28" />
+    <link rel="stylesheet" href="styles.css?v=29" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -93,7 +93,7 @@
       </div>
     </header>
 
-    <section class="learning-command" aria-labelledby="commandTitle">
+    <section id="dashboard" class="learning-command" aria-labelledby="commandTitle">
       <div class="command-copy">
         <p class="eyebrow" data-i18n="commandLabel">Mesa de trabajo</p>
         <h2 id="commandTitle" data-i18n="commandTitle">Tu próxima decisión está clara</h2>
@@ -123,7 +123,17 @@
       <div id="projectGallery" class="project-gallery" aria-label="Proyectos disponibles"></div>
     </section>
 
-    <main id="workspace" class="workspace">
+    <main id="workspace" class="workspace" hidden>
+      <div class="workspace-topbar">
+        <button id="dashboardBackButton" class="editor-tool-button" type="button">
+          <span aria-hidden="true">←</span>
+          <span data-i18n="dashboardBack">Proyectos</span>
+        </button>
+        <div class="workspace-location" aria-live="polite">
+          <span data-i18n="workspaceLabel">Espacio de trabajo</span>
+          <strong data-i18n="workspaceFocus">Tarea · Editor · Validación</strong>
+        </div>
+      </div>
       <aside id="missionRail" class="mission-rail" aria-label="Ruta de aprendizaje">
         <div class="rail-heading">
           <p class="eyebrow" data-i18n="courseLabel">Ruta práctica</p>
@@ -197,6 +207,20 @@
           </div>
         </div>
 
+        <section class="resource-center" aria-labelledby="resourcesTitle">
+          <div class="resource-center-heading">
+            <div>
+              <p class="eyebrow" data-i18n="resourcesLabel">Recursos</p>
+              <h3 id="resourcesTitle" data-i18n="resourcesTitle">Ayuda cuando la necesites</h3>
+            </div>
+            <div class="resource-tabs" aria-label="Recursos de la misión">
+              <button id="resourceTutorialTab" class="resource-tab" type="button" data-resource-tab="tutorial" aria-expanded="false" aria-controls="resourceTutorialPanel" data-i18n="resourceTutorial">Tutorial</button>
+              <button class="resource-tab" type="button" data-resource-tab="docs" aria-expanded="false" aria-controls="resourceDocsPanel" data-i18n="resourceDocs">Documentación</button>
+              <button class="resource-tab" type="button" data-resource-tab="guidance" aria-expanded="false" aria-controls="resourceGuidancePanel" data-i18n="resourceGuidance">Pistas y solución</button>
+            </div>
+          </div>
+
+          <div id="resourceTutorialPanel" class="resource-panel" data-resource-panel="tutorial" hidden>
         <section id="lessonVideoCard" class="lesson-video-card" aria-labelledby="lessonVideoTitle">
           <div class="lesson-video-heading">
             <div>
@@ -219,7 +243,9 @@
             <span aria-hidden="true">↗</span>
           </a>
         </section>
+          </div>
 
+          <div id="resourceDocsPanel" class="resource-panel" data-resource-panel="docs" hidden>
         <section class="docs-card" aria-labelledby="docsTitle">
           <div class="docs-heading">
             <div>
@@ -232,6 +258,28 @@
             Consultá sintaxis, ejemplos y API directamente en las fuentes oficiales. Los enlaces se adaptan a esta misión.
           </p>
           <ul id="docsLinks" class="docs-links" aria-label="Documentación oficial relacionada"></ul>
+        </section>
+          </div>
+
+          <div id="resourceGuidancePanel" class="resource-panel guidance-panel" data-resource-panel="guidance" hidden>
+            <div class="guidance-actions">
+              <button id="hintButton" class="button button-secondary" type="button">
+                <span data-i18n="hint">Pedir pista</span>
+                <small id="hintCost">−5 XP</small>
+              </button>
+              <button id="solutionButton" class="button button-text" type="button">
+                <span data-i18n="reveal">Ver solución</span>
+                <small>−15 XP</small>
+              </button>
+            </div>
+            <section id="hintPanel" class="hint-panel" aria-live="polite" hidden>
+              <div class="hint-heading">
+                <strong data-i18n="hintTitle">Pista del mentor</strong>
+                <span id="hintLevel"></span>
+              </div>
+              <p id="hintText"></p>
+            </section>
+          </div>
         </section>
 
         <div id="editorPanel" class="editor-panel">
@@ -354,26 +402,10 @@
               <span id="editorHelp" data-i18n="shortcut">F5 para comprobar · Tab expande plantillas · ⌥⇧↓ duplica</span>
             </div>
           </div>
-          <section id="editorConsole" class="editor-console" aria-labelledby="consoleTitle" aria-live="polite">
-            <div class="console-heading">
-              <strong id="consoleTitle" data-i18n="consoleTitle">Consola del editor</strong>
-              <span id="consoleStatus" data-i18n="consoleReady">Lista para F5</span>
-            </div>
-            <pre id="consoleOutput" class="console-output"><code data-i18n="consolePlaceholder">La salida de F5 aparecerá acá.</code></pre>
-          </section>
-
           <div class="action-row">
             <button id="checkButton" class="button button-primary" type="button">
               <span data-i18n="check">Compilar y validar</span>
               <kbd>F5</kbd>
-            </button>
-            <button id="hintButton" class="button button-secondary" type="button">
-              <span data-i18n="hint">Pedir pista</span>
-              <small id="hintCost">−5 XP</small>
-            </button>
-            <button id="solutionButton" class="button button-text" type="button">
-              <span data-i18n="reveal">Ver solución</span>
-              <small>−15 XP</small>
             </button>
             <button id="nextButton" class="button button-next" type="button" disabled>
               <span data-i18n="next">Siguiente misión</span>
@@ -390,15 +422,29 @@
             </div>
           </section>
 
-          <section id="hintPanel" class="hint-panel" aria-live="polite" hidden>
-            <div class="hint-heading">
-              <strong data-i18n="hintTitle">Pista del mentor</strong>
-              <span id="hintLevel"></span>
-            </div>
-            <p id="hintText"></p>
-          </section>
         </div>
 
+        <section class="tool-window" aria-labelledby="toolWindowTitle">
+          <div class="tool-window-bar">
+            <strong id="toolWindowTitle" data-i18n="toolWindowTitle">Herramientas</strong>
+            <div class="tool-tabs" role="tablist" aria-label="Herramientas del workspace">
+              <button id="toolConsoleTab" type="button" role="tab" class="tool-tab" data-tool-tab="console" aria-selected="true" aria-controls="toolConsolePanel" data-i18n="toolConsole">Consola</button>
+              <button id="toolProblemsTab" type="button" role="tab" class="tool-tab" data-tool-tab="problems" aria-selected="false" aria-controls="toolProblemsPanel" data-i18n="toolProblems">Problemas</button>
+              <button id="toolProgressTab" type="button" role="tab" class="tool-tab" data-tool-tab="progress" aria-selected="false" aria-controls="toolProgressPanel" data-i18n="toolProgress">Progreso</button>
+            </div>
+          </div>
+
+          <div id="toolConsolePanel" class="tool-panel" data-tool-panel="console" role="tabpanel" aria-labelledby="toolConsoleTab">
+            <section id="editorConsole" class="editor-console" aria-labelledby="consoleTitle" aria-live="polite">
+              <div class="console-heading">
+                <strong id="consoleTitle" data-i18n="consoleTitle">Consola del editor</strong>
+                <span id="consoleStatus" data-i18n="consoleReady">Lista para F5</span>
+              </div>
+              <pre id="consoleOutput" class="console-output"><code data-i18n="consolePlaceholder">La salida de F5 aparecerá acá.</code></pre>
+            </section>
+          </div>
+
+          <div id="toolProblemsPanel" class="tool-panel" data-tool-panel="problems" role="tabpanel" aria-labelledby="toolProblemsTab" hidden>
         <section class="diagnostics-card" aria-labelledby="diagnosticsTitle">
           <div class="diagnostics-heading">
             <div>
@@ -414,7 +460,9 @@
           </p>
           <ol id="diagnosticsList" class="diagnostics-list" aria-live="polite"></ol>
         </section>
+          </div>
 
+          <div id="toolProgressPanel" class="tool-panel" data-tool-panel="progress" role="tabpanel" aria-labelledby="toolProgressTab" hidden>
         <section class="progress-card" aria-labelledby="progressTitle">
           <div class="progress-heading">
             <div>
@@ -438,12 +486,14 @@
           <div id="progressStats" class="progress-stats"></div>
           <div id="progressInsights" class="progress-insights"></div>
         </section>
+          </div>
+        </section>
 
         <section id="teacherPanel" class="teacher-panel" aria-labelledby="teacherTitle" hidden>
           <div class="teacher-heading">
             <div>
               <p class="eyebrow" data-i18n="teacherToggle">Panel docente</p>
-              <h3 id="teacherTitle" data-i18n="teacherTitle">Panel docente</h3>
+              <h3 id="teacherTitle" data-i18n="teacherTitle" tabindex="-1">Panel docente</h3>
             </div>
             <div class="teacher-actions">
               <button id="teacherExport" class="button button-secondary button-compact" type="button" data-i18n="teacherExport">Exportar CSV</button>
@@ -518,6 +568,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=28"></script>
+    <script src="game.js?v=29"></script>
   </body>
 </html>

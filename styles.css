@@ -174,6 +174,331 @@ body {
   }
 }
 
+/* Focused Classroom: progressive disclosure over simultaneous dashboards. */
+[hidden] {
+  display: none !important;
+}
+
+body:not(.view-workspace) {
+  min-height: 100vh;
+}
+
+body:not(.view-workspace) .learning-command {
+  min-height: calc(100vh - 76px);
+  align-content: center;
+}
+
+.workspace-topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.workspace-location {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  font-size: 0.72rem;
+}
+
+.workspace-location span {
+  color: var(--muted);
+}
+
+.workspace-location strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lab {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.lab > * {
+  margin-top: 0;
+}
+
+.mission-header {
+  padding-bottom: 0.7rem;
+}
+
+.mission-header h2 {
+  font-size: clamp(1.55rem, 3vw, 2.25rem);
+}
+
+.progress-orbit,
+.project-context,
+.workbench-hud,
+.compile-rail-steps {
+  display: none;
+}
+
+.brief {
+  padding: 0.85rem 1rem;
+}
+
+.resource-center,
+.tool-window {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.resource-center-heading,
+.tool-window-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+}
+
+.resource-center-heading h3 {
+  margin: 0.1rem 0 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.resource-tabs,
+.tool-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.resource-tab,
+.tool-tab {
+  min-height: 30px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.3rem 0.55rem;
+  background: transparent;
+  color: var(--muted-strong);
+  font: 600 0.7rem/1 var(--sans);
+  cursor: pointer;
+}
+
+.resource-tab:hover,
+.tool-tab:hover {
+  background: var(--panel-hover);
+  color: var(--ink);
+}
+
+.resource-tab.is-active,
+.tool-tab.is-active {
+  border-color: var(--active-line);
+  background: var(--copper-soft);
+  color: var(--ink);
+}
+
+.resource-panel,
+.tool-panel {
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding: 0.7rem;
+}
+
+.resource-panel > .lesson-video-card,
+.resource-panel > .docs-card,
+.tool-panel > .editor-console,
+.tool-panel > .diagnostics-card,
+.tool-panel > .progress-card {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.guidance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.guidance-panel .hint-panel {
+  margin-top: 0.65rem;
+}
+
+.compile-rail {
+  min-height: 36px;
+  border-left: 3px solid var(--java-blue);
+  padding: 0.45rem 0.65rem;
+}
+
+.compile-rail-heading {
+  display: block;
+}
+
+.compile-rail-heading > div {
+  display: none;
+}
+
+.compile-rail-heading > span {
+  display: block;
+  max-width: none;
+  text-align: left;
+}
+
+.editor-panel {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.editor-panel > .action-row {
+  position: static;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.editor-panel > .action-row #checkButton {
+  min-width: min(100%, 210px);
+}
+
+.editor-panel > .action-row #nextButton:disabled {
+  display: none;
+}
+
+.editor-toolbar-hint {
+  margin-left: auto;
+}
+
+.tool-window-bar {
+  min-height: 38px;
+  justify-content: flex-start;
+  padding-block: 0.3rem;
+}
+
+.tool-window-bar > strong {
+  margin-right: 0.5rem;
+  color: var(--muted);
+  font: 600 0.68rem/1 var(--mono);
+  text-transform: uppercase;
+}
+
+.tool-panel {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.tool-panel .console-output {
+  max-height: 220px;
+}
+
+.tool-panel .progress-card {
+  padding-bottom: 0.25rem;
+}
+
+.diagnostics-heading,
+.progress-heading {
+  margin-bottom: 0.65rem;
+}
+
+.collapsible-card,
+.reset-button {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  body:not(.view-workspace) .learning-command {
+    min-height: auto;
+  }
+
+  .workspace-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 24;
+  }
+
+  .workspace-location strong {
+    display: none;
+  }
+
+  .lab {
+    padding: 0.8rem;
+  }
+
+  .resource-center-heading,
+  .tool-window-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .resource-tabs,
+  .tool-tabs {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .resource-tab,
+  .tool-tab {
+    flex: 0 0 auto;
+  }
+
+  .editor-toolbar-hint {
+    display: none;
+  }
+
+  .editor-panel > .action-row {
+    position: sticky;
+    bottom: 0.4rem;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel);
+  }
+
+  .editor-panel > .action-row #checkButton {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .editor-panel > .action-row #nextButton:not(:disabled) {
+    width: 100%;
+  }
+
+  .tool-panel {
+    max-height: 310px;
+  }
+}
+
+@media (max-width: 390px) {
+  .workspace-topbar,
+  .resource-center-heading,
+  .resource-panel,
+  .tool-window-bar,
+  .tool-panel {
+    padding-inline: 0.55rem;
+  }
+
+  .resource-center-heading h3 {
+    font-size: 0.82rem;
+  }
+}
+
 /* Liquid glass pass: a calm instrument panel for a Java workshop, not a generic glass dashboard. */
 :root {
   --glass-surface: rgba(255, 255, 255, 0.56);
@@ -4221,4 +4546,86 @@ summary:focus-visible {
   .button {
     transition: none;
   }
+}
+
+/* Focused workspace wins the legacy cascade. */
+.view-workspace .progress-orbit,
+.view-workspace .project-context,
+.view-workspace .workbench-hud,
+.view-workspace .compile-rail-steps {
+  display: none !important;
+}
+
+.view-workspace .lab {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.view-workspace .lab > * {
+  margin-top: 0;
+}
+
+.view-workspace .compile-rail {
+  min-height: 36px;
+  border-left: 3px solid var(--java-blue);
+  padding: 0.45rem 0.65rem;
+}
+
+.view-workspace .compile-rail-heading,
+.view-workspace .compile-rail-heading > span {
+  display: block;
+}
+
+.view-workspace .compile-rail-heading > div {
+  display: none;
+}
+
+.view-workspace .compile-rail-heading > span {
+  max-width: none;
+  text-align: left;
+}
+
+.view-workspace .editor-panel {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.view-workspace .editor-panel > .action-row {
+  position: static;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.view-workspace .editor-panel > .action-row #nextButton:disabled {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .view-workspace .editor-panel > .action-row {
+    position: sticky;
+    bottom: 0.4rem;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel);
+  }
+
+  .view-workspace .editor-panel > .action-row #checkButton,
+  .view-workspace .editor-panel > .action-row #nextButton:not(:disabled) {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.button-primary > span,
+.editor-tool-button-primary > span,
+.project-continue-button > span {
+  color: inherit;
 }

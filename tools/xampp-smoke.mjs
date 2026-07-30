@@ -22,15 +22,35 @@ async function readJson(path, options = {}) {
 const html = await readText();
 [
   "learning-command",
+  "workspace-topbar",
+  "resource-center",
+  "tool-window",
   "projectGallery",
-  "workbench-hud",
   "mentor-card",
   "49 misiones y 5 proyectos",
   "bugChecklistTitle",
-  "styles.css?v=28",
+  "styles.css?v=29",
   "js/java-evaluators.js?v=3",
-  "game.js?v=28",
+  "game.js?v=29",
 ].forEach((needle) => assert(html.includes(needle), `missing ${needle}`));
+
+const css = await readText("styles.css?v=29");
+[
+  "Focused Classroom",
+  ".workspace-topbar",
+  ".resource-center",
+  ".tool-window",
+  ".view-workspace .workbench-hud",
+].forEach((needle) => assert(css.includes(needle), `focused CSS missing ${needle}`));
+
+const game = await readText("game.js?v=29");
+[
+  "function setAppView",
+  "function activateResourceTab",
+  "function activateToolTab",
+  "commandProjectLockedAria",
+  "resourceTutorialTab.hidden = true",
+].forEach((needle) => assert(game.includes(needle), `focused JS missing ${needle}`));
 
 const auth = await readJson("api/auth.php?action=me");
 assert(Object.prototype.hasOwnProperty.call(auth, "configured"), "auth endpoint did not return configuration status");
@@ -52,7 +72,7 @@ assert(/worker-no-network|docker-no-network|jvm-limited/.test(String(compile.san
 console.log(JSON.stringify({
   ok: true,
   baseUrl,
-  assets: { styles: "v28", evaluators: "v3", game: "v28" },
+  assets: { styles: "v29", evaluators: "v3", game: "v29" },
   compiler: compile.compiler,
   runtime: compile.runtime,
   sandbox: compile.sandbox,

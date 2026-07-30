@@ -74,9 +74,63 @@ async function mapWithConcurrency(values, concurrency, operation) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/index.html?e2e=1");
+  await page.goto("/index.html?e2e=1&workspace=1");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+});
+
+test("moves from the clean dashboard into a focused workspace", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  await expect(page.locator("#dashboard")).toBeVisible();
+  await expect(page.locator("#workspace")).toBeHidden();
+  await page.locator("#commandContinueButton").click();
+  await expect(page.locator("#dashboard")).toBeHidden();
+  await expect(page.locator("#workspace")).toBeVisible();
+  await expect(page.locator("#missionTitle")).toBeFocused();
+  await page.locator("#dashboardBackButton").click();
+  await expect(page.locator("#dashboard")).toBeVisible();
+});
+
+test("opens and focuses the teacher panel from the dashboard", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  await page.getByRole("button", { name: /panel docente|lehrkräfte-panel/i }).click();
+  await expect(page.locator("#workspace")).toBeVisible();
+  await expect(page.locator("#teacherPanel")).toBeVisible();
+  await expect(page.locator("#teacherTitle")).toBeFocused();
+});
+
+test("opens the workspace before the dashboard skip-link focuses the editor", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  await page.locator(".skip-link").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#workspace")).toBeVisible();
+  await expect(page.locator("#editor")).toBeFocused();
+});
+
+test("marks unavailable project routes as locked instead of promising navigation", async ({ page }) => {
+  await page.goto("/index.html?e2e=1");
+  const locked = page.locator("#projectGallery button:disabled");
+  await expect(locked).toHaveCount(4);
+  await expect(locked.first()).toContainText(/bloqueado|gesperrt/i);
+  await expect(locked.first()).toHaveAttribute("aria-label", /bloqueado|gesperrt/i);
+  await expect(page.locator("#projectGallery button:not(:disabled)")).toHaveCount(1);
+});
+
+test("reveals resources and one IntelliJ tool window at a time", async ({ page }) => {
+  await expect(page.locator("[data-resource-panel]:visible")).toHaveCount(0);
+  await page.getByRole("button", { name: /tutorial/i }).click();
+  await expect(page.locator("#resourceTutorialPanel")).toBeVisible();
+  await page.getByRole("button", { name: /documentación|dokumentation/i }).click();
+  await expect(page.locator("#resourceTutorialPanel")).toBeHidden();
+  await expect(page.locator("#resourceDocsPanel")).toBeVisible();
+
+  await expect(page.locator("#toolConsolePanel")).toBeVisible();
+  await page.getByRole("tab", { name: /problemas|probleme/i }).click();
+  await expect(page.locator("#toolConsolePanel")).toBeHidden();
+  await expect(page.locator("#toolProblemsPanel")).toBeVisible();
+  await page.getByRole("tab", { name: /progreso|fortschritt/i }).click();
+  await expect(page.locator("[data-tool-panel]:visible")).toHaveCount(1);
+  await expect(page.locator("#toolProgressPanel")).toBeVisible();
 });
 
 test("renders the curriculum and teacher panel", async ({ page }) => {
@@ -90,6 +144,7 @@ test("renders the curriculum and teacher panel", async ({ page }) => {
 
 test("shows only a topic-verified German preparatory video", async ({ page }) => {
   const video = page.locator("#lessonVideo");
+  await page.getByRole("button", { name: /^tutorial$/i }).click();
   await expect(page.locator("#lessonVideoPreview")).toBeVisible();
   await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /i\.ytimg\.com\/vi\/C8hLep5UfYg/);
   await page.locator("#lessonVideoPreview").click();
@@ -99,23 +154,31 @@ test("shows only a topic-verified German preparatory video", async ({ page }) =>
   await expect(video).toHaveAttribute("src", /autoplay=1/);
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
   await page.locator('#missionList button[data-mission-id="debug"]').click();
+  await page.getByRole("button", { name: /^tutorial$/i }).click();
   await expect(page.locator("#lessonVideoCard")).toBeVisible();
   await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /ipUAR3r7PQM/);
   await page.locator("#lessonVideoPreview").click();
   await expect(video).toHaveAttribute("src", /ipUAR3r7PQM/);
   await expect(video).toHaveAttribute("src", /autoplay=1/);
   await page.locator('#missionList button[data-mission-id="graph-bfs"]').click();
+  await page.getByRole("button", { name: /^tutorial$/i }).click();
   await expect(page.locator("#lessonVideoCard")).toBeVisible();
   await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /hR4s2W7Dsss/);
   await page.locator('#missionList button[data-mission-id="project-safe-chat"]').click();
+  await expect(page.locator("#resourceTutorialTab")).toBeHidden();
   await expect(page.locator("#lessonVideoCard")).toBeHidden();
+  await expect(page.locator("[data-resource-panel]:visible")).toHaveCount(0);
   await page.locator('#missionList button[data-mission-id="hash-map"]').click();
+  await expect(page.locator("#resourceTutorialTab")).toBeVisible();
+  await page.getByRole("button", { name: /^tutorial$/i }).click();
   await expect(page.locator("#lessonVideoCard")).toBeVisible();
   await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /sNrT2hbilsk/);
   await expect(page.locator("#lessonVideoExternal")).toHaveAttribute("href", /youtube\.com\/watch/);
 });
 
 test("shows a premium command center with project shortcuts", async ({ page }) => {
+  await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
+  await page.locator("#dashboardBackButton").click();
   await expect(page.locator("#commandTitle")).toContainText(/próxima decisión|nächste entscheidung/i);
   await expect(page.locator("#commandNextMission")).toContainText(/variables|variablen/i);
   await expect(page.locator("#commandProgress")).toHaveText("0%");
@@ -125,10 +188,12 @@ test("shows a premium command center with project shortcuts", async ({ page }) =
   await expect(page.locator("#commandProjectName")).toContainText(/snake/i);
 });
 
-test("keeps the IDE workbench context close to the editor", async ({ page }) => {
-  await expect(page.locator(".workbench-hud")).toBeVisible();
+test("keeps a focused IDE context close to the editor", async ({ page }) => {
+  await expect(page.locator(".workbench-hud")).toBeHidden();
   await expect(page.locator("#workbenchMission")).toHaveText("EF · 01");
   await expect(page.locator("#workbenchFile")).toHaveText("Profile.java");
+  await expect(page.locator("#compileRailStatus")).toBeVisible();
+  await expect(page.locator("#editor")).toBeVisible();
   await expect(page.locator("#editorPanel > .action-row")).toBeVisible();
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
   await page.locator('#projectSteps button[data-mission-id="project-mensa-terminal"]').click();
@@ -136,11 +201,13 @@ test("keeps the IDE workbench context close to the editor", async ({ page }) => 
 });
 
 test("shows adaptive mentor guidance based on learner state", async ({ page }) => {
+  await page.getByRole("tab", { name: /progreso|fortschritt/i }).click();
   await expect(page.locator("#mentorAdvice")).toContainText(/empezá|beginne/i);
   await page.locator("#editor").fill("int broken = ;");
   await page.keyboard.press("F5");
   await page.keyboard.press("F5");
   await expect(page.locator("#mentorAdvice")).toContainText(/trazando|manueller/i);
+  await page.getByRole("tab", { name: /progreso|fortschritt/i }).click();
   await page.locator("#mentorAction").click();
   await expect(page.locator("#missionTitle")).toBeFocused();
 });
@@ -208,7 +275,9 @@ test("keeps diagnostics and official docs visible on mobile", async ({ page }) =
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator("#debugToggle")).toBeVisible();
   await expect(page.locator("#debugToggle")).toContainText(/bugs/i);
+  await page.getByRole("button", { name: /documentación|dokumentation/i }).click();
   await expect(page.locator("#docsLinks a").first()).toBeVisible();
+  await page.getByRole("tab", { name: /problemas|probleme/i }).click();
   await expect(page.locator("#diagnosticsList")).toBeVisible();
   await page.locator("#editor").fill("if (true) {\nSystem.out.println(\"ok\")");
   await expect(page.locator("#diagnosticsList")).toContainText(/línea|zeile/i);
@@ -256,6 +325,40 @@ test("has no horizontal overflow at 390px", async ({ page }) => {
   }));
   expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport);
   expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport);
+});
+
+test("starts mobile with the mission sidebar closed", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/index.html?e2e=1&workspace=1");
+  await expect(page.locator("#missionRail")).toBeHidden();
+  await page.locator("#sidebarToggle").click();
+  await expect(page.locator("#missionRail")).toBeVisible();
+});
+
+test("keeps the mobile sidebar transiently closed across mission and language renders", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/index.html?e2e=1&workspace=1");
+  await expect(page.locator("#missionRail")).toBeHidden();
+
+  await page.locator("#sidebarToggle").click();
+  await page.locator("#freePracticeToggle").click();
+  await expect(page.locator("#missionRail")).toBeHidden();
+
+  await page.locator("#sidebarToggle").click();
+  await page.locator('#missionList button[data-mission-id="debug"]').click();
+  await expect(page.locator("#missionRail")).toBeHidden();
+
+  await page.locator('.language-button[data-language="de"]').click();
+  await expect(page.locator("#missionRail")).toBeHidden();
+  await expect(page.locator("#sidebarToggle")).toHaveAttribute("aria-expanded", "false");
+});
+
+test("translates resource and tool-window accessible labels", async ({ page }) => {
+  await expect(page.locator(".resource-tabs")).toHaveAttribute("aria-label", "Recursos de la misión");
+  await expect(page.locator(".tool-tabs")).toHaveAttribute("aria-label", "Herramientas del espacio de trabajo");
+  await page.locator('.language-button[data-language="de"]').click();
+  await expect(page.locator(".resource-tabs")).toHaveAttribute("aria-label", "Ressourcen der Mission");
+  await expect(page.locator(".tool-tabs")).toHaveAttribute("aria-label", "Werkzeuge des Arbeitsbereichs");
 });
 
 test("keeps project and mission routes compact without overflow at 320px", async ({ page }) => {
