@@ -27,9 +27,9 @@ const html = await readText();
   "mentor-card",
   "49 misiones y 5 proyectos",
   "bugChecklistTitle",
-  "styles.css?v=25",
+  "styles.css?v=27",
   "js/java-evaluators.js?v=3",
-  "game.js?v=24",
+  "game.js?v=27",
 ].forEach((needle) => assert(html.includes(needle), `missing ${needle}`));
 
 const auth = await readJson("api/auth.php?action=me");
@@ -52,7 +52,7 @@ assert(/worker-no-network|docker-no-network|jvm-limited/.test(String(compile.san
 console.log(JSON.stringify({
   ok: true,
   baseUrl,
-  assets: { styles: "v25", evaluators: "v3", game: "v24" },
+  assets: { styles: "v27", evaluators: "v3", game: "v27" },
   compiler: compile.compiler,
   runtime: compile.runtime,
   sandbox: compile.sandbox,

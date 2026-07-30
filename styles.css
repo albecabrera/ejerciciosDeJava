@@ -174,6 +174,160 @@ body {
   }
 }
 
+/* Liquid glass pass: a calm instrument panel for a Java workshop, not a generic glass dashboard. */
+:root {
+  --glass-surface: rgba(255, 255, 255, 0.56);
+  --glass-strong: rgba(255, 255, 255, 0.78);
+  --glass-line: rgba(255, 255, 255, 0.76);
+  --glass-shadow: 0 22px 54px rgba(23, 55, 71, 0.12), 0 2px 8px rgba(23, 55, 71, 0.05);
+  --glass-highlight: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme="dark"] {
+  --glass-surface: rgba(21, 44, 54, 0.68);
+  --glass-strong: rgba(27, 55, 67, 0.88);
+  --glass-line: rgba(191, 235, 246, 0.18);
+  --glass-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  --glass-highlight: rgba(219, 249, 255, 0.12);
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% -8%, rgba(126, 198, 226, 0.3), transparent 26rem),
+    radial-gradient(circle at 98% 18%, rgba(234, 157, 113, 0.24), transparent 24rem),
+    radial-gradient(circle at 54% 100%, rgba(96, 183, 157, 0.16), transparent 28rem),
+    linear-gradient(150deg, var(--paper), color-mix(in srgb, var(--paper) 78%, #d3e7ed));
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 5% -10%, rgba(45, 111, 137, 0.38), transparent 28rem),
+    radial-gradient(circle at 100% 15%, rgba(176, 92, 66, 0.22), transparent 23rem),
+    radial-gradient(circle at 52% 100%, rgba(31, 117, 98, 0.22), transparent 30rem),
+    linear-gradient(150deg, #080d11, #0d1d25 58%, #081216);
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  border-color: var(--glass-line);
+  background: color-mix(in srgb, var(--header-bg) 72%, transparent);
+  box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 14px 32px rgba(20, 42, 50, 0.06);
+  backdrop-filter: blur(22px) saturate(1.2);
+}
+
+.learning-command,
+.command-card,
+.project-gallery-card,
+.lesson-video-card,
+.docs-card,
+.project-context,
+.compile-rail,
+.diagnostics-card,
+.progress-card,
+.teacher-panel,
+.bug-checklist-popover,
+.auth-panel {
+  border-color: var(--glass-line);
+  background: linear-gradient(135deg, var(--glass-strong), var(--glass-surface));
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(18px) saturate(1.14);
+}
+
+.mission-rail {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rail-bg) 76%, transparent), color-mix(in srgb, var(--glass-surface) 80%, transparent));
+  border-right-color: var(--glass-line);
+  backdrop-filter: blur(16px) saturate(1.08);
+}
+
+.command-card,
+.project-gallery-card,
+.mission-list button,
+.project-steps button,
+.docs-links a,
+.debug-toggle,
+.theme-toggle,
+.teacher-toggle,
+.xp-display {
+  box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 8px 20px rgba(24, 57, 69, 0.06);
+}
+
+.command-card:hover,
+.project-gallery-card:hover,
+.docs-links a:hover,
+.mission-list button:hover:not(:disabled),
+.project-steps button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--java-blue) 45%, var(--glass-line));
+  box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 16px 30px rgba(28, 74, 91, 0.14);
+}
+
+.button,
+.editor-tool-button,
+.project-continue-button,
+.free-practice-toggle {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 9px 18px rgba(19, 50, 64, 0.13);
+}
+
+.button-primary,
+.project-continue-button {
+  background: linear-gradient(135deg, var(--java-deep), var(--java-blue));
+}
+
+.button:hover:not(:disabled),
+.editor-tool-button:hover,
+.project-continue-button:hover,
+.free-practice-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.34) inset, 0 15px 26px rgba(22, 64, 80, 0.2);
+}
+
+.editor-shell,
+.ide-shell {
+  border-color: color-mix(in srgb, var(--code-line) 72%, var(--glass-line));
+  box-shadow: 0 26px 56px rgba(8, 20, 27, 0.22), 0 1px 0 rgba(174, 221, 233, 0.14) inset;
+}
+
+.lesson-video-frame,
+.editor-row,
+.code-context,
+.console-output {
+  box-shadow: 0 1px 0 rgba(190, 235, 245, 0.08) inset;
+}
+
+.progress-orbit {
+  background: color-mix(in srgb, var(--glass-surface) 86%, transparent);
+  box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 12px 28px rgba(22, 70, 83, 0.12);
+}
+
+.debug-toggle[aria-expanded="true"] {
+  border-color: var(--error);
+  background: color-mix(in srgb, var(--feedback-bg) 66%, var(--glass-strong));
+  color: var(--error);
+  box-shadow: 0 1px 0 var(--glass-highlight) inset, 0 14px 28px rgba(173, 58, 55, 0.18);
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    backdrop-filter: blur(18px) saturate(1.1);
+  }
+
+  .bug-checklist-popover {
+    right: 0;
+    width: min(25rem, calc(100vw - 1rem));
+    max-height: min(32rem, calc(100dvh - 7.5rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:hover:not(:disabled),
+  .editor-tool-button:hover,
+  .project-continue-button:hover,
+  .free-practice-toggle:hover {
+    transform: none;
+  }
+}
+
 button,
 textarea {
   font: inherit;

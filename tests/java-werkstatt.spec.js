@@ -88,7 +88,7 @@ test("renders the curriculum and teacher panel", async ({ page }) => {
   await expect(page.locator("#teacherCloudProgress")).toContainText(/clase|klasse/i);
 });
 
-test("shows a preparatory video before every lesson and changes it by route", async ({ page }) => {
+test("shows only a topic-verified German preparatory video", async ({ page }) => {
   const video = page.locator("#lessonVideo");
   await expect(page.locator("#lessonVideoPreview")).toBeVisible();
   await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /i\.ytimg\.com\/vi\/C8hLep5UfYg/);
@@ -97,10 +97,19 @@ test("shows a preparatory video before every lesson and changes it by route", as
   await expect(page.locator(".lesson-video-card")).toBeVisible();
   await expect(video).toHaveAttribute("src", /C8hLep5UfYg/);
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
+  await page.locator('#missionList button[data-mission-id="debug"]').click();
+  await expect(page.locator("#lessonVideoCard")).toBeVisible();
+  await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /ipUAR3r7PQM/);
+  await page.locator("#lessonVideoPreview").click();
+  await expect(video).toHaveAttribute("src", /ipUAR3r7PQM/);
   await page.locator('#missionList button[data-mission-id="graph-bfs"]').click();
-  await expect(video).toHaveAttribute("src", /a4EpC1Kmb7I/);
+  await expect(page.locator("#lessonVideoCard")).toBeVisible();
+  await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /hR4s2W7Dsss/);
   await page.locator('#missionList button[data-mission-id="project-safe-chat"]').click();
-  await expect(video).toHaveAttribute("src", /FbgZuPNVQsU/);
+  await expect(page.locator("#lessonVideoCard")).toBeHidden();
+  await page.locator('#missionList button[data-mission-id="hash-map"]').click();
+  await expect(page.locator("#lessonVideoCard")).toBeVisible();
+  await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /sNrT2hbilsk/);
   await expect(page.locator("#lessonVideoExternal")).toHaveAttribute("href", /youtube\.com\/watch/);
 });
 

@@ -2012,6 +2012,7 @@ const elements = {
   objective: document.querySelector("#objective"),
   prompt: document.querySelector("#prompt"),
   concept: document.querySelector("#concept"),
+  lessonVideoCard: document.querySelector("#lessonVideoCard"),
   lessonVideo: document.querySelector("#lessonVideo"),
   lessonVideoPreview: document.querySelector("#lessonVideoPreview"),
   lessonVideoThumbnail: document.querySelector("#lessonVideoThumbnail"),
@@ -2188,6 +2189,21 @@ function javaLessonVideo(key, id, topic, terms, missionIds = []) {
   };
 }
 
+function germanLessonVideo(key, id, topic, missionIds, source) {
+  return {
+    key,
+    id,
+    topic,
+    terms: [],
+    missionIds,
+    url: `https://www.youtube.com/watch?v=${id}`,
+    title: {
+      es: `${topic.es} · ${source}`,
+      de: `${topic.de} · ${source}`,
+    },
+  };
+}
+
 const LESSON_VIDEO_CATALOG = [
   javaLessonVideo("variables", "C8hLep5UfYg", { es: "variables", de: "Variablen" },
     ["variable", "declaracion", "inicializacion"], ["types"]),
@@ -2203,24 +2219,21 @@ const LESSON_VIDEO_CATALOG = [
   javaLessonVideo("while", "mcm84hlxXo8", { es: "bucle while", de: "while-Schleife" },
     ["while", "terminacion", "schleife"], ["while-input"]),
   javaLessonVideo("for", "CoEKIbc8B0k", { es: "bucle for", de: "for-Schleife" },
-    ["bucle for", "for-schleife", "indice", "recorrer", "durchlauf"],
-    ["loop", "linear-search", "binary-search", "insertion-sort", "combo-counter", "leaderboard-sort"]),
+    ["bucle for", "for-schleife", "indice", "recorrer", "durchlauf"], ["loop"]),
   javaLessonVideo("arrays", "-7gk5dgM_5w", { es: "arrays", de: "Arrays" },
-    ["array", "arreglo"], ["arrays", "von-neumann"]),
+    ["array", "arreglo"], ["arrays"]),
   javaLessonVideo("methods", "bvGepmcDqD0", { es: "métodos", de: "Methoden" },
-    ["metodo", "method", "firma", "parametro", "funktion"],
-    ["method", "debug", "halting-limit", "project-habit-tracker", "project-mensa-terminal"]),
+    ["metodo", "method", "firma", "parametro", "funktion"], ["method"]),
   javaLessonVideo("oop", "Hc3ddOTYzME", { es: "programación orientada a objetos", de: "Objektorientierung" },
     ["poo", "oop", "orientada a objetos", "objektorient"]),
   javaLessonVideo("classes-objects", "7o-0IDEHs5M", { es: "clases y objetos", de: "Klassen und Objekte" },
-    ["clase", "objeto", "klasse", "objekt", "modelo"],
-    ["normalization", "network"]),
+    ["clase", "objeto", "klasse", "objekt", "modelo"], ["class"]),
   javaLessonVideo("constructors", "cD_u6A5S9Xk", { es: "constructores", de: "Konstruktoren" },
     ["constructor", "konstruktor"], ["class"]),
   javaLessonVideo("return", "LlWPVBDV5Yc", { es: "return", de: "return" },
     ["return", "devolver", "ruckgabe"]),
   javaLessonVideo("access", "T05n0oumTl0", { es: "modificadores de acceso", de: "Zugriffsmodifikatoren" },
-    ["private", "public", "acceso", "visibilidad", "sichtbarkeit"], ["privacy"]),
+    ["private", "public", "acceso", "visibilidad", "sichtbarkeit"]),
   javaLessonVideo("getter-setter", "O6_pwT1EF3k", { es: "getters y setters", de: "Getter und Setter" },
     ["getter", "setter", "encapsul"]),
   javaLessonVideo("foreach", "n0Hb8GNZx50", { es: "for-each", de: "for-each-Schleife" },
@@ -2234,8 +2247,7 @@ const LESSON_VIDEO_CATALOG = [
   javaLessonVideo("2d-arrays", "S3mzLcQaDjE", { es: "arrays bidimensionales", de: "zweidimensionale Arrays" },
     ["2d", "bidimensional", "matriz", "grilla", "raster"], ["project-snake-arena"]),
   javaLessonVideo("strings", "FbgZuPNVQsU", { es: "Strings", de: "Strings" },
-    ["string", "texto", "cadena", "zeichen", "token"],
-    ["strings", "dfa", "grammar", "parser", "caesar", "project-safe-chat"]),
+    ["string", "texto", "cadena", "zeichen", "token"], ["strings"]),
   javaLessonVideo("inheritance", "xXDDVSjogs0", { es: "herencia", de: "Vererbung" },
     ["herencia", "extends", "vererbung"], ["inheritance"]),
   javaLessonVideo("overriding", "ud1i5uqOmg8", { es: "sobrescritura de métodos", de: "Methodenüberschreibung" },
@@ -2243,11 +2255,9 @@ const LESSON_VIDEO_CATALOG = [
   javaLessonVideo("interfaces", "GcqQDuFUqg8", { es: "interfaces", de: "Interfaces" },
     ["interface", "contrato", "schnittstelle"]),
   javaLessonVideo("lists", "crm0yaneCb0", { es: "listas", de: "Listen" },
-    ["list", "arraylist", "lista", "coleccion", "sammlung"],
-    ["list", "sql", "stream-filter", "leaderboard-sort"]),
+    ["list", "arraylist", "lista", "coleccion", "sammlung"], ["list"]),
   javaLessonVideo("stacks-queues", "a4EpC1Kmb7I", { es: "pilas y colas", de: "Stacks und Queues" },
-    ["stack", "queue", "pila", "cola", "lifo", "fifo", "deque"],
-    ["stack", "queue", "graph-bfs", "project-school-library"]),
+    ["stack", "queue", "pila", "cola", "lifo", "fifo", "deque"], ["stack", "queue"]),
   javaLessonVideo("sets", "gj1zWiXG6hY", { es: "conjuntos", de: "Sets" },
     ["set", "conjunto", "visited"]),
   javaLessonVideo("hashmap", "sNrT2hbilsk", { es: "HashMap", de: "HashMap" },
@@ -2262,38 +2272,21 @@ const LESSON_VIDEO_CATALOG = [
     ["test", "prueba", "caso limite", "grenzfall"], ["tests-thinking"]),
   javaLessonVideo("linked-list", "jZYVp84RgRE", { es: "ArrayList vs. LinkedList", de: "ArrayList vs. LinkedList" },
     ["linkedlist", "linked-list", "lista enlazada"], ["linked-list"]),
+  germanLessonVideo("debugger", "ipUAR3r7PQM", { es: "depuración con Eclipse", de: "Debugging mit Eclipse" }, ["debug"], "Boris Gedat"),
+  germanLessonVideo("graph-bfs", "hR4s2W7Dsss", { es: "búsqueda en anchura", de: "Graphen-Breitensuche" }, ["graph-bfs"], "Tutorial City"),
+  germanLessonVideo("dfa", "ztK5O0hT17s", { es: "autómatas finitos deterministas", de: "Deterministische endliche Automaten" }, ["dfa"], "Informatik – simpleclub"),
+  germanLessonVideo("sql", "phdWpI5VUWk", { es: "consultas SQL", de: "SQL-Abfragen" }, ["sql"], "Informatik – simpleclub"),
+  germanLessonVideo("normalization", "aCXKT4ycAbQ", { es: "normalización de bases de datos", de: "Datenbanknormalisierung" }, ["normalization"], "Patrick Boekhoven"),
+  germanLessonVideo("caesar", "nxtunxsnJvY", { es: "cifrado César", de: "Caesar-Verschlüsselung" }, ["caesar"], "Daheim bei Heim"),
 ];
-
-const LESSON_VIDEO_BY_KEY = Object.fromEntries(
-  LESSON_VIDEO_CATALOG.map((video) => [video.key, video]),
-);
-
-const LESSON_VIDEO_FIELD_FALLBACK = {
-  data: "classes-objects",
-  algorithms: "methods",
-  formal: "strings",
-  systems: "multithreading",
-  society: "access",
-};
-
-let lessonVideoTimer = 0;
 
 function getLessonVideo(mission) {
   if (!mission) return null;
-  const directMatch = LESSON_VIDEO_CATALOG.find((video) => video.missionIds.includes(mission.id));
-  const text = `${mission.id} ${mission.field || ""} ${Object.values(mission.text || {})
-    .map((copy) => `${copy.title} ${copy.objective} ${copy.prompt} ${copy.concept}`)
-    .join(" ")}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const conceptMatch = LESSON_VIDEO_CATALOG
-    .map((video) => ({
-      video,
-      score: video.terms.reduce((score, term) => score + (text.includes(term) ? term.length : 0), 0),
-    }))
-    .sort((left, right) => right.score - left.score)[0];
-  const video = directMatch
-    || (conceptMatch?.score > 0 ? conceptMatch.video : null)
-    || LESSON_VIDEO_BY_KEY[LESSON_VIDEO_FIELD_FALLBACK[mission.field]]
-    || LESSON_VIDEO_BY_KEY.methods;
+  // Solo se muestran videos verificados por su misión exacta. No hay fallback
+  // curricular: un video de Java cercano no explica automáticamente grafos,
+  // gramáticas o privacidad.
+  const video = LESSON_VIDEO_CATALOG.find((entry) => entry.missionIds.includes(mission.id));
+  if (!video) return null;
   const concept = getMissionText(mission).concept;
   return {
     ...video,
@@ -2306,7 +2299,14 @@ function getLessonVideo(mission) {
 
 function renderLessonVideo(mission = missions[state.current]) {
   const video = getLessonVideo(mission);
-  if (!elements.lessonVideo || !video) return;
+  if (!elements.lessonVideo || !elements.lessonVideoCard) return;
+  if (!video) {
+    elements.lessonVideo.src = "about:blank";
+    delete elements.lessonVideo.dataset.embedUrl;
+    elements.lessonVideoCard.hidden = true;
+    return;
+  }
+  elements.lessonVideoCard.hidden = false;
   const params = new URLSearchParams({
     rel: "0",
     modestbranding: "1",
@@ -2315,16 +2315,13 @@ function renderLessonVideo(mission = missions[state.current]) {
   if (video.start) params.set("start", String(video.start));
   if (video.playlist) params.set("list", video.playlist);
   const embedUrl = `https://www.youtube-nocookie.com/embed/${video.id}?${params.toString()}`;
-  window.clearTimeout(lessonVideoTimer);
   elements.lessonVideo.src = "about:blank";
+  elements.lessonVideo.dataset.embedUrl = embedUrl;
   elements.lessonVideo.hidden = true;
   elements.lessonVideoPreview.hidden = false;
   elements.lessonVideoThumbnail.src = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
   elements.lessonVideoThumbnail.alt = `${video.title[state.language]} · ${getMissionText(mission).title}`;
   elements.lessonVideoPreview.setAttribute("aria-label", `${t("lessonVideoPlay")}: ${video.title[state.language]}`);
-  lessonVideoTimer = window.setTimeout(() => {
-    elements.lessonVideo.src = embedUrl;
-  }, 0);
   elements.lessonVideo.title = `${video.title[state.language]} · ${getMissionText(mission).title}`;
   elements.lessonVideoIntro.textContent = video.description[state.language];
   elements.lessonVideoExternal.href = video.url;
@@ -2333,6 +2330,10 @@ function renderLessonVideo(mission = missions[state.current]) {
 
 function playLessonVideo() {
   if (!elements.lessonVideo || !elements.lessonVideoPreview) return;
+  const embedUrl = elements.lessonVideo.dataset.embedUrl;
+  if (!embedUrl) return;
+  // La asignación es sincrónica para que el clic nunca revele un iframe vacío.
+  elements.lessonVideo.src = embedUrl;
   elements.lessonVideo.hidden = false;
   elements.lessonVideoPreview.hidden = true;
 }

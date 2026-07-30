@@ -59,7 +59,7 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - Los contenidos no-Java se trabajan como simulaciones, modelos, cadenas o comentarios Java; no se finge una base de datos, red, CPU o autómata real.
 - Popup de completado para Live Templates y términos contextuales, accesible como `listbox`.
 - Diagnósticos locales con debounce para pares, strings/comentarios, mezcla de tabs/espacios, indentación por llaves y puntos y coma simples.
-- **Preparación y debugging visibles:** cada misión muestra una previsualización de video Java elegida por su tema; el icono de escarabajo de la barra superior lleva directamente a los diagnósticos. El acceso es accesible, bilingüe y se reorganiza en dos filas en pantallas de 320 px para evitar desborde.
+- **Preparación y debugging visibles:** los videos se asignan únicamente cuando hay una correspondencia temática explícita y verificada; los temas sin recurso alemán adecuado no muestran video. El botón de escarabajo abre una checklist persistente directamente en la barra superior.
 - Formateador de indentación a cuatro espacios.
 - Progreso local con XP, intentos, aciertos, pistas, soluciones, competencias, campos y una estimación de dominio cuya fórmula se muestra en pantalla.
 - **Mentor adaptivo:** recomienda la siguiente práctica según progreso, intentos fallidos, pistas usadas y proyecto activo; la recomendación es accionable con un botón.
@@ -91,11 +91,13 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 | `Ctrl/Cmd + ←/→` | Misión anterior/siguiente disponible |
 | `Escape` | Cerrar popup/feedback, salir de enfoque o volver al editor |
 
-## Preparación y diagnóstico
+## Preparación, diagnóstico y apariencia
 
-Antes de resolver una misión, la tarjeta de preparación muestra un video de Java asociado al concepto de esa ruta. La miniatura se carga primero y el reproductor se activa solamente al pulsarla; así la página no depende de cargar iframes externos durante el primer render.
+Antes de resolver una misión, la tarjeta de preparación muestra solo un video en alemán cuya misión está asignada de forma explícita. Al pulsar **«Vorbereitung abspielen»** o la previsualización, el reproductor se abre de inmediato; la miniatura se carga primero para no depender de iframes externos durante el primer render. Cuando no existe un recurso alemán verificado para el tema, la tarjeta se oculta en lugar de mostrar un video aproximado.
 
-El icono de escarabajo en la barra superior es un enlace directo a **Diagnósticos e indentación**. Allí se listan los avisos heurísticos de la misión actual. En el editor, los errores aparecen subrayados y al pasar el cursor sobre la línea se muestra una explicación. Estos avisos orientan el aprendizaje: la validación definitiva, cuando está disponible, la realiza `javac` mediante F5.
+El botón **Bugs** despliega una checklist persistente junto a la navegación: escribí un cambio y pulsá `Enter` para crear otra casilla. En el editor, los errores aparecen subrayados y al pasar el cursor sobre la línea se muestra una explicación. Estos avisos orientan el aprendizaje: la validación definitiva, cuando está disponible, la realiza `javac` mediante F5.
+
+La interfaz usa una capa visual inspirada en **liquid glass**: superficies translúcidas, profundidad suave, reflejos controlados y estados de interacción precisos, conservando contraste, foco de teclado, modo oscuro y `prefers-reduced-motion`.
 
 ## Documentación contextual
 
@@ -110,8 +112,8 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 ## Arquitectura
 
 - `index.html`: shell SPA y semántica accesible.
-- `styles.css`: tokens visuales, temas, layouts responsive, acceso de debugging, editor, popup, diagnósticos y progreso.
-- `game.js`: catálogo curricular y de videos temáticos, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
+- `styles.css`: tokens visuales, temas liquid-glass, layouts responsive, acceso de debugging, editor, popup, diagnósticos y progreso.
+- `game.js`: catálogo curricular y de videos alemanes verificados por misión, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
 - `js/java-evaluators.js`: contratos conductuales sobre stdout real; soporta inclusión compatible (`stdoutIncludes`) e igualdad normalizada (`stdoutEquals`).
 - `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en temporal, ejecuta snippets/clases con límites y devuelve diagnósticos/salida JSON.
 - `api/auth.php`: registro, login, logout, sesiones y roles student/teacher/admin.
@@ -121,7 +123,7 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `api/bootstrap.php`: PDO, sesión HttpOnly/SameSite, respuestas JSON y protección CSRF.
 - `database/schema.sql`: esquema MySQL para usuarios, clases, miembros y progreso.
 - `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
-- `tests/java-werkstatt.spec.js`: 25 pruebas Playwright de UI, videos temáticos, diagnósticos, API, modo libre, overflow a 390/320 px, foco, migración v2→v3, proyectos, Compile Rail, stdout exacto y contratos positivos/adversariales.
+- `tests/java-werkstatt.spec.js`: 27 pruebas Playwright de UI, videos temáticos verificados, checklist, diagnósticos, API, modo libre, overflow a 390/320 px, foco, migración v2→v3, proyectos, Compile Rail, stdout exacto y contratos positivos/adversariales.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
 - `tools/xampp-smoke.mjs`: smoke test para la instancia XAMPP real; comprueba assets versionados, dashboard/mentor/HUD y compilación por API.
 - `docs/architecture-roadmap.md`: plan de modularización sin romper XAMPP ni exigir build.
@@ -152,7 +154,7 @@ npm run test:xampp
 npm run test:e2e
 ```
 
-`test:e2e` cubre 25 contratos de producto. Incluye los videos temáticos, el tooltip de diagnósticos y la ausencia de overflow a 390/320 px. El contrato oficial obtiene los 49 casos desde una API encapsulada que solo existe bajo `?e2e=1`, exige una regla para las misiones ejecutables, prueba salidas incorrectas y compila en paralelo con concurrencia limitada. Los cinco cheats verificados de capstone también deben ser rechazados. Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`. En Docker XAMPP usá `tools/install-xampp-jdk.sh xampp-php`.
+`test:e2e` cubre 27 contratos de producto. Incluye la selección estricta de videos temáticos, la checklist de Bugs, el tooltip de diagnósticos y la ausencia de overflow a 390/320 px. El contrato oficial obtiene los 49 casos desde una API encapsulada que solo existe bajo `?e2e=1`, exige una regla para las misiones ejecutables, prueba salidas incorrectas y compila en paralelo con concurrencia limitada. Los cinco cheats verificados de capstone también deben ser rechazados. Los tests requieren PHP y un JDK con `javac` disponible en `PATH`. También podés definir `JAVAC_BIN=/ruta/a/javac`. En Docker XAMPP usá `tools/install-xampp-jdk.sh xampp-php`.
 
 `test:xampp` espera por defecto `http://127.0.0.1/java-werkstatt/`. Podés cambiarlo con:
 
