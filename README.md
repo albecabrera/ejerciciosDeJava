@@ -97,7 +97,7 @@ Antes de resolver una misión, la tarjeta de preparación muestra solo un video 
 
 El botón **Bugs** despliega una checklist persistente junto a la navegación: escribí un cambio y pulsá `Enter` para crear otra casilla. En el editor, los errores aparecen subrayados y al pasar el cursor sobre la línea se muestra una explicación. Estos avisos orientan el aprendizaje: la validación definitiva, cuando está disponible, la realiza `javac` mediante F5.
 
-La interfaz usa una capa visual inspirada en **liquid glass**: superficies translúcidas, profundidad suave, reflejos controlados y estados de interacción precisos, conservando contraste, foco de teclado, modo oscuro y `prefers-reduced-motion`.
+La interfaz adopta un **workspace inspirado en IntelliJ IDEA**: la aplicación y el editor comparten la misma familia cromática, los paneles tienen separación clara y las acciones usan un único azul de selección. Los modos claro y oscuro conservan contraste, foco de teclado y `prefers-reduced-motion`.
 
 ## Documentación contextual
 
@@ -112,7 +112,7 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 ## Arquitectura
 
 - `index.html`: shell SPA y semántica accesible.
-- `styles.css`: tokens visuales, temas liquid-glass, layouts responsive, acceso de debugging, editor, popup, diagnósticos y progreso.
+- `styles.css`: tokens visuales IntelliJ-style, esquemas coordinados con el editor, layouts responsive, acceso de debugging, popup, diagnósticos y progreso.
 - `game.js`: catálogo curricular y de videos alemanes verificados por misión, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
 - `js/java-evaluators.js`: contratos conductuales sobre stdout real; soporta inclusión compatible (`stdoutIncludes`) e igualdad normalizada (`stdoutEquals`).
 - `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en temporal, ejecuta snippets/clases con límites y devuelve diagnósticos/salida JSON.

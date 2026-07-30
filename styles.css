@@ -3536,3 +3536,689 @@ body {
     transform: none;
   }
 }
+
+/* IntelliJ Workspace
+   The app shell and the editor now share one restrained IDE color system. */
+:root {
+  --ink: #27282e;
+  --paper: #f7f8fa;
+  --paper-deep: #e8eaed;
+  --panel: #ffffff;
+  --panel-soft: #f0f1f3;
+  --panel-hover: #e8eef9;
+  --header-bg: #ffffff;
+  --rail-bg: #f3f4f6;
+  --java-blue: #315fbb;
+  --java-deep: #27282e;
+  --copper: #315fbb;
+  --copper-soft: #d4e2ff;
+  --copper-ink: #244a94;
+  --mint: #3d7d47;
+  --warning: #9a5b13;
+  --error: #c83c3c;
+  --muted: #6c707e;
+  --muted-strong: #4e515a;
+  --line: #d8dadd;
+  --active-line: #8aa9e8;
+  --code: #ffffff;
+  --code-panel: #f0f1f3;
+  --code-row: #ffffff;
+  --code-line: #d8dadd;
+  --code-muted: #777b86;
+  --code-text: #27282e;
+  --feedback-bg: #fff1f0;
+  --feedback-line: #e7a3a0;
+  --feedback-ink: #9e2929;
+  --success-bg: #eef8ef;
+  --success-line: #9ec9a4;
+  --success-ink: #326b3b;
+  --hint-bg: #fff6df;
+  --hint-line: #dbb872;
+  --hint-ink: #76500e;
+  --grid-line: transparent;
+  --button-ink: #ffffff;
+  --glass-surface: #ffffff;
+  --glass-strong: #ffffff;
+  --glass-line: #d8dadd;
+  --glass-shadow: none;
+  --glass-highlight: transparent;
+  --shadow: 0 8px 24px rgba(30, 31, 34, 0.08);
+  --shadow-soft: 0 2px 8px rgba(30, 31, 34, 0.06);
+  --radius: 8px;
+  --sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+:root[data-theme="dark"] {
+  --ink: #dfe1e5;
+  --paper: #1e1f22;
+  --paper-deep: #2b2d30;
+  --panel: #2b2d30;
+  --panel-soft: #25262a;
+  --panel-hover: #33363d;
+  --header-bg: #2b2d30;
+  --rail-bg: #25262a;
+  --java-blue: #6ea1ff;
+  --java-deep: #dfe1e5;
+  --copper: #6ea1ff;
+  --copper-soft: #2e436e;
+  --copper-ink: #a8c7ff;
+  --mint: #73bd79;
+  --warning: #d9a343;
+  --error: #f16d6d;
+  --muted: #9da0a8;
+  --muted-strong: #c4c6cc;
+  --line: #393b40;
+  --active-line: #547fcb;
+  --code: #1e1f22;
+  --code-panel: #2b2d30;
+  --code-row: #1e1f22;
+  --code-line: #393b40;
+  --code-muted: #8c9099;
+  --code-text: #dfe1e5;
+  --feedback-bg: #3b2729;
+  --feedback-line: #7d4145;
+  --feedback-ink: #ff9b9b;
+  --success-bg: #26372a;
+  --success-line: #426b49;
+  --success-ink: #8fd398;
+  --hint-bg: #3b3323;
+  --hint-line: #705d35;
+  --hint-ink: #e6c574;
+  --button-ink: #ffffff;
+  --glass-surface: #2b2d30;
+  --glass-strong: #2b2d30;
+  --glass-line: #393b40;
+  --glass-shadow: none;
+  --glass-highlight: transparent;
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+  --shadow-soft: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+body,
+:root[data-theme="dark"] body {
+  background: var(--paper);
+}
+
+.site-header {
+  min-height: 58px;
+  top: 0;
+  padding: 0.5rem clamp(0.75rem, 2.4vw, 2rem);
+  border-color: var(--line);
+  background: var(--header-bg);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.brand {
+  gap: 0.65rem;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border: 1px solid color-mix(in srgb, var(--java-blue) 55%, var(--line));
+  border-radius: 6px;
+  background: var(--java-blue);
+  color: #ffffff;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16);
+  font-size: 0.88rem;
+}
+
+.brand strong {
+  font-size: 0.88rem;
+}
+
+.brand small {
+  font-size: 0.68rem;
+}
+
+.header-tools {
+  gap: 0.45rem;
+}
+
+.language-switch,
+.theme-toggle,
+.teacher-toggle,
+.debug-toggle,
+.xp-display,
+.auth-trigger {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.language-switch {
+  padding: 2px;
+}
+
+.language-button {
+  width: 34px;
+  height: 28px;
+  border-radius: 4px;
+}
+
+.language-button[aria-pressed="true"] {
+  background: var(--copper-soft);
+  color: var(--copper-ink);
+}
+
+.theme-toggle,
+.teacher-toggle,
+.debug-toggle {
+  padding: 0.38rem 0.6rem;
+}
+
+.theme-toggle-icon {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.xp-display {
+  min-width: 70px;
+  padding: 0.42rem 0.55rem;
+  color: var(--muted-strong);
+}
+
+.debug-toggle[aria-expanded="true"] {
+  border-color: var(--active-line);
+  background: var(--copper-soft);
+  color: var(--copper-ink);
+  box-shadow: none;
+}
+
+.theme-toggle:hover,
+.teacher-toggle:hover,
+.debug-toggle:hover,
+.language-button:hover,
+.auth-trigger:hover {
+  border-color: var(--active-line);
+  background: var(--panel-hover);
+  color: var(--ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.learning-command {
+  width: min(1440px, 100%);
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.7fr);
+  gap: 1rem;
+  padding: 1rem clamp(0.75rem, 2.4vw, 2rem);
+  border-color: var(--line);
+  background: var(--panel-soft);
+}
+
+.command-copy h2 {
+  max-width: 18ch;
+  color: var(--ink);
+  font-size: clamp(1.55rem, 2.3vw, 2.45rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.command-copy p:not(.eyebrow) {
+  margin-top: 0.55rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.command-grid {
+  grid-template-columns: minmax(210px, 1.2fr) repeat(2, minmax(140px, 0.8fr));
+  gap: 0.55rem;
+}
+
+.command-card,
+.project-gallery-card,
+.learning-command,
+.lesson-video-card,
+.docs-card,
+.project-context,
+.compile-rail,
+.diagnostics-card,
+.progress-card,
+.teacher-panel,
+.mentor-card,
+.bug-checklist-popover,
+.auth-panel {
+  border-color: var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.command-card,
+.project-gallery-card {
+  border-radius: 7px;
+}
+
+.command-card {
+  gap: 0.3rem;
+  padding: 0.75rem;
+}
+
+.command-card-primary,
+.project-gallery-card.is-active {
+  border-color: var(--active-line);
+  background: color-mix(in srgb, var(--copper-soft) 38%, var(--panel));
+  box-shadow: inset 3px 0 var(--java-blue);
+}
+
+.command-card span,
+.project-gallery-card span,
+.eyebrow,
+.brief-label,
+.workbench-hud b {
+  color: var(--java-blue);
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+}
+
+.command-card strong,
+.project-gallery-card strong,
+.workbench-hud strong,
+.lesson-video-heading h3,
+.docs-heading h3,
+.project-context h3,
+.compile-rail-heading h3,
+.mentor-card h4 {
+  color: var(--ink);
+}
+
+.project-gallery {
+  gap: 0.45rem;
+}
+
+.project-gallery-card {
+  gap: 0.55rem;
+  padding: 0.65rem;
+}
+
+.command-card:hover,
+.project-gallery-card:hover,
+.docs-links a:hover,
+.mission-list button:hover:not(:disabled),
+.project-steps button:hover:not(:disabled) {
+  border-color: var(--active-line);
+  background: var(--panel-hover);
+  box-shadow: none;
+  transform: none;
+}
+
+.workspace {
+  min-height: calc(100vh - 58px);
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  background: var(--paper);
+}
+
+.mission-rail {
+  top: 58px;
+  max-height: calc(100vh - 58px);
+  padding: 1.1rem 0.8rem;
+  border-color: var(--line);
+  background: var(--rail-bg);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.rail-heading {
+  padding: 0 0.45rem;
+}
+
+.rail-heading h1 {
+  max-width: none;
+  color: var(--ink);
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  letter-spacing: -0.03em;
+}
+
+.project-navigator {
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.project-navigator::after,
+.mission-header::before {
+  display: none;
+}
+
+.project-steps,
+.mission-list {
+  gap: 2px;
+}
+
+.project-steps button,
+.mission-list button {
+  border-color: transparent;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.project-steps button[aria-current="step"],
+.mission-list button[aria-current="step"] {
+  border-color: color-mix(in srgb, var(--active-line) 55%, transparent);
+  background: var(--copper-soft);
+  color: var(--copper-ink);
+  box-shadow: inset 3px 0 var(--java-blue);
+}
+
+.lab {
+  width: min(1080px, 100%);
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+.mission-header {
+  gap: 1.25rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.mission-header h2 {
+  margin-top: 0.5rem;
+  color: var(--ink);
+  font-size: clamp(1.75rem, 3.7vw, 2.7rem);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+}
+
+.mission-meta,
+.concept-line {
+  font-family: var(--mono);
+}
+
+.progress-orbit {
+  color: var(--ink);
+  background: transparent;
+  box-shadow: none;
+}
+
+.orbit-track {
+  stroke: var(--line);
+}
+
+.orbit-value {
+  stroke: var(--java-blue);
+}
+
+.brief {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--java-blue);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.workbench-hud {
+  gap: 2px;
+  margin-top: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.workbench-hud span {
+  border: 0;
+  border-radius: 0;
+  background: var(--panel);
+}
+
+.mentor-card {
+  border-left: 3px solid var(--mint);
+  background: var(--panel);
+}
+
+.lesson-video-card,
+.docs-card,
+.project-context,
+.compile-rail,
+.diagnostics-card,
+.progress-card,
+.teacher-panel {
+  padding: 0.9rem;
+}
+
+.lesson-video-frame {
+  border-radius: 6px;
+  background: var(--code);
+}
+
+.lesson-video-preview::after {
+  background: linear-gradient(180deg, rgba(30, 31, 34, 0.06), rgba(30, 31, 34, 0.74));
+}
+
+.lesson-video-play {
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 7px;
+  background: var(--java-blue);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+.lesson-video-badge,
+.docs-badge {
+  border-color: var(--line);
+  border-radius: 4px;
+  background: var(--panel-soft);
+  color: var(--muted-strong);
+}
+
+.docs-links {
+  gap: 0.35rem;
+}
+
+.docs-links a {
+  border-radius: 5px;
+  background: var(--panel-soft);
+}
+
+.project-context {
+  border-left: 3px solid var(--java-blue);
+}
+
+.compile-rail {
+  background: var(--panel);
+}
+
+.compile-rail-steps li[data-state="active"],
+.compile-rail-steps li[data-state="requested"] {
+  border-color: var(--java-blue);
+  color: var(--java-blue);
+}
+
+.editor-toolbar {
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.editor-tool-button,
+.button,
+.project-continue-button,
+.free-practice-toggle {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0.4rem 0.65rem;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: none;
+  font-size: 0.72rem;
+}
+
+.editor-tool-button-primary,
+.button-primary,
+.project-continue-button {
+  border-color: #315fbb;
+  background: #315fbb;
+  color: #ffffff;
+}
+
+.button:hover:not(:disabled),
+.editor-tool-button:hover,
+.project-continue-button:hover,
+.free-practice-toggle:hover {
+  border-color: var(--active-line);
+  background: var(--panel-hover);
+  color: var(--ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.button-primary:hover:not(:disabled),
+.editor-tool-button-primary:hover,
+.project-continue-button:hover {
+  border-color: #244a94;
+  background: #244a94;
+  color: #ffffff;
+}
+
+.ide-shell {
+  border-radius: 7px;
+  background: var(--code);
+  box-shadow: var(--shadow);
+}
+
+.ide-bar {
+  min-height: 36px;
+  border-bottom-color: var(--code-line);
+  background: var(--code-panel);
+  box-shadow: inset 0 -2px var(--java-blue);
+}
+
+.window-dots i,
+.window-dots i:first-child {
+  border-radius: 2px;
+  background: var(--code-muted);
+}
+
+.editor-row {
+  background: var(--code-row);
+}
+
+#editor {
+  caret-color: var(--java-blue);
+}
+
+#editor:focus-visible {
+  box-shadow: inset 3px 0 var(--java-blue);
+}
+
+.ide-status {
+  border-top: 1px solid var(--code-line);
+  background: var(--code-panel);
+}
+
+.bug-checklist-popover,
+.auth-panel {
+  border-radius: 7px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--java-blue);
+  outline-offset: 2px;
+}
+
+:root[data-theme="light"] .button-secondary,
+:root[data-theme="light"] .button-text,
+:root[data-theme="light"] .editor-tool-button,
+:root[data-theme="light"] .teacher-toggle,
+:root[data-theme="light"] .theme-toggle,
+:root[data-theme="light"] input,
+:root[data-theme="light"] select,
+:root[data-theme="dark"] .button-secondary,
+:root[data-theme="dark"] .button-text,
+:root[data-theme="dark"] .editor-tool-button,
+:root[data-theme="dark"] .teacher-toggle,
+:root[data-theme="dark"] .theme-toggle,
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select {
+  border-color: var(--line);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .docs-links a,
+:root[data-theme="dark"] .project-gallery-card .button,
+:root[data-theme="dark"] .command-card .button {
+  border-color: var(--line);
+  background: var(--panel-soft);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .command-card-primary,
+:root[data-theme="dark"] .project-gallery-card.is-active,
+:root[data-theme="dark"] .project-steps button[aria-current="step"],
+:root[data-theme="dark"] .mission-list button[aria-current="step"] {
+  border-color: var(--active-line);
+  background: var(--copper-soft);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] #projectGallery .button,
+:root[data-theme="dark"] #docsLinks a {
+  border-color: #393b40;
+  background-color: #25262a;
+  background-image: none;
+  color: #dfe1e5;
+}
+
+:root[data-theme="dark"] #missionList button[aria-current="step"],
+:root[data-theme="dark"] #projectSteps button[aria-current="step"] {
+  border-color: #547fcb;
+  background-color: #2e436e;
+  background-image: none;
+  color: #dfe1e5;
+}
+
+@media (max-width: 760px) {
+  .learning-command {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .command-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace,
+  .workspace.is-sidebar-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-gallery {
+    grid-column: auto;
+  }
+
+  .site-header {
+    min-height: 58px;
+  }
+
+  .mission-rail {
+    top: 0;
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-card,
+  .project-gallery-card,
+  .mission-list button,
+  .project-steps button,
+  .editor-tool-button,
+  .button {
+    transition: none;
+  }
+}
