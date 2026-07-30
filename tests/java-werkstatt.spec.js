@@ -96,12 +96,14 @@ test("shows only a topic-verified German preparatory video", async ({ page }) =>
   await expect(video).toBeVisible();
   await expect(page.locator(".lesson-video-card")).toBeVisible();
   await expect(video).toHaveAttribute("src", /C8hLep5UfYg/);
+  await expect(video).toHaveAttribute("src", /autoplay=1/);
   await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
   await page.locator('#missionList button[data-mission-id="debug"]').click();
   await expect(page.locator("#lessonVideoCard")).toBeVisible();
   await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /ipUAR3r7PQM/);
   await page.locator("#lessonVideoPreview").click();
   await expect(video).toHaveAttribute("src", /ipUAR3r7PQM/);
+  await expect(video).toHaveAttribute("src", /autoplay=1/);
   await page.locator('#missionList button[data-mission-id="graph-bfs"]').click();
   await expect(page.locator("#lessonVideoCard")).toBeVisible();
   await expect(page.locator("#lessonVideoThumbnail")).toHaveAttribute("src", /hR4s2W7Dsss/);

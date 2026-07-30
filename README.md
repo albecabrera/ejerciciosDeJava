@@ -93,7 +93,7 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 
 ## Preparación, diagnóstico y apariencia
 
-Antes de resolver una misión, la tarjeta de preparación muestra solo un video en alemán cuya misión está asignada de forma explícita. Al pulsar **«Vorbereitung abspielen»** o la previsualización, el reproductor se abre de inmediato; la miniatura se carga primero para no depender de iframes externos durante el primer render. Cuando no existe un recurso alemán verificado para el tema, la tarjeta se oculta en lugar de mostrar un video aproximado.
+Antes de resolver una misión, la tarjeta de preparación muestra solo un video en alemán cuya misión está asignada de forma explícita. Al pulsar una sola vez **«Vorbereitung abspielen»** o la previsualización, el reproductor se abre y comienza; la miniatura se carga primero para no depender de iframes externos durante el primer render. Cuando no existe un recurso alemán verificado para el tema, la tarjeta se oculta en lugar de mostrar un video aproximado.
 
 El botón **Bugs** despliega una checklist persistente junto a la navegación: escribí un cambio y pulsá `Enter` para crear otra casilla. En el editor, los errores aparecen subrayados y al pasar el cursor sobre la línea se muestra una explicación. Estos avisos orientan el aprendizaje: la validación definitiva, cuando está disponible, la realiza `javac` mediante F5.
 

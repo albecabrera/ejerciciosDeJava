@@ -2308,6 +2308,7 @@ function renderLessonVideo(mission = missions[state.current]) {
   }
   elements.lessonVideoCard.hidden = false;
   const params = new URLSearchParams({
+    autoplay: "1",
     rel: "0",
     modestbranding: "1",
     playsinline: "1",
@@ -2332,7 +2333,8 @@ function playLessonVideo() {
   if (!elements.lessonVideo || !elements.lessonVideoPreview) return;
   const embedUrl = elements.lessonVideo.dataset.embedUrl;
   if (!embedUrl) return;
-  // La asignación es sincrónica para que el clic nunca revele un iframe vacío.
+  // El clic es el gesto del usuario que autoriza autoplay: mostramos y
+  // arrancamos el reproductor en una sola interacción.
   elements.lessonVideo.src = embedUrl;
   elements.lessonVideo.hidden = false;
   elements.lessonVideoPreview.hidden = true;
