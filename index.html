@@ -8,7 +8,7 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=32" />
+    <link rel="stylesheet" href="styles.css?v=33" />
   </head>
   <body>
     <a class="skip-link" href="#editor">Saltar al editor</a>
@@ -414,7 +414,12 @@
           </div>
 
           <div class="code-context" aria-label="Contexto del archivo">
-            <pre id="codeBefore"></pre>
+            <div id="codeBefore" class="readonly-code-lines"></div>
+          </div>
+
+          <div id="editorTaskLine" class="editor-task-line" role="note" aria-label="Consigna integrada en el editor">
+            <span id="editorTaskLineNumber" aria-hidden="true">1</span>
+            <code id="editorTaskComment"></code>
           </div>
 
           <div class="editor-row">
@@ -445,7 +450,7 @@
           </div>
 
           <div class="code-context code-context-after">
-            <pre id="codeAfter"></pre>
+            <div id="codeAfter" class="readonly-code-lines"></div>
           </div>
 
           <div class="ide-status">
@@ -482,6 +487,7 @@
               <button id="toolConsoleTab" type="button" role="tab" class="tool-tab" data-tool-tab="console" aria-selected="true" aria-controls="toolConsolePanel" data-i18n="toolConsole">Consola</button>
               <button id="toolProblemsTab" type="button" role="tab" class="tool-tab" data-tool-tab="problems" aria-selected="false" aria-controls="toolProblemsPanel" data-i18n="toolProblems">Problemas</button>
               <button id="toolProgressTab" type="button" role="tab" class="tool-tab" data-tool-tab="progress" aria-selected="false" aria-controls="toolProgressPanel" data-i18n="toolProgress">Progreso</button>
+              <button id="toolFeedbackTab" type="button" role="tab" class="tool-tab" data-tool-tab="feedback" aria-selected="false" aria-controls="toolFeedbackPanel" data-i18n="toolFeedback">Feedback</button>
             </div>
           </div>
 
@@ -537,6 +543,31 @@
           <div id="progressStats" class="progress-stats"></div>
           <div id="progressInsights" class="progress-insights"></div>
         </section>
+          </div>
+
+          <div id="toolFeedbackPanel" class="tool-panel" data-tool-panel="feedback" role="tabpanel" aria-labelledby="toolFeedbackTab" hidden>
+            <section class="mission-feedback" aria-labelledby="missionFeedbackTitle">
+              <div class="mission-feedback-heading">
+                <div>
+                  <p class="eyebrow" data-i18n="feedbackLabel">Comentarios de misión</p>
+                  <h3 id="missionFeedbackTitle" data-i18n="feedbackTitle">Feedback</h3>
+                </div>
+                <span class="feedback-storage-badge" data-i18n="feedbackLocalBadge">Guardado local</span>
+              </div>
+              <p class="heuristic-note" data-i18n="feedbackLocalNotice">Estos comentarios se guardan solo en este navegador; no están sincronizados con la nube.</p>
+              <form id="missionFeedbackForm" class="mission-feedback-form">
+                <label for="feedbackAuthor" data-i18n="feedbackAuthorLabel">Nombre</label>
+                <input id="feedbackAuthor" name="author" type="text" maxlength="80" required />
+                <label for="missionFeedbackMessage" data-i18n="feedbackMessageLabel">Comentario</label>
+                <textarea id="missionFeedbackMessage" name="message" rows="3" maxlength="1200" required></textarea>
+                <div class="mission-feedback-actions">
+                  <span id="feedbackReplyContext" role="status" aria-live="polite"></span>
+                  <button class="button button-primary button-compact" type="submit" data-i18n="feedbackSave">Guardar comentario</button>
+                  <button id="feedbackCancelReply" class="button button-text button-compact" type="button" data-i18n="feedbackCancelReply" hidden>Cancelar respuesta</button>
+                </div>
+              </form>
+              <ol id="missionFeedbackList" class="mission-feedback-list" aria-live="polite"></ol>
+            </section>
           </div>
         </section>
 
@@ -619,6 +650,6 @@
     </main>
 
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=32"></script>
+    <script src="game.js?v=33"></script>
   </body>
 </html>

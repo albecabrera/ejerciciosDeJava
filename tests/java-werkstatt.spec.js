@@ -313,6 +313,95 @@ test("keeps a focused IDE context close to the editor", async ({ page }) => {
   await expect(page.locator("#workbenchFile")).toHaveText("MensaTerminal.java");
 });
 
+test("renders a continuous visual Java scaffold without changing evaluated code", async ({ page }) => {
+  await expect(page.locator("#codeBefore")).toContainText("public class Profile");
+  await expect(page.locator("#editorTaskComment")).toContainText(/^\/\/ Tarea:/);
+  await expect(page.locator("#editor")).toHaveValue("");
+  await expect(page.locator("#codeAfter")).toContainText("}");
+
+  const lines = await page.evaluate(() => ({
+    before: [...document.querySelectorAll("#codeBefore .readonly-code-line > span")].map((node) => Number(node.textContent)),
+    task: Number(document.querySelector("#editorTaskLineNumber").textContent),
+    editable: [...document.querySelectorAll("#lineNumbers span")].map((node) => Number(node.textContent)),
+    after: [...document.querySelectorAll("#codeAfter .readonly-code-line > span")].map((node) => Number(node.textContent)),
+    evaluated: document.querySelector("#editor").value,
+  }));
+  expect([...lines.before, lines.task, ...lines.editable, ...lines.after]).toEqual([1, 2, 3, 4, 5, 6]);
+  expect(lines.evaluated).not.toContain("// Tarea");
+
+  await page.locator('.language-button[data-language="de"]').click();
+  await expect(page.locator("#editorTaskComment")).toContainText(/^\/\/ Aufgabe:/);
+});
+
+test("keeps the integrated task comment visual across every compile mode", async ({ page }) => {
+  await page.getByRole("button", { name: /practicar cualquier misión|jede mission frei üben/i }).click();
+  const ids = await page.evaluate(() => {
+    const contracts = window.__JAVA_WERKSTATT_E2E__.officialContracts();
+    return ["source", "snippet", "member"].map((mode) => contracts.find((entry) => entry.compileRequest.mode === mode).id);
+  });
+  for (const id of ids) {
+    await page.locator(`#missionList button[data-mission-id="${id}"]`).click();
+    await expect(page.locator("#editorTaskComment")).toContainText(/^\/\/ Tarea:/);
+    await expect(page.locator("#editor")).not.toContainText("// Tarea:");
+  }
+});
+
+test("saves, reloads and resolves local mission feedback", async ({ page }) => {
+  await page.getByRole("tab", { name: "Feedback" }).click();
+  await expect(page.locator("#toolFeedbackPanel")).toBeVisible();
+  await expect(page.locator("#toolFeedbackPanel")).toContainText(/solo en este navegador/i);
+  await page.locator("#feedbackAuthor").fill("Ada");
+  await page.locator("#missionFeedbackMessage").fill("Revisar el nombre de la variable.");
+  await page.locator("#missionFeedbackForm").getByRole("button", { name: /guardar comentario/i }).click();
+  const entry = page.locator(".mission-feedback-entry");
+  await expect(entry).toContainText("Ada");
+  await expect(entry).toContainText("Revisar el nombre");
+  await expect(entry).toContainText("Abierto");
+
+  await page.reload();
+  await page.getByRole("tab", { name: "Feedback" }).click();
+  await expect(page.locator(".mission-feedback-entry")).toContainText("Revisar el nombre");
+  await page.getByRole("button", { name: /marcar resuelto/i }).click();
+  await expect(page.locator(".feedback-status.is-resolved")).toHaveText("Resuelto");
+});
+
+test("enforces feedback role permissions and Atom One Dark editor tokens", async ({ page }) => {
+  const permissions = await page.evaluate(() => ({
+    student: window.__JAVA_WERKSTATT_E2E__.feedbackPermissions("student", false),
+    owner: window.__JAVA_WERKSTATT_E2E__.feedbackPermissions("student", true),
+    teacher: window.__JAVA_WERKSTATT_E2E__.feedbackPermissions("teacher", false),
+  }));
+  expect(permissions).toEqual({
+    student: { canReply: false, canResolve: false },
+    owner: { canReply: false, canResolve: true },
+    teacher: { canReply: true, canResolve: true },
+  });
+
+  await page.locator("#themeToggle").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const palette = await page.evaluate(() => {
+    const editor = getComputedStyle(document.querySelector("#editor"));
+    const gutter = getComputedStyle(document.querySelector("#lineNumbers"));
+    const task = getComputedStyle(document.querySelector("#editorTaskLine"));
+    return {
+      editorBackground: editor.backgroundColor,
+      editorColor: editor.color,
+      caret: editor.caretColor,
+      lineHeight: editor.lineHeight,
+      gutterBackground: gutter.backgroundColor,
+      taskColor: task.color,
+    };
+  });
+  expect(palette).toEqual({
+    editorBackground: "rgb(44, 50, 60)",
+    editorColor: "rgb(171, 178, 191)",
+    caret: "rgb(85, 126, 207)",
+    lineHeight: "18.368px",
+    gutterBackground: "rgb(48, 56, 69)",
+    taskColor: "rgb(152, 195, 121)",
+  });
+});
+
 test("shows adaptive mentor guidance based on learner state", async ({ page }) => {
   await page.getByRole("tab", { name: /progreso|fortschritt/i }).click();
   await expect(page.locator("#mentorAdvice")).toContainText(/empezá|beginne/i);

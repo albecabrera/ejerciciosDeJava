@@ -34,12 +34,14 @@ const html = await readText();
   "mentor-card",
   "49 misiones y 5 proyectos",
   "bugChecklistTitle",
-  "styles.css?v=32",
+  "editorTaskComment",
+  "toolFeedbackPanel",
+  "styles.css?v=33",
   "js/java-evaluators.js?v=3",
-  "game.js?v=32",
+  "game.js?v=33",
 ].forEach((needle) => assert(html.includes(needle), `missing ${needle}`));
 
-const css = await readText("styles.css?v=32");
+const css = await readText("styles.css?v=33");
 [
   "Focused Classroom",
   "Friendly entry point",
@@ -50,9 +52,11 @@ const css = await readText("styles.css?v=32");
   ".resource-center",
   ".tool-window",
   ".view-workspace .workbench-hud",
+  "Atom One Dark editor",
+  ".mission-feedback-entry",
 ].forEach((needle) => assert(css.includes(needle), `focused CSS missing ${needle}`));
 
-const game = await readText("game.js?v=32");
+const game = await readText("game.js?v=33");
 [
   "function setAppView",
   "function initOnboarding",
@@ -61,6 +65,8 @@ const game = await readText("game.js?v=32");
   "function activateToolTab",
   "commandProjectLockedAria",
   "resourceTutorialTab.hidden = true",
+  "function renderReadOnlyContext",
+  "function feedbackPermissions",
 ].forEach((needle) => assert(game.includes(needle), `focused JS missing ${needle}`));
 
 const coverResponse = await fetch(new URL("src/IMG_0198.JPG", baseUrl));
@@ -92,7 +98,7 @@ assert(/worker-no-network|docker-no-network|jvm-limited/.test(String(compile.san
 console.log(JSON.stringify({
   ok: true,
   baseUrl,
-  assets: { styles: "v32", evaluators: "v3", game: "v32", cover: "src/IMG_0198.JPG" },
+  assets: { styles: "v33", evaluators: "v3", game: "v33", cover: "src/IMG_0198.JPG" },
   compiler: compile.compiler,
   runtime: compile.runtime,
   sandbox: compile.sandbox,

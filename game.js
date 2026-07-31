@@ -78,6 +78,29 @@ const ui = {
     toolConsole: "Consola",
     toolProblems: "Problemas",
     toolProgress: "Progreso",
+    toolFeedback: "Feedback",
+    editorTaskAria: "Consigna integrada en el editor",
+    editorTaskPrefix: "Tarea",
+    feedbackLabel: "Comentarios de misión",
+    feedbackTitle: "Feedback",
+    feedbackLocalBadge: "Guardado local",
+    feedbackLocalNotice: "Estos comentarios se guardan solo en este navegador; no están sincronizados con la nube.",
+    feedbackAuthorLabel: "Nombre",
+    feedbackMessageLabel: "Comentario",
+    feedbackSave: "Guardar comentario",
+    feedbackCancelReply: "Cancelar respuesta",
+    feedbackEmpty: "Todavía no hay comentarios para esta misión.",
+    feedbackOpen: "Abierto",
+    feedbackResolved: "Resuelto",
+    feedbackResolve: "Marcar resuelto",
+    feedbackReopen: "Reabrir",
+    feedbackReply: "Responder",
+    feedbackReplying: "Respondiendo a {author}",
+    feedbackLocalAuthor: "Usuario local",
+    feedbackRoleLocal: "local",
+    feedbackRoleStudent: "estudiante",
+    feedbackRoleTeacher: "docente",
+    feedbackRoleAdmin: "administración",
     freePractice: "Practicar cualquier misión",
     freePracticeOn: "Modo libre activo",
     projectNavigatorLabel: "Proyecto actual",
@@ -337,6 +360,29 @@ const ui = {
     toolConsole: "Konsole",
     toolProblems: "Probleme",
     toolProgress: "Fortschritt",
+    toolFeedback: "Feedback",
+    editorTaskAria: "In den Editor integrierte Aufgabe",
+    editorTaskPrefix: "Aufgabe",
+    feedbackLabel: "Missionskommentare",
+    feedbackTitle: "Feedback",
+    feedbackLocalBadge: "Lokal gespeichert",
+    feedbackLocalNotice: "Diese Kommentare werden nur in diesem Browser gespeichert und nicht mit der Cloud synchronisiert.",
+    feedbackAuthorLabel: "Name",
+    feedbackMessageLabel: "Kommentar",
+    feedbackSave: "Kommentar speichern",
+    feedbackCancelReply: "Antwort abbrechen",
+    feedbackEmpty: "Für diese Mission gibt es noch keine Kommentare.",
+    feedbackOpen: "Offen",
+    feedbackResolved: "Erledigt",
+    feedbackResolve: "Als erledigt markieren",
+    feedbackReopen: "Wieder öffnen",
+    feedbackReply: "Antworten",
+    feedbackReplying: "Antwort an {author}",
+    feedbackLocalAuthor: "Lokaler Benutzer",
+    feedbackRoleLocal: "lokal",
+    feedbackRoleStudent: "Schüler/in",
+    feedbackRoleTeacher: "Lehrkraft",
+    feedbackRoleAdmin: "Administration",
     freePractice: "Jede Mission frei üben",
     freePracticeOn: "Freier Modus aktiv",
     projectNavigatorLabel: "Aktuelles Projekt",
@@ -2100,6 +2146,9 @@ const elements = {
   fileName: document.querySelector("#fileName"),
   codeBefore: document.querySelector("#codeBefore"),
   codeAfter: document.querySelector("#codeAfter"),
+  editorTaskLine: document.querySelector("#editorTaskLine"),
+  editorTaskLineNumber: document.querySelector("#editorTaskLineNumber"),
+  editorTaskComment: document.querySelector("#editorTaskComment"),
   editor: document.querySelector("#editor"),
   editorDiagnosticsOverlay: document.querySelector("#editorDiagnosticsOverlay"),
   editorErrorTooltip: document.querySelector("#editorErrorTooltip"),
@@ -2142,6 +2191,12 @@ const elements = {
   liveTemplateList: document.querySelector("#liveTemplateList"),
   consoleStatus: document.querySelector("#consoleStatus"),
   consoleOutput: document.querySelector("#consoleOutput"),
+  missionFeedbackForm: document.querySelector("#missionFeedbackForm"),
+  feedbackAuthor: document.querySelector("#feedbackAuthor"),
+  missionFeedbackMessage: document.querySelector("#missionFeedbackMessage"),
+  feedbackReplyContext: document.querySelector("#feedbackReplyContext"),
+  feedbackCancelReply: document.querySelector("#feedbackCancelReply"),
+  missionFeedbackList: document.querySelector("#missionFeedbackList"),
   teacherToggle: document.querySelector("#teacherToggle"),
   teacherPanel: document.querySelector("#teacherPanel"),
   teacherTitle: document.querySelector("#teacherTitle"),
@@ -2524,6 +2579,7 @@ function createDefaultState(language = "es") {
     attempts: {},
     correctAttempts: {},
     bugChecklist: [createBugChecklistItem()],
+    feedbackByMission: {},
     editorPrefs: {
       sidebarCollapsed: false,
       focusMode: false,
@@ -2560,6 +2616,31 @@ function sanitizeMissionMap(value, sanitize) {
     const sanitized = sanitize(value[mission.id], mission);
     return sanitized === undefined ? [] : [[mission.id, sanitized]];
   }));
+}
+
+function sanitizeFeedbackByMission(value) {
+  return sanitizeMissionMap(value, (entries) => {
+    if (!Array.isArray(entries)) return [];
+    return entries.slice(0, 100).flatMap((entry) => {
+      if (!entry || typeof entry !== "object") return [];
+      const message = typeof entry.message === "string" ? entry.message.trim().slice(0, 1200) : "";
+      if (!message) return [];
+      const role = ["local", "student", "teacher", "admin"].includes(entry.role) ? entry.role : "local";
+      const created = Date.parse(String(entry.createdAt));
+      return [{
+        id: typeof entry.id === "string" && /^feedback-[a-z0-9-]+$/i.test(entry.id)
+          ? entry.id
+          : `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        message,
+        author: typeof entry.author === "string" ? entry.author.trim().slice(0, 80) : "",
+        authorId: String(entry.authorId || "local").slice(0, 80),
+        role,
+        status: entry.status === "resolved" ? "resolved" : "open",
+        parentId: typeof entry.parentId === "string" ? entry.parentId.slice(0, 100) : "",
+        createdAt: Number.isFinite(created) ? new Date(created).toISOString() : new Date().toISOString(),
+      }];
+    });
+  });
 }
 
 function normalizeState(stored, options = {}) {
@@ -2639,6 +2720,7 @@ function normalizeState(stored, options = {}) {
     attempts,
     correctAttempts,
     bugChecklist: sanitizeBugChecklist(stored?.bugChecklist),
+    feedbackByMission: sanitizeFeedbackByMission(stored?.feedbackByMission),
     editorPrefs: {
       sidebarCollapsed: stored?.editorPrefs?.sidebarCollapsed === true,
       focusMode: stored?.editorPrefs?.focusMode === true,
@@ -3352,17 +3434,43 @@ function renderMissionList() {
   renderProjectNavigator();
 }
 
+let activeEditorLineStart = 1;
+let activeContextAfter = "";
+
+function renderReadOnlyContext(element, source, startLine) {
+  if (!element) return startLine;
+  const lines = source ? String(source).split("\n") : [];
+  element.parentElement.hidden = lines.length === 0;
+  element.replaceChildren(...lines.map((text, index) => {
+    const row = document.createElement("div");
+    row.className = "readonly-code-line";
+    const number = document.createElement("span");
+    number.setAttribute("aria-hidden", "true");
+    number.textContent = String(startLine + index);
+    const code = document.createElement("code");
+    code.textContent = text || " ";
+    row.append(number, code);
+    return row;
+  }));
+  return startLine + lines.length;
+}
+
 function updateLineNumbers(diagnosticLines = new Set()) {
   const lineCount = Math.max(elements.editor.value.split("\n").length, 1);
   elements.lineNumbers.replaceChildren(...Array.from({ length: lineCount }, (_, index) => {
     const line = document.createElement("span");
-    line.textContent = String(index + 1);
+    line.textContent = String(activeEditorLineStart + index);
     if (diagnosticLines.has(index + 1)) {
       line.className = `has-diagnostic diagnostic-${diagnosticLines.get?.(index + 1) || "warning"}`;
       line.dataset.severity = diagnosticLines.get?.(index + 1) || "warning";
     }
     return line;
   }));
+  renderReadOnlyContext(
+    elements.codeAfter,
+    activeContextAfter,
+    activeEditorLineStart + lineCount,
+  );
 }
 
 function hideMessages() {
@@ -3619,6 +3727,109 @@ function exportTeacherJson() {
   downloadFile("java-werkstatt-progreso.json", JSON.stringify({ exportedAt: new Date().toISOString(), rows: buildTeacherExport() }, null, 2), "application/json;charset=utf-8");
 }
 
+function feedbackActor() {
+  const user = cloudSession.user;
+  if (!user) {
+    return {
+      id: "local",
+      name: elements.feedbackAuthor?.value.trim() || t("feedbackLocalAuthor"),
+      role: "local",
+    };
+  }
+  return {
+    id: String(user.id || user.email || "session"),
+    name: user.name || user.email || t("feedbackLocalAuthor"),
+    role: ["teacher", "admin"].includes(user.role) ? user.role : "student",
+  };
+}
+
+function feedbackPermissions(role, isOwner = false) {
+  const elevated = role === "teacher" || role === "admin";
+  return {
+    canReply: elevated,
+    canResolve: elevated || isOwner,
+  };
+}
+
+function feedbackEntries(missionId = missions[state.current].id) {
+  return Array.isArray(state.feedbackByMission?.[missionId])
+    ? state.feedbackByMission[missionId]
+    : [];
+}
+
+function feedbackRoleLabel(role) {
+  const normalized = ["student", "teacher", "admin"].includes(role) ? role : "local";
+  return t(`feedbackRole${normalized[0].toUpperCase()}${normalized.slice(1)}`);
+}
+
+function renderMissionFeedback() {
+  if (!elements.missionFeedbackList) return;
+  const entries = feedbackEntries();
+  const actor = feedbackActor();
+  if (elements.feedbackAuthor && !elements.feedbackAuthor.matches(":focus")) {
+    elements.feedbackAuthor.value = actor.role === "local"
+      ? (elements.feedbackAuthor.value || t("feedbackLocalAuthor"))
+      : actor.name;
+    elements.feedbackAuthor.readOnly = actor.role !== "local";
+  }
+  elements.missionFeedbackList.replaceChildren();
+  if (!entries.length) {
+    const empty = document.createElement("li");
+    empty.className = "feedback-empty";
+    empty.textContent = t("feedbackEmpty");
+    elements.missionFeedbackList.append(empty);
+    return;
+  }
+  entries.forEach((entry) => {
+    const item = document.createElement("li");
+    item.className = `mission-feedback-entry${entry.parentId ? " is-reply" : ""}`;
+    item.dataset.feedbackId = entry.id;
+    const header = document.createElement("div");
+    header.className = "mission-feedback-meta";
+    const identity = document.createElement("strong");
+    identity.textContent = `${entry.author || t("feedbackLocalAuthor")} · ${feedbackRoleLabel(entry.role)}`;
+    const date = document.createElement("time");
+    date.dateTime = entry.createdAt;
+    date.textContent = new Intl.DateTimeFormat(state.language === "de" ? "de-DE" : "es-ES", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(entry.createdAt));
+    const status = document.createElement("span");
+    status.className = `feedback-status is-${entry.status}`;
+    status.textContent = t(entry.status === "resolved" ? "feedbackResolved" : "feedbackOpen");
+    header.append(identity, date, status);
+    const message = document.createElement("p");
+    message.textContent = entry.message;
+    const actions = document.createElement("div");
+    actions.className = "mission-feedback-entry-actions";
+    const permissions = feedbackPermissions(actor.role, actor.id === entry.authorId);
+    if (permissions.canReply && !entry.parentId) {
+      const reply = document.createElement("button");
+      reply.type = "button";
+      reply.className = "button button-text button-compact";
+      reply.dataset.feedbackAction = "reply";
+      reply.textContent = t("feedbackReply");
+      actions.append(reply);
+    }
+    if (permissions.canResolve) {
+      const resolve = document.createElement("button");
+      resolve.type = "button";
+      resolve.className = "button button-text button-compact";
+      resolve.dataset.feedbackAction = "toggle-status";
+      resolve.textContent = t(entry.status === "resolved" ? "feedbackReopen" : "feedbackResolve");
+      actions.append(resolve);
+    }
+    item.append(header, message, actions);
+    elements.missionFeedbackList.append(item);
+  });
+}
+
+function clearFeedbackReply() {
+  elements.missionFeedbackForm?.removeAttribute("data-parent-id");
+  if (elements.feedbackReplyContext) elements.feedbackReplyContext.textContent = "";
+  if (elements.feedbackCancelReply) elements.feedbackCancelReply.hidden = true;
+}
+
 function renderMission(options = {}) {
   const mission = missions[state.current];
   const text = getMissionText(mission);
@@ -3648,9 +3859,14 @@ function renderMission(options = {}) {
   renderLessonVideo(mission);
   renderDocumentation(mission);
   elements.fileName.textContent = mission.file;
-  elements.codeBefore.textContent = mission.contextBefore;
-  elements.codeAfter.textContent = mission.contextAfter;
+  const taskLine = renderReadOnlyContext(elements.codeBefore, mission.contextBefore, 1);
+  elements.editorTaskLineNumber.textContent = String(taskLine);
+  elements.editorTaskLine.setAttribute("aria-label", t("editorTaskAria"));
+  elements.editorTaskComment.textContent = `// ${t("editorTaskPrefix")}: ${text.prompt}`;
+  activeEditorLineStart = taskLine + 1;
+  activeContextAfter = mission.contextAfter;
   elements.editor.value = state.answers[mission.id] || "";
+  clearFeedbackReply();
   setEditorDiagnostics(mergeDiagnostics(analyzeCode(elements.editor.value)));
   setConsole(t("consoleReady"), t("consolePlaceholder"));
   elements.progressValue.textContent = `${completedCount}/${missions.length}`;
@@ -3667,6 +3883,7 @@ function renderMission(options = {}) {
   setEditorDiagnostics(mergeDiagnostics(analyzeCode(elements.editor.value)));
   scheduleDiagnostics();
   renderProgress();
+  renderMissionFeedback();
   hideMessages();
   setCompileRail("write");
 
@@ -4836,7 +5053,10 @@ elements.resourceTabs?.addEventListener("click", (event) => {
 
 elements.toolTabs?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-tool-tab]");
-  if (button) activateToolTab(button.dataset.toolTab);
+  if (button) {
+    activateToolTab(button.dataset.toolTab);
+    if (button.dataset.toolTab === "feedback") renderMissionFeedback();
+  }
 });
 
 elements.toolTabs?.addEventListener("keydown", (event) => {
@@ -4850,6 +5070,68 @@ elements.toolTabs?.addEventListener("keydown", (event) => {
       ? tabs.length - 1
       : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
   activateToolTab(tabs[next].dataset.toolTab, { focus: true });
+});
+
+elements.missionFeedbackForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const message = elements.missionFeedbackMessage.value.trim();
+  const author = elements.feedbackAuthor.value.trim();
+  if (!message || !author) return;
+  const missionId = missions[state.current].id;
+  const actor = feedbackActor();
+  actor.name = author.slice(0, 80);
+  const entries = feedbackEntries(missionId);
+  const entry = {
+    id: `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    message: message.slice(0, 1200),
+    author: actor.name,
+    authorId: actor.id,
+    role: actor.role,
+    status: "open",
+    parentId: elements.missionFeedbackForm.dataset.parentId || "",
+    createdAt: new Date().toISOString(),
+  };
+  state.feedbackByMission = {
+    ...state.feedbackByMission,
+    [missionId]: [...entries, entry].slice(-100),
+  };
+  elements.missionFeedbackMessage.value = "";
+  clearFeedbackReply();
+  saveState(false);
+  renderMissionFeedback();
+});
+
+elements.feedbackCancelReply?.addEventListener("click", clearFeedbackReply);
+
+elements.missionFeedbackList?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-feedback-action]");
+  const item = button?.closest("[data-feedback-id]");
+  if (!button || !item) return;
+  const missionId = missions[state.current].id;
+  const entries = feedbackEntries(missionId);
+  const index = entries.findIndex((entry) => entry.id === item.dataset.feedbackId);
+  if (index < 0) return;
+  const entry = entries[index];
+  const actor = feedbackActor();
+  const permissions = feedbackPermissions(actor.role, actor.id === entry.authorId);
+  if (button.dataset.feedbackAction === "reply" && permissions.canReply) {
+    elements.missionFeedbackForm.dataset.parentId = entry.id;
+    elements.feedbackReplyContext.textContent = interpolate(t("feedbackReplying"), {
+      author: entry.author || t("feedbackLocalAuthor"),
+    });
+    elements.feedbackCancelReply.hidden = false;
+    elements.missionFeedbackMessage.focus();
+    return;
+  }
+  if (button.dataset.feedbackAction === "toggle-status" && permissions.canResolve) {
+    entries[index] = {
+      ...entry,
+      status: entry.status === "resolved" ? "open" : "resolved",
+    };
+    state.feedbackByMission = { ...state.feedbackByMission, [missionId]: entries };
+    saveState(false);
+    renderMissionFeedback();
+  }
 });
 
 document.addEventListener("click", (event) => {
@@ -5129,6 +5411,9 @@ if (new URLSearchParams(window.location.search).get("e2e") === "1") {
         localError: mission.validate(String(answer || ""), "es"),
         compileRequest: buildCompileRequest(mission, String(answer || "")),
       };
+    },
+    feedbackPermissions(role, isOwner = false) {
+      return feedbackPermissions(String(role || "local"), Boolean(isOwner));
     },
   });
 }

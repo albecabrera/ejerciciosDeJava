@@ -4972,3 +4972,320 @@ summary:focus-visible {
     scroll-behavior: auto;
   }
 }
+
+/* Atom One Dark editor + mission feedback
+   Color values were transcribed from the user's private Atom_One_Dark.icls
+   export. The export itself is intentionally not bundled or published. */
+:root[data-theme="dark"] {
+  --ink: #abb2bf;
+  --paper: #282c34;
+  --paper-deep: #303845;
+  --panel: #282c34;
+  --panel-soft: #2c323c;
+  --panel-hover: #303845;
+  --header-bg: #282c34;
+  --rail-bg: #303845;
+  --java-blue: #61aeef;
+  --java-deep: #abb2bf;
+  --copper: #c679dd;
+  --copper-soft: #3e4451;
+  --copper-ink: #abb2bf;
+  --mint: #98c379;
+  --warning: #e5c17c;
+  --error: #e06c75;
+  --muted: #7f8795;
+  --muted-strong: #abb2bf;
+  --line: #3e4451;
+  --active-line: #557ecf;
+  --code: #282c34;
+  --code-panel: #303845;
+  --code-row: #2c323c;
+  --code-line: #3e4451;
+  --code-muted: #d2b275;
+  --code-text: #abb2bf;
+  --feedback-bg: color-mix(in srgb, #e06c75 12%, #282c34);
+  --feedback-line: #e06c75;
+  --feedback-ink: #f07178;
+  --success-bg: color-mix(in srgb, #98c379 12%, #282c34);
+  --success-line: #98c379;
+  --success-ink: #98c379;
+  --hint-bg: color-mix(in srgb, #e5c17c 12%, #282c34);
+  --hint-line: #e5c17c;
+  --hint-ink: #e5c17c;
+  --glass-surface: #282c34;
+  --glass-strong: #303845;
+  --glass-line: #3e4451;
+}
+
+.code-context {
+  padding: 0;
+  background: var(--code);
+  overflow-x: auto;
+}
+
+.readonly-code-lines {
+  min-width: max-content;
+  color: var(--code-text);
+  font: 400 0.82rem/1.4 var(--mono);
+  font-variant-ligatures: contextual common-ligatures;
+}
+
+.readonly-code-line,
+.editor-task-line {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(max-content, 1fr);
+  min-height: 1.4em;
+}
+
+.readonly-code-line > span,
+.editor-task-line > span {
+  padding: 0 0.75rem 0 0.4rem;
+  background: var(--code-panel);
+  color: var(--code-muted);
+  text-align: right;
+  user-select: none;
+}
+
+.readonly-code-line code,
+.editor-task-line code {
+  display: block;
+  padding: 0 0.85rem;
+  color: inherit;
+  font: inherit;
+  white-space: pre;
+}
+
+.editor-task-line {
+  overflow-x: auto;
+  background: var(--code);
+  color: var(--mint);
+  font: 400 0.82rem/1.4 var(--mono);
+  font-variant-ligatures: contextual common-ligatures;
+}
+
+.editor-row {
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+}
+
+.line-numbers {
+  padding: 0.85rem 0.75rem 0.85rem 0.4rem;
+  background: var(--code-panel);
+  color: var(--code-muted);
+  font: 400 0.82rem/1.4 var(--mono);
+}
+
+#editor {
+  min-height: 15rem;
+  padding: 0.85rem;
+  background: var(--code-row);
+  color: var(--code-text);
+  caret-color: #557ecf;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-variant-ligatures: contextual common-ligatures;
+  line-height: 1.4;
+  tab-size: 4;
+}
+
+#editor::selection {
+  background: #3e4451;
+  color: #abb2bf;
+}
+
+:root[data-theme="dark"] .ide-shell {
+  border-color: #3e4451;
+  background: #282c34;
+  color: #abb2bf;
+}
+
+:root[data-theme="dark"] .ide-bar,
+:root[data-theme="dark"] .ide-status,
+:root[data-theme="dark"] .line-numbers,
+:root[data-theme="dark"] .readonly-code-line > span,
+:root[data-theme="dark"] .editor-task-line > span,
+:root[data-theme="dark"] .tool-window-heading,
+:root[data-theme="dark"] .tool-tabs {
+  background: #303845;
+}
+
+:root[data-theme="dark"] .editor-row,
+:root[data-theme="dark"] #editor {
+  background: #2c323c;
+}
+
+:root[data-theme="dark"] .readonly-code-line,
+:root[data-theme="dark"] .editor-task-line {
+  background: #282c34;
+}
+
+:root[data-theme="dark"] .readonly-code-line,
+:root[data-theme="dark"] #editor {
+  color: #abb2bf;
+}
+
+:root[data-theme="dark"] .readonly-code-line > span,
+:root[data-theme="dark"] .editor-task-line > span,
+:root[data-theme="dark"] .line-numbers {
+  color: #d2b275;
+}
+
+:root[data-theme="dark"] .editor-task-line {
+  color: #98c379;
+}
+
+.mission-feedback {
+  min-width: 0;
+  padding: 0.85rem;
+}
+
+.mission-feedback-heading,
+.mission-feedback-actions,
+.mission-feedback-meta,
+.mission-feedback-entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.mission-feedback-heading {
+  justify-content: space-between;
+}
+
+.mission-feedback-heading h3 {
+  margin: 0.1rem 0 0;
+  color: var(--ink);
+}
+
+.feedback-storage-badge,
+.feedback-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0.18rem 0.48rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted-strong);
+  font: 700 0.65rem/1 var(--mono);
+}
+
+.feedback-status.is-open {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.feedback-status.is-resolved {
+  border-color: var(--mint);
+  color: var(--mint);
+}
+
+.mission-feedback-form {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.35fr) minmax(14rem, 1fr);
+  gap: 0.4rem 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.mission-feedback-form label {
+  align-self: center;
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.mission-feedback-form input,
+.mission-feedback-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0.55rem 0.65rem;
+  background: var(--panel-soft);
+  color: var(--ink);
+  font: inherit;
+}
+
+.mission-feedback-form textarea,
+.mission-feedback-actions {
+  grid-column: 2;
+}
+
+.mission-feedback-actions {
+  justify-content: flex-end;
+}
+
+#feedbackReplyContext {
+  margin-right: auto;
+  color: var(--java-blue);
+  font-size: 0.72rem;
+}
+
+.mission-feedback-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-feedback-entry,
+.feedback-empty {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.65rem;
+  background: var(--panel-soft);
+}
+
+.mission-feedback-entry.is-reply {
+  margin-left: clamp(0.75rem, 4vw, 2.5rem);
+  border-left: 3px solid var(--java-blue);
+}
+
+.mission-feedback-meta {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.mission-feedback-meta strong {
+  color: var(--ink);
+}
+
+.mission-feedback-meta .feedback-status {
+  margin-left: auto;
+}
+
+.mission-feedback-entry p {
+  margin: 0.55rem 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.mission-feedback-entry-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+  .readonly-code-line,
+  .editor-task-line,
+  .editor-row {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+  }
+
+  .mission-feedback-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mission-feedback-form textarea,
+  .mission-feedback-actions {
+    grid-column: 1;
+  }
+
+  .mission-feedback-actions .button {
+    width: 100%;
+  }
+
+  .mission-feedback-meta .feedback-status {
+    margin-left: 0;
+  }
+}

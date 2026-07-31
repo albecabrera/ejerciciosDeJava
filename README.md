@@ -71,6 +71,8 @@ Abrí `http://localhost:8000`. También puede abrirse `index.html` directamente,
 - **Validación enfocada:** el estado del pipeline conserva toda la información accesible, pero se resume junto al editor en vez de competir con la tarea principal.
 - **Recursos progresivos:** Tutorial, Documentación y Pistas/Solución permanecen cerrados hasta que el alumno los pide.
 - **Tool Window estilo IntelliJ:** Consola, Problemas y Progreso comparten un panel inferior; solo una herramienta se muestra a la vez.
+- **Scaffold de archivo completo:** el editor muestra el contexto Java de solo lectura, una consigna ES/DE como comentario y numeración continua alrededor del área editable. Ese scaffold es visual y no altera el texto que se evalúa o compila.
+- **Feedback por misión:** la Tool Window incluye comentarios con autor, rol, fecha y estado abierto/resuelto. Por ahora se guardan únicamente en el `localStorage` del navegador y la propia interfaz lo indica; no existe sincronización de feedback con MySQL. Una sesión docente/admin habilita respuestas y moderación local.
 - Documentación contextual por misión, con enlaces directos a `dev.java` y Oracle Java Tutorials/API, disponible bajo demanda.
 - Live Templates y atajos IDEA en paneles desplegables para priorizar el editor y reducir ruido visual.
 - **Compilación y ejecución real opcional:** al pulsar F5, `api/compile.php` compila con `javac` y ejecuta con `java` cuando la misión lo exige o cuando el código contiene una impresión de consola. La salida se recorta y corre con timeout/límites; con sandbox Docker/worker se ejecuta sin red y con límites CPU/RAM/PID.
@@ -99,7 +101,9 @@ Antes de resolver una misión, la tarjeta de preparación muestra solo un video 
 
 El botón **Bugs** despliega una checklist persistente junto a la navegación: escribí un cambio y pulsá `Enter` para crear otra casilla. En el editor, los errores aparecen subrayados y al pasar el cursor sobre la línea se muestra una explicación. Estos avisos orientan el aprendizaje: la validación definitiva, cuando está disponible, la realiza `javac` mediante F5.
 
-La interfaz adopta un **workspace inspirado en IntelliJ IDEA**: la aplicación y el editor comparten la misma familia cromática, los paneles tienen separación clara y las acciones usan un único azul de selección. La portada incorpora una firma Java SVG inline —taza, vapor y monograma `J_`— con halo y brillo controlados, baja opacidad, sin imagen pesada ni interacción. Portada y workspace son vistas separadas; dentro de la misión se priorizan tarea, editor y validación. Recursos y herramientas se revelan de forma progresiva. Los modos claro y oscuro conservan contraste, foco de teclado y `prefers-reduced-motion`.
+La interfaz adopta un **workspace inspirado en IntelliJ IDEA**. En modo oscuro, el editor usa los tokens Atom One Dark transcritos del archivo privado `Atom_One_Dark.icls` exportado por el usuario: base `#282C34`, gutter `#303845`, fila activa `#2C323C`, selección `#3E4451`, texto `#ABB2BF` y acentos azul/verde/púrpura/rojo/amarillo. Se usa JetBrains Mono con ligaduras y `line-height: 1.4`. El `.icls` completo no se copia ni se publica en el repositorio.
+
+La portada incorpora una firma Java SVG inline —taza, vapor y monograma `J_`— con halo y brillo controlados, baja opacidad, sin imagen pesada ni interacción. Portada y workspace son vistas separadas; dentro de la misión se priorizan tarea, editor y validación. Recursos y herramientas se revelan de forma progresiva. Los modos claro y oscuro conservan contraste, foco de teclado y `prefers-reduced-motion`.
 
 La imagen aportada por el usuario, `src/IMG_0198.JPG`, se presenta como cover semántica de la bienvenida con `object-fit: cover`, texto ES/DE y overlays de contraste coordinados con el editor. Los patrones IntelliJ empleados son públicos y generales —tool windows, tabs, status bars, acciones compactas y pistas de teclado—; la app no accede, copia ni afirma disponer de configuraciones privadas de ninguna cuenta.
 
@@ -116,8 +120,8 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 ## Arquitectura
 
 - `index.html`: shell SPA y semántica accesible.
-- `styles.css`: tokens visuales IntelliJ-style, dashboard/workspace separados, revelado progresivo, layouts responsive, acceso de debugging, popup, diagnósticos y progreso.
-- `game.js`: catálogo curricular y de videos alemanes verificados por misión, traducciones, validadores heurísticos, editor, atajos, diagnósticos y persistencia.
+- `styles.css`: tokens IntelliJ/Atom One Dark, dashboard/workspace separados, scaffold de editor, feedback, layouts responsive, debugging, diagnósticos y progreso.
+- `game.js`: catálogo curricular y de videos alemanes verificados, scaffold visual no evaluado, feedback local por misión, traducciones, validadores, editor, atajos, diagnósticos y persistencia.
 - `js/java-evaluators.js`: contratos conductuales sobre stdout real; soporta inclusión compatible (`stdoutIncludes`) e igualdad normalizada (`stdoutEquals`).
 - `api/compile.php`: endpoint PHP sin framework que valida tamaño/nombre/modo, compila en temporal, ejecuta snippets/clases con límites y devuelve diagnósticos/salida JSON.
 - `api/auth.php`: registro, login, logout, sesiones y roles student/teacher/admin.
@@ -127,12 +131,12 @@ Los enlaces abren una pestaña nueva. La app no scrapea ni copia el contenido: s
 - `api/bootstrap.php`: PDO, sesión HttpOnly/SameSite, respuestas JSON y protección CSRF.
 - `database/schema.sql`: esquema MySQL para usuarios, clases, miembros y progreso.
 - `config/config.example.php`: configuración portable para XAMPP y servidor; `config/config.php` nunca se versiona.
-- `tests/java-werkstatt.spec.js`: 43 pruebas Playwright de UI, cover semántica ES/DE, bienvenida/onboarding, reanudación real con Alt+R, reduced motion, dashboard/workspace, acceso docente, skip-link, rutas bloqueadas, recursos progresivos, Tool Window, labels ES/DE, sidebar móvil transitoria, videos temáticos verificados, checklist, diagnósticos, API, modo libre, overflow a 390/320 px, foco, migración v2→v3, proyectos, Compile Rail, stdout exacto y contratos positivos/adversariales.
+- `tests/java-werkstatt.spec.js`: pruebas Playwright de UI, cover semántica ES/DE, bienvenida/onboarding, scaffold continuo, feedback local, Atom One Dark, reanudación, reduced motion, rutas, recursos, Tool Window, videos, checklist, diagnósticos, API, responsive, migraciones, proyectos y contratos Java positivos/adversariales.
 - `playwright.config.js`: ejecuta los tests contra el servidor PHP integrado.
 - `tools/xampp-smoke.mjs`: smoke test para la instancia XAMPP real; comprueba assets versionados, dashboard/mentor/HUD y compilación por API.
 - `docs/architecture-roadmap.md`: plan de modularización sin romper XAMPP ni exigir build.
 - Con PHP activo, F5 usa `javac` real y ejecuta solo cuando hay salida esperable; sin `System.out.print/println/printf` la consola avisa que no hay resultado visible. Sin PHP, vuelve a validación local y lo comunica.
-- `localStorage`: progreso y preferencias en estado v3. Persiste `currentMissionId` estable; al migrar v2/legacy traduce el índice con el orden histórico de 36 misiones anterior a los capstones.
+- `localStorage`: progreso, preferencias y feedback por misión en estado v3. Persiste `currentMissionId` estable; al migrar v2/legacy traduce el índice con el orden histórico de 36 misiones anterior a los capstones.
 
 `localStorage` queda como caché offline y fallback; con una sesión activa, `api/progress.php` sincroniza las respuestas con MySQL. El registro público siempre crea estudiantes: los docentes se crean por CLI o por un flujo administrativo.
 
