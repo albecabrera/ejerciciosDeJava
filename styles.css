@@ -1,89 +1,19 @@
-:root {
-  --ink: #15171a;
-  --paper: #f3f0e8;
-  --paper-deep: #e5e0d4;
-  --panel: #fbfaf6;
-  --panel-soft: rgba(255, 255, 255, 0.48);
-  --panel-hover: rgba(255, 255, 255, 0.58);
-  --header-bg: rgba(243, 240, 232, 0.94);
-  --rail-bg: rgba(229, 224, 212, 0.65);
-  --java-blue: #2f5d74;
-  --java-deep: #173747;
-  --copper: #bd5a32;
-  --copper-soft: #f0d1c3;
-  --copper-ink: #71351e;
-  --mint: #2f7a67;
-  --warning: #9b5d10;
-  --error: #a53a37;
-  --muted: #5c6265;
-  --muted-strong: #676b6d;
-  --line: #cdc7ba;
-  --active-line: #b7c5cb;
-  --code: #101820;
-  --code-panel: #17242c;
-  --code-row: #0c141a;
-  --code-line: #263844;
-  --code-muted: #81909a;
-  --code-text: #f2f5f6;
-  --feedback-bg: #fff3ed;
-  --feedback-line: #d7b1a3;
-  --feedback-ink: #6c3325;
-  --success-bg: #eff8f4;
-  --success-line: #a6c9bf;
-  --success-ink: #205e4e;
-  --hint-bg: #fff8e9;
-  --hint-line: #c9955e;
-  --hint-ink: #654514;
-  --grid-line: rgba(47, 93, 116, 0.055);
-  --white: #fff;
-  --button-ink: #fff;
-  --shadow: 0 28px 70px rgba(32, 41, 45, 0.15);
-  --shadow-soft: 0 14px 36px rgba(32, 41, 45, 0.1);
-  --radius: 18px;
-  --sans: "Avenir Next", Avenir, "Segoe UI", system-ui, sans-serif;
-  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+/* JetBrains Mono, auto-hospedada (SIL OFL, ver assets/fonts/OFL.txt) — sin CDN en producción. */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("assets/fonts/jetbrains-mono-variable.woff2") format("woff2-variations"), url("assets/fonts/jetbrains-mono-variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("assets/fonts/jetbrains-mono-variable-italic.woff2") format("woff2-variations"), url("assets/fonts/jetbrains-mono-variable-italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
 }
 
-:root[data-theme="dark"] {
-  --ink: #edf5f8;
-  --paper: #080d11;
-  --paper-deep: #14242b;
-  --panel: #172c35;
-  --panel-soft: rgba(28, 51, 61, 0.96);
-  --panel-hover: rgba(64, 105, 120, 0.62);
-  --header-bg: rgba(8, 14, 18, 0.97);
-  --rail-bg: rgba(15, 29, 36, 0.96);
-  --java-blue: #a8e0f2;
-  --java-deep: #effaff;
-  --copper: #ffad83;
-  --copper-soft: rgba(255, 173, 131, 0.2);
-  --copper-ink: #2d160c;
-  --mint: #7de8c9;
-  --warning: #ffd37d;
-  --error: #ffaaa5;
-  --muted: #c9d9df;
-  --muted-strong: #f1f8fa;
-  --line: #5c7782;
-  --active-line: #83b5c6;
-  --code: #070c10;
-  --code-panel: #0e191f;
-  --code-row: #05090c;
-  --code-line: #2d4854;
-  --code-muted: #9fb8c1;
-  --code-text: #f8fdff;
-  --feedback-bg: rgba(255, 105, 96, 0.18);
-  --feedback-line: rgba(255, 170, 165, 0.72);
-  --feedback-ink: #ffe4e1;
-  --success-bg: rgba(75, 190, 155, 0.22);
-  --success-line: rgba(125, 232, 201, 0.7);
-  --success-ink: #d8fff4;
-  --hint-bg: rgba(255, 190, 70, 0.2);
-  --hint-line: rgba(255, 211, 125, 0.72);
-  --hint-ink: #fff0c8;
-  --grid-line: rgba(168, 224, 242, 0.09);
-  --button-ink: #071014;
-  --shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
-}
 * {
   box-sizing: border-box;
 }
@@ -643,23 +573,6 @@ body:not(.view-workspace) .learning-command {
   .resource-center-heading h3 {
     font-size: 0.82rem;
   }
-}
-
-/* Liquid glass pass: a calm instrument panel for a Java workshop, not a generic glass dashboard. */
-:root {
-  --glass-surface: rgba(255, 255, 255, 0.56);
-  --glass-strong: rgba(255, 255, 255, 0.78);
-  --glass-line: rgba(255, 255, 255, 0.76);
-  --glass-shadow: 0 22px 54px rgba(23, 55, 71, 0.12), 0 2px 8px rgba(23, 55, 71, 0.05);
-  --glass-highlight: rgba(255, 255, 255, 0.82);
-}
-
-:root[data-theme="dark"] {
-  --glass-surface: rgba(21, 44, 54, 0.68);
-  --glass-strong: rgba(27, 55, 67, 0.88);
-  --glass-line: rgba(191, 235, 246, 0.18);
-  --glass-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
-  --glass-highlight: rgba(219, 249, 255, 0.12);
 }
 
 body {
@@ -4075,6 +3988,7 @@ body {
   --hint-line: #dbb872;
   --hint-ink: #76500e;
   --grid-line: transparent;
+  --white: #fff;
   --button-ink: #ffffff;
   --glass-surface: #ffffff;
   --glass-strong: #ffffff;
@@ -4124,6 +4038,7 @@ body {
   --hint-bg: #3b3323;
   --hint-line: #705d35;
   --hint-ink: #e6c574;
+  --grid-line: rgba(168, 224, 242, 0.09);
   --button-ink: #ffffff;
   --glass-surface: #2b2d30;
   --glass-strong: #2b2d30;
