@@ -32,7 +32,14 @@ let cloud = { configured: false, user: null, csrf: "", classes: [], activeClassI
 
 function mission() { return missions[state.current]; }
 function saveLocal() { localStorage.setItem(storageKey, JSON.stringify(state)); }
-function activeAnswer() { return String(state.answers[mission().id] || ""); }
+function starterCode(item = mission()) { return `# Aufgabe: ${item.prompt}
+# Schreibe deine eigene Python-Lösung darunter.
+
+`; }
+function activeAnswer() {
+  const saved = state.answers[mission().id];
+  return typeof saved === "string" ? saved : starterCode();
+}
 function setPanel(name) {
   document.querySelectorAll("[data-tool]").forEach((button) => button.classList.toggle("active", button.dataset.tool === name));
   document.querySelectorAll("[data-panel]").forEach((panel) => { panel.hidden = panel.dataset.panel !== name; });
@@ -80,7 +87,6 @@ function renderCloud() {
 function render() {
   const item = mission(); const video = videos[item.video];
   $("#stage").textContent = item.stage; $("#title").textContent = item.title; $("#objective").textContent = item.objective; $("#prompt").textContent = item.prompt;
-  $("#taskComment").textContent = `# Aufgabe: ${item.prompt}\n# Schreibe deine eigene Python-Lösung darunter.`;
   $("#file").textContent = $("#tab").textContent = `mission_${String(state.current + 1).padStart(2, "0")}.py`;
   $("#tree").textContent = `　　${$("#file").textContent}`; $("#video").href = `https://www.youtube.com/watch?v=${video[0]}`; $("#videoTitle").textContent = video[1];
   $("#code").value = activeAnswer(); $("#lines").replaceChildren(...activeAnswer().split("\n").map((_, index) => { const line = document.createElement("li"); line.textContent = index + 1; return line; }));
@@ -154,10 +160,10 @@ $("#check").onclick = runCode;
 $("#trace").onclick = showTrace;
 $("#hint").onclick = () => { state.hints[mission().id] = (state.hints[mission().id] || 0) + 1; saveLocal(); setPanel("help"); $("#helpText").textContent = `Hinweis: ${mission().prompt.split(". ")[0]}. Baue zuerst den kleinsten passenden Python-Ausdruck.`; queueCloudSync(); };
 $("#help").onclick = () => setPanel("help");
-$("#reset").onclick = () => { delete state.answers[mission().id]; saveLocal(); $("#result").hidden = true; $("#console").textContent = "Editor zurückgesetzt. Schreibe deine eigene Lösung und drücke F5."; render(); };
+$("#reset").onclick = () => { delete state.answers[mission().id]; saveLocal(); $("#result").hidden = true; $("#console").textContent = "Editor zurückgesetzt. Schreibe deine eigene Lösung unter die Kommentare und drücke F5."; render(); $("#code").focus(); $("#code").setSelectionRange($("#code").value.length, $("#code").value.length); };
 $("#theme").onclick = () => document.body.classList.toggle("light");
 $("#cloudClass").onchange = async (event) => { cloud.activeClassId = event.target.value; localStorage.setItem("python-studio-class", cloud.activeClassId); await loadAssignments(); };
 $("#teacherAssignment").onsubmit = async (event) => { event.preventDefault(); const form = new FormData(event.currentTarget); try { await cloudRequest("api/assignments.php?action=create", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": cloud.csrf }, body: JSON.stringify({ classId: Number(cloud.activeClassId), missionId: mission().id, title: form.get("title"), dueAt: form.get("dueAt") || null }) }); event.currentTarget.reset(); await loadAssignments(); } catch (error) { feedback(error.message, "bad"); } };
 document.querySelectorAll("[data-tool]").forEach((button) => button.onclick = () => setPanel(button.dataset.tool));
 document.addEventListener("keydown", (event) => { if (event.key === "F5") { event.preventDefault(); runCode(); } });
-render(); initCloud();
+render(); $("#code").focus(); $("#code").setSelectionRange($("#code").value.length, $("#code").value.length); initCloud();

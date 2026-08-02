@@ -9,8 +9,9 @@ test.describe("Python Studio", () => {
 
   test("permite resolver, conserva el feedback y registra progreso", async ({ page }) => {
     const editor = page.locator("#code");
-    await expect(page.locator("#taskComment")).toContainText("# Aufgabe:");
-    await editor.fill('print("Ada")');
+    await expect(editor).toHaveValue(/# Aufgabe:/);
+    await editor.evaluate((element) => { element.focus(); element.setSelectionRange(element.value.length, element.value.length); });
+    await editor.type('print("Ada")');
     await page.locator("#check").click();
 
     await expect(page.locator("#result")).toBeVisible();
@@ -19,19 +20,19 @@ test.describe("Python Studio", () => {
     await expect(page.locator("#progress")).toHaveText("1 / 10");
 
     await page.reload();
-    await expect(editor).toHaveValue('print("Ada")');
+    await expect(editor).toHaveValue(/# Aufgabe:[\s\S]*print\("Ada"\)/);
   });
 
   test("navega entre misiones, muestra ayuda y permite reiniciar sin revelar solución", async ({ page }) => {
     await page.locator("#missions button").nth(1).click();
-    await expect(page.locator("#taskComment")).toContainText("Punktzahl");
+    await expect(page.locator("#code")).toHaveValue(/Punktzahl/);
     await page.locator("#hint").click();
     await expect(page.locator('[data-panel="help"]')).toBeVisible();
 
     const editor = page.locator("#code");
     await editor.fill('name = "Mara"\npunkte = 18\nprint(name, punkte)');
     await page.locator("#reset").click();
-    await expect(editor).toHaveValue("");
+    await expect(editor).toHaveValue(/# Aufgabe:[\s\S]*Schreibe deine eigene Python-Lösung darunter\.\n\n$/);
   });
 
   test("no desborda horizontalmente en móvil", async ({ page }) => {
