@@ -112,10 +112,7 @@ test("moves from the clean dashboard into a focused workspace", async ({ page })
 
 test("shows a reduced-motion-safe splash without blocking normal app opening", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => {
-    localStorage.setItem("java-werkstatt-onboarding-v1", "done");
-    localStorage.setItem("platform-language-choice", "java");
-  });
+  await page.addInitScript(() => localStorage.setItem("java-werkstatt-onboarding-v1", "done"));
   await page.goto("/index.html", { waitUntil: "domcontentloaded" });
 
   const splash = page.locator("#appSplash");
@@ -131,11 +128,12 @@ test("shows a reduced-motion-safe splash without blocking normal app opening", a
 
   await expect(splash).toBeHidden({ timeout: 1_000 });
   await expect(page.locator("#dashboard")).toBeVisible();
+  await page.locator("#languageGateJava").click();
   await page.locator("#commandContinueButton").click();
   await expect(page.locator("#workspace")).toBeVisible();
 });
 
-test("offers a Java/Python language gate on first visit and remembers the choice", async ({ page }) => {
+test("offers a Java/Python language gate on every load and reappears after refresh", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("java-werkstatt-onboarding-v1", "done"));
   await page.goto("/index.html", { waitUntil: "domcontentloaded" });
 
@@ -149,7 +147,7 @@ test("offers a Java/Python language gate on first visit and remembers the choice
   await expect(page.locator("#dashboard")).toBeVisible();
 
   await page.reload();
-  await expect(page.locator("#languageGate")).toBeHidden();
+  await expect(page.locator("#languageGate")).toBeVisible();
 });
 
 test("navigates to Python Studio when chosen from the language gate", async ({ page }) => {
