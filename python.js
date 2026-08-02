@@ -45,9 +45,12 @@ function setPanel(name) {
   document.querySelectorAll("[data-panel]").forEach((panel) => { panel.hidden = panel.dataset.panel !== name; });
 }
 function renderProgress() {
+  const percent = Math.round(state.solved.length / missions.length * 100);
   $("#progress").textContent = `${state.solved.length} / ${missions.length}`;
-  $("#bar").style.width = `${state.solved.length / missions.length * 100}%`;
+  $("#bar").style.width = `${percent}%`;
   $("#progressText").textContent = `${state.solved.length} von ${missions.length} Missionen gelöst. Python EF legt die Grundlage für Java in Q1/Q2.`;
+  $("#commandProgress").textContent = `${percent}%`;
+  $("#commandProgressMeta").textContent = `${state.solved.length}/${missions.length} Missionen gelöst`;
   $("#attempts").replaceChildren(...state.attempts.slice(-6).reverse().map((attempt) => {
     const item = document.createElement("li"); item.textContent = attempt; return item;
   }));
@@ -87,6 +90,9 @@ function renderCloud() {
 function render() {
   const item = mission(); const video = videos[item.video];
   $("#stage").textContent = item.stage; $("#title").textContent = item.title; $("#objective").textContent = item.objective; $("#prompt").textContent = item.prompt;
+  $("#commandNextMission").textContent = item.title;
+  $("#commandNextMeta").textContent = `${item.stage} · Mission ${String(state.current + 1).padStart(2, "0")}`;
+  $("#commandTopic").textContent = item.objective;
   $("#file").textContent = $("#tab").textContent = `mission_${String(state.current + 1).padStart(2, "0")}.py`;
   $("#tree").textContent = `　　${$("#file").textContent}`; $("#video").href = `https://www.youtube.com/watch?v=${video[0]}`; $("#videoTitle").textContent = video[1];
   $("#code").value = activeAnswer(); $("#lines").replaceChildren(...activeAnswer().split("\n").map((_, index) => { const line = document.createElement("li"); line.textContent = index + 1; return line; }));
@@ -166,4 +172,4 @@ $("#cloudClass").onchange = async (event) => { cloud.activeClassId = event.targe
 $("#teacherAssignment").onsubmit = async (event) => { event.preventDefault(); const form = new FormData(event.currentTarget); try { await cloudRequest("api/assignments.php?action=create", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": cloud.csrf }, body: JSON.stringify({ classId: Number(cloud.activeClassId), missionId: mission().id, title: form.get("title"), dueAt: form.get("dueAt") || null }) }); event.currentTarget.reset(); await loadAssignments(); } catch (error) { feedback(error.message, "bad"); } };
 document.querySelectorAll("[data-tool]").forEach((button) => button.onclick = () => setPanel(button.dataset.tool));
 document.addEventListener("keydown", (event) => { if (event.key === "F5") { event.preventDefault(); runCode(); } });
-render(); $("#code").focus(); $("#code").setSelectionRange($("#code").value.length, $("#code").value.length); initCloud();
+render(); initCloud();
