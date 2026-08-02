@@ -9,7 +9,7 @@
     />
     <title>Java Werkstatt</title>
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-    <link rel="stylesheet" href="styles.css?v=40" />
+    <link rel="stylesheet" href="styles.css?v=41" />
   </head>
   <body>
     <div id="appSplash" class="app-splash" role="region" aria-label="Java Werkstatt, laboratorio de código" data-i18n-aria-label="splashAria">
@@ -32,6 +32,50 @@
       </div>
       <button id="appSplashSkip" class="app-splash-skip" type="button" data-i18n="splashSkip" data-i18n-aria-label="splashSkip" aria-label="Saltar">Saltar</button>
     </div>
+    <div id="languageGate" class="language-gate" role="dialog" aria-modal="true" aria-labelledby="languageGateTitle" data-i18n-aria-label="languageGateAria" aria-label="Elegí con qué lenguaje empezar" hidden>
+      <div class="language-gate-panel">
+        <h2 id="languageGateTitle" data-i18n="languageGateTitle">¿Con qué lenguaje querés empezar?</h2>
+        <p data-i18n="languageGateIntro">Java Werkstatt y Python Studio comparten el mismo camino de aprendizaje EF/NRW. Elegí uno para arrancar; podés cambiar cuando quieras.</p>
+        <div class="language-gate-options">
+          <button type="button" class="language-gate-card" id="languageGateJava">
+            <svg class="language-gate-logo" viewBox="0 0 240 240" role="img" aria-hidden="true">
+              <path class="app-splash-steam app-splash-steam-one" d="M88 94c-22-25 25-31 7-58"></path>
+              <path class="app-splash-steam app-splash-steam-two" d="M124 91c-18-23 23-29 8-52"></path>
+              <path class="app-splash-steam app-splash-steam-three" d="M157 99c-15-20 19-25 7-44"></path>
+              <path class="app-splash-cup" d="M62 108h112v50c0 31-25 56-56 56s-56-25-56-56v-50Z"></path>
+              <path class="app-splash-handle" d="M174 126h14c22 0 31 16 31 30s-11 30-35 30h-14"></path>
+              <path class="app-splash-saucer" d="M40 218c29 12 119 13 158-1"></path>
+            </svg>
+            <strong data-i18n="languageGateJavaTitle">Java Werkstatt</strong>
+            <span data-i18n="languageGateJavaDesc">IDE completo, 49 misiones y proyectos hacia Q2.</span>
+            <em data-i18n="languageGateChoose">Elegir</em>
+          </button>
+          <button type="button" class="language-gate-card" id="languageGatePython">
+            <img class="language-gate-logo" src="assets/python-logo-icon.svg" alt="" aria-hidden="true"/>
+            <strong data-i18n="languageGatePythonTitle">Python Studio</strong>
+            <span data-i18n="languageGatePythonDesc">Fundamentos de programación con Python real.</span>
+            <em data-i18n="languageGateChoose">Elegir</em>
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var KEY = "platform-language-choice";
+        var params = new URLSearchParams(location.search);
+        if (params.has("e2e") || params.has("workspace") || localStorage.getItem(KEY)) return;
+        var gate = document.getElementById("languageGate");
+        gate.hidden = false;
+        document.getElementById("languageGateJava").addEventListener("click", function () {
+          localStorage.setItem(KEY, "java");
+          gate.hidden = true;
+        });
+        document.getElementById("languageGatePython").addEventListener("click", function () {
+          localStorage.setItem(KEY, "python");
+          location.href = "python.html";
+        });
+      })();
+    </script>
     <a class="skip-link" href="#editor">Saltar al editor</a>
 
     <header class="site-header">

@@ -112,7 +112,10 @@ test("moves from the clean dashboard into a focused workspace", async ({ page })
 
 test("shows a reduced-motion-safe splash without blocking normal app opening", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => localStorage.setItem("java-werkstatt-onboarding-v1", "done"));
+  await page.addInitScript(() => {
+    localStorage.setItem("java-werkstatt-onboarding-v1", "done");
+    localStorage.setItem("platform-language-choice", "java");
+  });
   await page.goto("/index.html", { waitUntil: "domcontentloaded" });
 
   const splash = page.locator("#appSplash");
@@ -130,6 +133,31 @@ test("shows a reduced-motion-safe splash without blocking normal app opening", a
   await expect(page.locator("#dashboard")).toBeVisible();
   await page.locator("#commandContinueButton").click();
   await expect(page.locator("#workspace")).toBeVisible();
+});
+
+test("offers a Java/Python language gate on first visit and remembers the choice", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("java-werkstatt-onboarding-v1", "done"));
+  await page.goto("/index.html", { waitUntil: "domcontentloaded" });
+
+  const gate = page.locator("#languageGate");
+  await expect(gate).toBeVisible();
+  await expect(page.locator("#languageGateJava")).toContainText("Java Werkstatt");
+  await expect(page.locator("#languageGatePython")).toContainText("Python Studio");
+
+  await page.locator("#languageGateJava").click();
+  await expect(gate).toBeHidden();
+  await expect(page.locator("#dashboard")).toBeVisible();
+
+  await page.reload();
+  await expect(page.locator("#languageGate")).toBeHidden();
+});
+
+test("navigates to Python Studio when chosen from the language gate", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("java-werkstatt-onboarding-v1", "done"));
+  await page.goto("/index.html", { waitUntil: "domcontentloaded" });
+  await page.locator("#languageGatePython").click();
+  await expect(page).toHaveURL(/python\.html$/);
+  await expect(page.locator("#editorHost .cm-editor")).toBeVisible();
 });
 
 test("welcomes learners with three calm steps and clear actions", async ({ page }) => {
