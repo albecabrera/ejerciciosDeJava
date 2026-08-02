@@ -59,11 +59,25 @@ $configPath = dirname(__DIR__) . '/config/config.php';
 $config = is_file($configPath) ? require $configPath : [];
 $javac = getenv('JAVAC_BIN') ?: ($config['compiler']['javac'] ?? 'javac');
 $java = getenv('JAVA_BIN') ?: ($config['compiler']['java'] ?? 'java');
-$sandboxMode = (string) (getenv('JAVA_SANDBOX_MODE') ?: ($config['compiler']['sandbox'] ?? 'jvm'));
-$dockerImage = (string) (getenv('JAVA_SANDBOX_IMAGE') ?: ($config['compiler']['docker_image'] ?? 'eclipse-temurin:21-jre'));
+$sandboxMode = (string) (getenv('JAVA_SANDBOX_MODE') ?: ($config['compiler']['sandbox'] ?? 'worker'));
+$allowUnsafeJvmValue = getenv('JAVA_ALLOW_UNSAFE_JVM');
+$allowUnsafeJvm = filter_var(
+    $allowUnsafeJvmValue !== false ? $allowUnsafeJvmValue : ($config['compiler']['allow_unsafe_jvm'] ?? false),
+    FILTER_VALIDATE_BOOL
+);
+$dockerImage = (string) (getenv('JAVA_SANDBOX_IMAGE') ?: ($config['compiler']['docker_image'] ?? 'eclipse-temurin:21-jdk'));
 $workerQueue = (string) (getenv('JAVA_SANDBOX_QUEUE') ?: ($config['compiler']['worker_queue'] ?? '/var/lib/java-werkstatt/queue'));
 
-if ($sandboxMode !== 'worker' && !isJavacAvailable($javac)) {
+if (!in_array($sandboxMode, ['jvm', 'docker', 'worker'], true)) {
+    respond(['ok' => false, 'error' => 'Modo de sandbox no válido. Usá jvm, docker o worker.', 'sandbox' => 'invalid'], 503);
+}
+if ($sandboxMode === 'jvm' && !$allowUnsafeJvm) {
+    respond(['ok' => false, 'phase' => 'sandbox', 'error' => 'El modo JVM local es inseguro y requiere allow_unsafe_jvm=true en desarrollo.', 'sandbox' => 'jvm-disabled'], 503);
+}
+if ($sandboxMode === 'docker' && !isDockerAvailable()) {
+    respond(['ok' => false, 'phase' => 'sandbox', 'error' => 'El sandbox Docker no está disponible. La ejecución local no se habilitó como fallback.', 'sandbox' => 'docker-unavailable'], 503);
+}
+if ($sandboxMode === 'jvm' && !isJavacAvailable($javac)) {
     respond([
         'ok' => false,
         'phase' => 'compile',
@@ -74,7 +88,7 @@ if ($sandboxMode !== 'worker' && !isJavacAvailable($javac)) {
         'mode' => $mode,
     ], 503);
 }
-if ($shouldRun && !isJavaAvailable($java) && !in_array($sandboxMode, ['docker', 'worker'], true)) {
+if ($shouldRun && $sandboxMode === 'jvm' && !isJavaAvailable($java)) {
     respond(['ok' => false, 'phase' => 'run', 'error' => 'java no está instalado o no está en PATH.', 'diagnostics' => []], 503);
 }
 
@@ -103,7 +117,7 @@ if ($sandboxMode === 'worker') {
     $compileOutput = trim(limitOutput((string) ($worker['compileOutput'] ?? '')));
     $timedOut = !empty($worker['timedOut']);
     $exitCode = (int) ($worker['exitCode'] ?? 1);
-    respond([
+    $payload = [
         'ok' => $exitCode === 0 && !$timedOut,
         'phase' => $phase,
         'diagnostics' => $phase === 'compile' ? parseDiagnostics($compileOutput) : [],
@@ -120,7 +134,9 @@ if ($sandboxMode === 'worker') {
         'sandbox' => (string) ($worker['sandbox'] ?? 'worker-unavailable'),
         'mode' => $mode,
         'runnable' => $mode !== 'member',
-    ]);
+    ];
+    $workerUnavailable = $phase === 'worker' || ($payload['sandbox'] ?? '') === 'worker-unavailable';
+    respond($payload, $workerUnavailable ? ($timedOut ? 504 : 503) : 200);
 }
 
 $workDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'java-werkstatt-' . bin2hex(random_bytes(8));
@@ -132,8 +148,9 @@ if (!mkdir($classesDir, 0700, true)) {
 $sourcePath = $workDir . DIRECTORY_SEPARATOR . $fileName;
 file_put_contents($sourcePath, $compiledSource, LOCK_EX);
 
-$compileCommand = [$javac, '-J-Duser.language=en', '-J-Duser.country=US', '-encoding', 'UTF-8', '-proc:none', '-Xlint:all', '-d', $classesDir, $sourcePath];
-$compile = runProcess($compileCommand, $workDir, COMPILE_TIMEOUT_SECONDS);
+$compile = $sandboxMode === 'docker'
+    ? compileInDockerSandbox($dockerImage, $workDir, $fileName)
+    : runProcess([$javac, '-J-Duser.language=en', '-J-Duser.country=US', '-encoding', 'UTF-8', '-proc:none', '-Xlint:all', '-d', $classesDir, $sourcePath], $workDir, COMPILE_TIMEOUT_SECONDS);
 $compileDurationMs = (int) round($compile['duration'] * 1000);
 $compileOutput = trim(limitOutput($compile['stdout'] . "\n" . $compile['stderr']));
 
@@ -150,18 +167,15 @@ if ($compile['exitCode'] !== 0 || !$shouldRun || $mode === 'member') {
         'diagnostics' => parseDiagnostics($compileOutput),
         'rawOutput' => $compileOutput,
         'durationMs' => $compileDurationMs,
-        'compiler' => basename($javac),
+        'compiler' => $sandboxMode === 'docker' ? 'javac(docker)' : basename($javac),
         'mode' => $mode,
         'runnable' => $mode !== 'member',
     ]);
 }
 
-$run = match ($sandboxMode) {
-    'docker' => isDockerAvailable()
-        ? runInDockerSandbox($dockerImage, $classesDir, $mainClass, $stdin)
-        : runInJvmSandbox($java, $classesDir, $mainClass, $stdin),
-    default => runInJvmSandbox($java, $classesDir, $mainClass, $stdin),
-};
+$run = $sandboxMode === 'docker'
+    ? runInDockerSandbox($dockerImage, $classesDir, $mainClass, $stdin)
+    : runInJvmSandbox($java, $classesDir, $mainClass, $stdin);
 $runDurationMs = (int) round($run['duration'] * 1000);
 removeDirectory($workDir);
 
@@ -177,8 +191,8 @@ respond([
     'durationMs' => $compileDurationMs + $runDurationMs,
     'compileDurationMs' => $compileDurationMs,
     'runDurationMs' => $runDurationMs,
-    'compiler' => basename($javac),
-    'runtime' => basename($java),
+    'compiler' => $sandboxMode === 'docker' ? 'javac(docker)' : basename($javac),
+    'runtime' => $sandboxMode === 'docker' ? 'java(docker)' : basename($java),
     'sandbox' => $run['sandbox'],
     'mode' => $mode,
 ]);
@@ -205,6 +219,19 @@ function runInDockerSandbox(string $image, string $classesDir, string $mainClass
         $image, 'java', '-Duser.language=en', '-Duser.country=US', '-Dfile.encoding=UTF-8', '-Xmx64m', '-cp', '/work', $mainClass,
     ];
     $result = runProcess($command, sys_get_temp_dir(), RUN_TIMEOUT_SECONDS + 2.0, $stdin);
+    $result['sandbox'] = 'docker-no-network';
+    return $result;
+}
+
+function compileInDockerSandbox(string $image, string $workDir, string $fileName): array
+{
+    $command = [
+        'docker', 'run', '--rm', '--network', 'none', '--cpus', '0.5', '--memory', '192m', '--pids-limit', '80', '--read-only',
+        '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '-v', $workDir . ':/workspace:rw', '-w', '/workspace',
+        $image, 'javac', '-J-Duser.language=en', '-J-Duser.country=US', '-encoding', 'UTF-8', '-proc:none', '-Xlint:all',
+        '-d', '/workspace/classes', '/workspace/' . $fileName,
+    ];
+    $result = runProcess($command, sys_get_temp_dir(), COMPILE_TIMEOUT_SECONDS + 2.0);
     $result['sandbox'] = 'docker-no-network';
     return $result;
 }
@@ -305,27 +332,81 @@ function runProcess(array $command, string $cwd, float $timeout, string $stdin =
     $stdout = '';
     $stderr = '';
     $timedOut = false;
-    do {
-        $stdout .= stream_get_contents($pipes[1]) ?: '';
-        $stderr .= stream_get_contents($pipes[2]) ?: '';
+    $outputLimited = false;
+    $status = ['running' => true, 'exitcode' => -1];
+    while (true) {
+        if (readCappedProcessOutput($pipes, $stdout, $stderr)) {
+            $outputLimited = true;
+            $status = terminateRunningProcess($process);
+            break;
+        }
         $status = proc_get_status($process);
         if (!$status['running']) break;
         if (microtime(true) - $started > $timeout) {
             $timedOut = true;
-            proc_terminate($process);
-            usleep(100_000);
-            $status = proc_get_status($process);
-            if ($status['running']) proc_terminate($process, 9);
+            $status = terminateRunningProcess($process);
             break;
         }
         usleep(20_000);
-    } while (strlen($stdout) + strlen($stderr) < MAX_OUTPUT_BYTES * 2);
-    $stdout .= stream_get_contents($pipes[1]) ?: '';
-    $stderr .= stream_get_contents($pipes[2]) ?: '';
+    }
+    readCappedProcessOutput($pipes, $stdout, $stderr);
     fclose($pipes[1]);
     fclose($pipes[2]);
-    $exitCode = proc_close($process);
-    return ['exitCode' => $exitCode, 'stdout' => $stdout, 'stderr' => $stderr, 'timedOut' => $timedOut, 'duration' => microtime(true) - $started];
+    if ($outputLimited) $stderr .= "\nEl proceso fue detenido por superar el límite de salida.";
+
+    if (!empty($status['running'])) {
+        proc_terminate($process, 9);
+        $exitCode = 137;
+    } else {
+        $knownExitCode = (int) ($status['exitcode'] ?? -1);
+        $exitCode = proc_close($process);
+        if ($exitCode === -1 && $knownExitCode >= 0) $exitCode = $knownExitCode;
+    }
+    if ($outputLimited && $exitCode === 0) $exitCode = 137;
+    return [
+        'exitCode' => $exitCode,
+        'stdout' => $stdout,
+        'stderr' => $stderr,
+        'timedOut' => $timedOut,
+        'outputLimited' => $outputLimited,
+        'duration' => microtime(true) - $started,
+    ];
+}
+
+function readCappedProcessOutput(array $pipes, string &$stdout, string &$stderr): bool
+{
+    $cap = MAX_OUTPUT_BYTES * 2;
+    $remaining = $cap - strlen($stdout) - strlen($stderr);
+    if ($remaining > 0) {
+        $chunk = stream_get_contents($pipes[1], $remaining);
+        if (is_string($chunk)) $stdout .= $chunk;
+    }
+    $remaining = $cap - strlen($stdout) - strlen($stderr);
+    if ($remaining > 0) {
+        $chunk = stream_get_contents($pipes[2], $remaining);
+        if (is_string($chunk)) $stderr .= $chunk;
+    }
+    return strlen($stdout) + strlen($stderr) >= $cap;
+}
+
+function terminateRunningProcess($process): array
+{
+    proc_terminate($process);
+    $deadline = microtime(true) + 0.5;
+    do {
+        $status = proc_get_status($process);
+        if (!$status['running']) return $status;
+        usleep(20_000);
+    } while (microtime(true) < $deadline);
+
+    proc_terminate($process, 9);
+    $deadline = microtime(true) + 0.5;
+    do {
+        $status = proc_get_status($process);
+        if (!$status['running']) return $status;
+        usleep(20_000);
+    } while (microtime(true) < $deadline);
+    return $status;
 }
 
 function isJavacAvailable(string $javac): bool

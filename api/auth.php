@@ -11,13 +11,14 @@ if ($action === 'me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 
 requireMethod('POST');
 $body = requestJson();
+if (in_array($action, ['login', 'register'], true)) authRateLimit($action);
 $pdo = requireDatabase();
 
 if ($action === 'register') {
     $name = trim((string) ($body['name'] ?? ''));
     $email = strtolower(trim((string) ($body['email'] ?? '')));
     $password = (string) ($body['password'] ?? '');
-    if ($name === '' || strlen($name) > 100 || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 8) {
+    if ($name === '' || mb_strlen($name) > 100 || strlen($email) > 190 || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 8 || strlen($password) > 4096) {
         apiResponse(['ok' => false, 'error' => 'Nombre, email válido y contraseña de 8 caracteres son obligatorios.'], 422);
     }
     try {
@@ -36,6 +37,9 @@ if ($action === 'register') {
 if ($action === 'login') {
     $email = strtolower(trim((string) ($body['email'] ?? '')));
     $password = (string) ($body['password'] ?? '');
+    if (strlen($email) > 190 || strlen($password) > 4096) {
+        apiResponse(['ok' => false, 'error' => 'Email o contraseña incorrectos.'], 401);
+    }
     $statement = $pdo->prepare('SELECT id, name, email, password_hash, role FROM users WHERE email = ? LIMIT 1');
     $statement->execute([$email]);
     $user = $statement->fetch();

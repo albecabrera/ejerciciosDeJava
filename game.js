@@ -8,6 +8,7 @@ const HINT_COST = 5;
 const SOLUTION_COST = 15;
 const COMPILER_API_URL = "api/compile.php";
 const ATTEMPT_API_URL = "api/attempts.php";
+const FEEDBACK_API_URL = "api/feedback.php";
 const HISTORICAL_MISSION_IDS_V2 = [
   "types", "condition", "loop", "method", "arrays", "class", "list", "debug",
   "strings", "while-input", "uml-model", "tests-thinking",
@@ -31,6 +32,10 @@ const ui = {
     templatesAria: "Plantillas Java disponibles",
     contextAria: "Contexto del archivo",
     brandTagline: "Laboratorio de código",
+    splashTagline: "Laboratorio de código",
+    splashSkip: "Saltar",
+    splashAria: "Java Werkstatt, laboratorio de código",
+    splashLogoDescription: "Una taza vectorial con vapor representa el laboratorio de programación Java.",
     courseLabel: "Ruta práctica",
     courseTitle: "Java desde los cimientos",
     courseIntro: "49 misiones y 5 proyectos de EF a Q2. Escribís, compilás y construís productos reales.",
@@ -65,6 +70,9 @@ const ui = {
     commandProjectLocked: "Bloqueado",
     commandProjectLockedAria: "{project} bloqueado. Completá la ruta anterior para abrirlo.",
     dashboardBack: "Proyectos",
+    previousMission: "Anterior",
+    nextMissionNav: "Siguiente",
+    missionQuickNav: "Navegación rápida de misiones",
     workspaceLabel: "Espacio de trabajo",
     workspaceFocus: "Tarea · Editor · Validación",
     resourcesLabel: "Recursos",
@@ -78,6 +86,35 @@ const ui = {
     toolConsole: "Consola",
     toolProblems: "Problemas",
     toolProgress: "Progreso",
+    toolLearning: "Aprender",
+    learningLabLabel: "Laboratorio de aprendizaje",
+    learningLabTitle: "Evidencia, traza y proceso",
+    learningRefresh: "Actualizar evidencia",
+    learningTestsTitle: "Tests de misión",
+    learningTestsIntro: "Contratos visibles que se comprueban contra tu código actual.",
+    learningTraceTitle: "Traza paso a paso",
+    learningTraceIntro: "Lectura estructural local: no inventa una ejecución de JVM.",
+    learningHistoryTitle: "Historial de código",
+    learningSaveVersion: "Guardar versión",
+    learningHistoryIntro: "Compará y restaurá intentos de este navegador.",
+    learningPeerTitle: "Revisión entre pares",
+    learningPeerIntro: "Prepará una revisión moderada: el docente aprueba el intercambio antes de compartirlo.",
+    learningPeerFocus: "Foco de revisión",
+    learningPeerPlaceholder: "Ej.: ¿el contrato cubre los casos límite?",
+    learningRequest: "Solicitar revisión",
+    learningJavaStructure: "Estructura Java",
+    learningContract: "Contrato {number}",
+    learningTraceEmpty: "Escribí código para construir una traza estructural.",
+    learningTraceAssign: "L{line}: {name} recibe {value}.",
+    learningTraceCondition: "L{line}: se evalúa la condición de {kind}.",
+    learningTraceOutput: "L{line}: se prepara salida de consola.",
+    learningTraceProcess: "L{line}: se procesa {value}.",
+    learningRestore: "Restaurar V{number}",
+    learningLines: "líneas",
+    learningNoVersions: "Todavía no guardaste versiones.",
+    learningPendingModeration: "Pendiente de moderación",
+    learningNoRequests: "Sin solicitudes de revisión.",
+    learningNoDrafts: "Todavía no hay borradores didácticos.",
     toolFeedback: "Feedback",
     editorTaskAria: "Consigna integrada en el editor",
     editorTaskPrefix: "Tarea",
@@ -85,6 +122,8 @@ const ui = {
     feedbackTitle: "Feedback",
     feedbackLocalBadge: "Guardado local",
     feedbackLocalNotice: "Estos comentarios se guardan solo en este navegador; no están sincronizados con la nube.",
+    feedbackCloudBadge: "Clase sincronizada",
+    feedbackCloudNotice: "Feedback compartido con la clase seleccionada mediante tu sesión.",
     feedbackAuthorLabel: "Nombre",
     feedbackMessageLabel: "Comentario",
     feedbackSave: "Guardar comentario",
@@ -214,6 +253,22 @@ const ui = {
     mentorAdviceAttempts: "Repetí {mission} trazando valores a mano antes de ejecutar.",
     mentorAdviceProject: "Buen momento para avanzar en {project}: llevá lo aprendido a un producto real.",
     mentorAdviceComplete: "Ruta completa: elegí un proyecto avanzado y reescribilo sin mirar soluciones.",
+    adaptiveLabel: "Ritmo adaptativo",
+    adaptiveTitle: "Dificultad recomendada",
+    adaptiveGuided: "Práctica guiada",
+    adaptiveGuidedAdvice: "Repetí esta misión con una pista y trazá los valores antes de compilar.",
+    adaptiveStandard: "Ritmo equilibrado",
+    adaptiveStandardAdvice: "Seguí con la dificultad actual y validá cada cambio pequeño.",
+    adaptiveChallenge: "Reto recomendado",
+    adaptiveChallengeAdvice: "Ya dominás el ritmo: intentá la próxima misión sin pistas.",
+    stageProgressTitle: "Progreso por etapa",
+    attemptHistoryLabel: "Registro privado",
+    attemptHistoryTitle: "Historial personal de intentos",
+    attemptHistoryLocal: "Solo local",
+    attemptHistoryEmpty: "Todavía no hay intentos registrados.",
+    attemptPassed: "Correcto",
+    attemptFailed: "A revisar",
+    textScaleAria: "Tamaño de texto: {scale} %. Activar para cambiar.",
     teacherStage: "Nivel",
     teacherAllStages: "Todos los niveles",
     teacherExport: "Exportar CSV",
@@ -227,9 +282,55 @@ const ui = {
     accountEmail: "Email",
     accountPassword: "Contraseña",
     accountOffline: "Modo local: configurá PHP y MySQL para sincronizar.",
+    accountSignedOut: "Servidor disponible · iniciá sesión para sincronizar.",
     accountConnected: "Sincronización central activa",
     accountStudent: "Estudiante",
     accountTeacher: "Docente",
+    learnerDashboardLabel: "Vista del alumno",
+    learnerDashboardTitle: "Tu jornada de aprendizaje",
+    learnerPriorityTitle: "Prioridad",
+    feedbackPendingTitle: "Feedback pendiente",
+    teacherDashboardLabel: "Vista docente",
+    teacherDashboardTitle: "Actividad de la clase",
+    teacherOpenPanel: "Abrir panel docente",
+    reviewQueueTitle: "Por revisar",
+    classActivityTitle: "Actividad",
+    assignmentsTitle: "Tareas",
+    assignmentMission: "Misión",
+    assignmentTitle: "Título",
+    assignmentDue: "Fecha límite",
+    assignmentCreate: "Asignar",
+    assignmentSubmit: "Entregar código actual",
+    assignmentArchive: "Archivar",
+    assignmentReview: "Revisar",
+    submissionNote: "Nota para el docente (opcional)",
+    rubricTitle: "Rúbrica de evaluación",
+    rubricFunctionality: "Funcionalidad",
+    rubricReadability: "Legibilidad",
+    rubricConcept: "Uso del concepto",
+    rubricExplanation: "Explicación",
+    rubricFeedback: "Feedback docente",
+    rubricSubmit: "Guardar evaluación",
+    assignmentEmpty: "No hay tareas activas.",
+    assignmentOffline: "Iniciá sesión y elegí una clase para ver tareas.",
+    notificationsTitle: "Notificaciones",
+    notificationsEmpty: "No hay notificaciones nuevas.",
+    refresh: "Actualizar",
+    runConfiguration: "Configuración",
+    runValidate: "Compilar y validar",
+    runDiagnostics: "Solo diagnósticos locales",
+    projectToolTitle: "Proyecto",
+    quickFixTitle: "Acciones de contexto",
+    quickFixFormat: "Formatear archivo",
+    quickFixHint: "Abrir pista del mentor",
+    quickFixSemicolon: "Añadir punto y coma en esta línea",
+    commandPaletteTitle: "Buscar acción",
+    commandPalettePlaceholder: "Escribí una acción…",
+    gotoDialogTitle: "Ir a misión o clase",
+    gotoPlaceholder: "Nombre, clase o etapa…",
+    classRegenerate: "Regenerar código",
+    classArchive: "Archivar clase",
+    classRemoveMember: "Quitar de la clase",
     classSelect: "Clase",
     classNone: "Sin clase seleccionada",
     className: "Nombre de clase",
@@ -241,7 +342,10 @@ const ui = {
     shortcutHelpIntro:
       "Atajos locales inspirados en IntelliJ IDEA. Escribí una abreviatura y pulsá Tab para expandir una plantilla; si no coincide, Tab inserta 4 espacios.",
     shortcutCheck: "Comprobar estructura",
-    shortcutHint: "Pedir pista/intención",
+    shortcutHint: "Abrir acciones de contexto",
+    shortcutActions: "Buscar acciones",
+    shortcutGoto: "Ir a misión o clase",
+    shortcutToolWindows: "Enfocar ventanas de herramientas",
     shortcutComment: "Comentar/descomentar selección o línea",
     shortcutDuplicate: "Duplicar línea o bloque seleccionado",
     shortcutMoveLine: "Subir/bajar línea o bloque seleccionado",
@@ -304,6 +408,10 @@ const ui = {
     documentTitle: "Java Werkstatt · Code-Labor",
     skipLink: "Zum Editor springen",
     brandAria: "Java Werkstatt, Startseite",
+    splashTagline: "Code-Labor",
+    splashSkip: "Überspringen",
+    splashAria: "Java Werkstatt, Code-Labor",
+    splashLogoDescription: "Eine Vektortasse mit Dampf steht für das Java-Programmierlabor.",
     learningPathAria: "Lernpfad",
     missionsAria: "Missionen",
     xpAria: "Gesammelte Erfahrungspunkte",
@@ -347,6 +455,9 @@ const ui = {
     commandProjectLocked: "Gesperrt",
     commandProjectLockedAria: "{project} ist gesperrt. Schließe zuerst den vorherigen Pfad ab.",
     dashboardBack: "Projekte",
+    previousMission: "Zurück",
+    nextMissionNav: "Weiter",
+    missionQuickNav: "Schnelle Missionsnavigation",
     workspaceLabel: "Arbeitsbereich",
     workspaceFocus: "Aufgabe · Editor · Validierung",
     resourcesLabel: "Ressourcen",
@@ -360,6 +471,35 @@ const ui = {
     toolConsole: "Konsole",
     toolProblems: "Probleme",
     toolProgress: "Fortschritt",
+    toolLearning: "Lernen",
+    learningLabLabel: "Lernlabor",
+    learningLabTitle: "Nachweis, Ablauf und Prozess",
+    learningRefresh: "Nachweis aktualisieren",
+    learningTestsTitle: "Missions-Tests",
+    learningTestsIntro: "Sichtbare Verträge, die mit deinem aktuellen Code geprüft werden.",
+    learningTraceTitle: "Schrittweise Ablaufspur",
+    learningTraceIntro: "Lokale Strukturanalyse: Sie erfindet keine JVM-Ausführung.",
+    learningHistoryTitle: "Codeverlauf",
+    learningSaveVersion: "Version speichern",
+    learningHistoryIntro: "Vergleiche und stelle Versuche aus diesem Browser wieder her.",
+    learningPeerTitle: "Peer-Review",
+    learningPeerIntro: "Bereite eine moderierte Review vor: Die Lehrkraft genehmigt den Austausch vor der Freigabe.",
+    learningPeerFocus: "Prüffokus",
+    learningPeerPlaceholder: "z. B.: Deckt der Vertrag Grenzfälle ab?",
+    learningRequest: "Review anfordern",
+    learningJavaStructure: "Java-Struktur",
+    learningContract: "Vertrag {number}",
+    learningTraceEmpty: "Schreibe Code, um eine strukturelle Ablaufspur zu erstellen.",
+    learningTraceAssign: "Z{line}: {name} erhält {value}.",
+    learningTraceCondition: "Z{line}: Die Bedingung von {kind} wird ausgewertet.",
+    learningTraceOutput: "Z{line}: Konsolenausgabe wird vorbereitet.",
+    learningTraceProcess: "Z{line}: {value} wird verarbeitet.",
+    learningRestore: "V{number} wiederherstellen",
+    learningLines: "Zeilen",
+    learningNoVersions: "Noch keine Version gespeichert.",
+    learningPendingModeration: "Moderation ausstehend",
+    learningNoRequests: "Keine Review-Anfragen.",
+    learningNoDrafts: "Noch keine didaktischen Entwürfe.",
     toolFeedback: "Feedback",
     editorTaskAria: "In den Editor integrierte Aufgabe",
     editorTaskPrefix: "Aufgabe",
@@ -367,6 +507,8 @@ const ui = {
     feedbackTitle: "Feedback",
     feedbackLocalBadge: "Lokal gespeichert",
     feedbackLocalNotice: "Diese Kommentare werden nur in diesem Browser gespeichert und nicht mit der Cloud synchronisiert.",
+    feedbackCloudBadge: "Mit Klasse synchronisiert",
+    feedbackCloudNotice: "Geteiltes Feedback für die ausgewählte Klasse über deine Sitzung.",
     feedbackAuthorLabel: "Name",
     feedbackMessageLabel: "Kommentar",
     feedbackSave: "Kommentar speichern",
@@ -496,6 +638,22 @@ const ui = {
     mentorAdviceAttempts: "Wiederhole {mission} mit manueller Wertetabelle vor dem Ausführen.",
     mentorAdviceProject: "Guter Moment für {project}: übertrage das Gelernte in ein echtes Produkt.",
     mentorAdviceComplete: "Route abgeschlossen: Wähle ein fortgeschrittenes Projekt und schreibe es ohne Lösung neu.",
+    adaptiveLabel: "Adaptives Tempo",
+    adaptiveTitle: "Empfohlene Schwierigkeit",
+    adaptiveGuided: "Geführte Übung",
+    adaptiveGuidedAdvice: "Wiederhole diese Mission mit einem Hinweis und verfolge die Werte vor dem Kompilieren.",
+    adaptiveStandard: "Ausgewogenes Tempo",
+    adaptiveStandardAdvice: "Bleibe bei der aktuellen Schwierigkeit und prüfe jede kleine Änderung.",
+    adaptiveChallenge: "Challenge empfohlen",
+    adaptiveChallengeAdvice: "Du beherrschst das Tempo: Versuche die nächste Mission ohne Hinweise.",
+    stageProgressTitle: "Fortschritt nach Stufe",
+    attemptHistoryLabel: "Privates Protokoll",
+    attemptHistoryTitle: "Persönlicher Versuchverlauf",
+    attemptHistoryLocal: "Nur lokal",
+    attemptHistoryEmpty: "Noch keine Versuche gespeichert.",
+    attemptPassed: "Richtig",
+    attemptFailed: "Prüfen",
+    textScaleAria: "Textgröße: {scale} %. Aktivieren zum Ändern.",
     teacherStage: "Stufe",
     teacherAllStages: "Alle Stufen",
     teacherExport: "CSV exportieren",
@@ -509,9 +667,55 @@ const ui = {
     accountEmail: "E-Mail",
     accountPassword: "Passwort",
     accountOffline: "Lokaler Modus: PHP und MySQL für Synchronisierung einrichten.",
+    accountSignedOut: "Server verfügbar · für Synchronisierung anmelden.",
     accountConnected: "Zentrale Synchronisierung aktiv",
     accountStudent: "Lernende",
     accountTeacher: "Lehrkraft",
+    learnerDashboardLabel: "Lernendenansicht",
+    learnerDashboardTitle: "Dein Lerntag",
+    learnerPriorityTitle: "Priorität",
+    feedbackPendingTitle: "Offenes Feedback",
+    teacherDashboardLabel: "Lehrkräfteansicht",
+    teacherDashboardTitle: "Klassenaktivität",
+    teacherOpenPanel: "Lehrkräfte-Panel öffnen",
+    reviewQueueTitle: "Zu prüfen",
+    classActivityTitle: "Aktivität",
+    assignmentsTitle: "Aufgaben",
+    assignmentMission: "Mission",
+    assignmentTitle: "Titel",
+    assignmentDue: "Abgabe",
+    assignmentCreate: "Zuweisen",
+    assignmentSubmit: "Aktuellen Code abgeben",
+    assignmentArchive: "Archivieren",
+    assignmentReview: "Bewerten",
+    submissionNote: "Notiz für die Lehrkraft (optional)",
+    rubricTitle: "Bewertungsraster",
+    rubricFunctionality: "Funktionalität",
+    rubricReadability: "Lesbarkeit",
+    rubricConcept: "Konzeptanwendung",
+    rubricExplanation: "Erklärung",
+    rubricFeedback: "Feedback der Lehrkraft",
+    rubricSubmit: "Bewertung speichern",
+    assignmentEmpty: "Keine aktiven Aufgaben.",
+    assignmentOffline: "Melde dich an und wähle eine Klasse, um Aufgaben zu sehen.",
+    notificationsTitle: "Benachrichtigungen",
+    notificationsEmpty: "Keine neuen Benachrichtigungen.",
+    refresh: "Aktualisieren",
+    runConfiguration: "Konfiguration",
+    runValidate: "Kompilieren und validieren",
+    runDiagnostics: "Nur lokale Diagnosen",
+    projectToolTitle: "Projekt",
+    quickFixTitle: "Kontextaktionen",
+    quickFixFormat: "Datei formatieren",
+    quickFixHint: "Mentorhinweis öffnen",
+    quickFixSemicolon: "Semikolon in dieser Zeile ergänzen",
+    commandPaletteTitle: "Aktion suchen",
+    commandPalettePlaceholder: "Aktion eingeben…",
+    gotoDialogTitle: "Zu Mission oder Klasse",
+    gotoPlaceholder: "Name, Klasse oder Stufe…",
+    classRegenerate: "Code neu erzeugen",
+    classArchive: "Klasse archivieren",
+    classRemoveMember: "Aus Klasse entfernen",
     classSelect: "Klasse",
     classNone: "Keine Klasse ausgewählt",
     className: "Klassenname",
@@ -523,7 +727,10 @@ const ui = {
     shortcutHelpIntro:
       "Lokale Tastenkürzel nach IntelliJ IDEA. Schreibe eine Abkürzung und drücke Tab, um eine Vorlage zu erweitern; ohne Treffer fügt Tab 4 Leerzeichen ein.",
     shortcutCheck: "Struktur prüfen",
-    shortcutHint: "Hinweis/Intention anfordern",
+    shortcutHint: "Kontextaktionen öffnen",
+    shortcutActions: "Aktionen suchen",
+    shortcutGoto: "Zu Mission oder Klasse",
+    shortcutToolWindows: "Werkzeugfenster fokussieren",
     shortcutComment: "Auswahl oder Zeile kommentieren/entkommentieren",
     shortcutDuplicate: "Zeile oder ausgewählten Block duplizieren",
     shortcutMoveLine: "Zeile oder ausgewählten Block nach oben/unten verschieben",
@@ -2093,9 +2300,23 @@ capstoneMissions.filter((mission) => mission.id === "project-habit-tracker" || m
   mission.evidence = { es: project.text.es.evidence, de: project.text.de.evidence };
 });
 
+// Recalculate after extension capstones move to their own routes. Calculating before
+// reassignment produced impossible labels such as “step 17 of 16”.
+PROJECTS.forEach((project) => {
+  missions.filter((mission) => mission.projectId === project.id).forEach((mission, index) => {
+    mission.projectOrder = index + 1;
+  });
+});
+
 const elements = {
+  appSplash: document.querySelector("#appSplash"),
+  appSplashLogo: document.querySelector("#appSplashLogo"),
+  appSplashSkip: document.querySelector("#appSplashSkip"),
   dashboard: document.querySelector("#dashboard"),
   dashboardBackButton: document.querySelector("#dashboardBackButton"),
+  previousMissionButton: document.querySelector("#previousMissionButton"),
+  nextMissionNavButton: document.querySelector("#nextMissionNavButton"),
+  workspaceMissionPosition: document.querySelector("#workspaceMissionPosition"),
   xp: document.querySelector("#xp"),
   missionList: document.querySelector("#missionList"),
   projectSelect: document.querySelector("#projectSelect"),
@@ -2112,6 +2333,17 @@ const elements = {
   commandProgressMeta: document.querySelector("#commandProgressMeta"),
   commandProjectName: document.querySelector("#commandProjectName"),
   commandProjectMeta: document.querySelector("#commandProjectMeta"),
+  learnerDashboard: document.querySelector("#learnerDashboard"),
+  teacherDashboard: document.querySelector("#teacherDashboard"),
+  learnerPriority: document.querySelector("#learnerPriority"),
+  learnerAssignments: document.querySelector("#learnerAssignments"),
+  learnerFeedbackSummary: document.querySelector("#learnerFeedbackSummary"),
+  teacherReviewSummary: document.querySelector("#teacherReviewSummary"),
+  teacherAssignmentsSummary: document.querySelector("#teacherAssignmentsSummary"),
+  teacherActivitySummary: document.querySelector("#teacherActivitySummary"),
+  teacherDashboardOpen: document.querySelector("#teacherDashboardOpen"),
+  teacherNotificationsButton: document.querySelector("#teacherNotificationsButton"),
+  learnerNotificationsButton: document.querySelector("#learnerNotificationsButton"),
   projectGallery: document.querySelector("#projectGallery"),
   projectContextName: document.querySelector("#projectContextName"),
   projectStep: document.querySelector("#projectStep"),
@@ -2141,6 +2373,14 @@ const elements = {
   resourcePanels: [...document.querySelectorAll("[data-resource-panel]")],
   toolTabs: document.querySelector(".tool-tabs"),
   toolPanels: [...document.querySelectorAll("[data-tool-panel]")],
+  missionTestResults: document.querySelector("#missionTestResults"),
+  executionTrace: document.querySelector("#executionTrace"),
+  runLearningChecks: document.querySelector("#runLearningChecks"),
+  saveCodeSnapshot: document.querySelector("#saveCodeSnapshot"),
+  codeVersionHistory: document.querySelector("#codeVersionHistory"),
+  peerReviewForm: document.querySelector("#peerReviewForm"),
+  peerReviewFocus: document.querySelector("#peerReviewFocus"),
+  peerReviewQueue: document.querySelector("#peerReviewQueue"),
   onboardingDialog: document.querySelector("#onboardingDialog"),
   onboardingClose: document.querySelector("#onboardingClose"),
   fileName: document.querySelector("#fileName"),
@@ -2155,6 +2395,19 @@ const elements = {
   lineNumbers: document.querySelector("#lineNumbers"),
   completionPopup: document.querySelector("#completionPopup"),
   completionList: document.querySelector("#completionList"),
+  projectFileTree: document.querySelector("#projectFileTree"),
+  editorTabs: document.querySelector("#editorTabs"),
+  runConfiguration: document.querySelector("#runConfiguration"),
+  quickFixSurface: document.querySelector("#quickFixSurface"),
+  quickFixActions: document.querySelector("#quickFixActions"),
+  commandPalette: document.querySelector("#commandPalette"),
+  commandPaletteSearch: document.querySelector("#commandPaletteSearch"),
+  commandPaletteResults: document.querySelector("#commandPaletteResults"),
+  gotoDialog: document.querySelector("#gotoDialog"),
+  gotoSearch: document.querySelector("#gotoSearch"),
+  gotoResults: document.querySelector("#gotoResults"),
+  notificationsDialog: document.querySelector("#notificationsDialog"),
+  notificationList: document.querySelector("#notificationList"),
   diagnosticsList: document.querySelector("#diagnosticsList"),
   bugChecklist: document.querySelector("#bugChecklist"),
   formatButton: document.querySelector("#formatButton"),
@@ -2162,6 +2415,10 @@ const elements = {
   masteryExplanation: document.querySelector("#masteryExplanation"),
   mentorAdvice: document.querySelector("#mentorAdvice"),
   mentorAction: document.querySelector("#mentorAction"),
+  adaptiveLevel: document.querySelector("#adaptiveLevel"),
+  adaptiveAdvice: document.querySelector("#adaptiveAdvice"),
+  stageProgress: document.querySelector("#stageProgress"),
+  personalAttemptHistory: document.querySelector("#personalAttemptHistory"),
   progressStats: document.querySelector("#progressStats"),
   progressInsights: document.querySelector("#progressInsights"),
   progressValue: document.querySelector("#progressValue"),
@@ -2181,6 +2438,13 @@ const elements = {
   hintText: document.querySelector("#hintText"),
   resetButton: document.querySelector("#resetButton"),
   themeToggle: document.querySelector("#themeToggle"),
+  textScaleToggle: document.querySelector("#textScaleToggle"),
+  textScaleValue: document.querySelector("#textScaleValue"),
+  accessibilityToggle: document.querySelector("#accessibilityToggle"),
+  accessibilityPanel: document.querySelector("#accessibilityPanel"),
+  highContrastToggle: document.querySelector("#highContrastToggle"),
+  reducedMotionToggle: document.querySelector("#reducedMotionToggle"),
+  accessibilityFocusEditor: document.querySelector("#accessibilityFocusEditor"),
   debugToggle: document.querySelector("#debugToggle"),
   workspace: document.querySelector("#workspace"),
   missionRail: document.querySelector("#missionRail"),
@@ -2197,6 +2461,8 @@ const elements = {
   feedbackReplyContext: document.querySelector("#feedbackReplyContext"),
   feedbackCancelReply: document.querySelector("#feedbackCancelReply"),
   missionFeedbackList: document.querySelector("#missionFeedbackList"),
+  feedbackStorageBadge: document.querySelector(".feedback-storage-badge"),
+  feedbackStorageNotice: document.querySelector("#toolFeedbackPanel .heuristic-note"),
   teacherToggle: document.querySelector("#teacherToggle"),
   teacherPanel: document.querySelector("#teacherPanel"),
   teacherTitle: document.querySelector("#teacherTitle"),
@@ -2222,6 +2488,22 @@ const elements = {
   className: document.querySelector("#className"),
   joinClassForm: document.querySelector("#joinClassForm"),
   joinCode: document.querySelector("#joinCode"),
+  classAdminActions: document.querySelector("#classAdminActions"),
+  createAssignmentForm: document.querySelector("#createAssignmentForm"),
+  assignmentMission: document.querySelector("#assignmentMission"),
+  assignmentTitle: document.querySelector("#assignmentTitle"),
+  assignmentDue: document.querySelector("#assignmentDue"),
+  teacherAssignments: document.querySelector("#teacherAssignments"),
+  submissionReviewQueue: document.querySelector("#submissionReviewQueue"),
+  peerModerationPanel: document.querySelector("#peerModerationPanel"),
+  peerModerationCount: document.querySelector("#peerModerationCount"),
+  peerModerationQueue: document.querySelector("#peerModerationQueue"),
+  refreshAssignments: document.querySelector("#refreshAssignments"),
+  missionBuilderForm: document.querySelector("#missionBuilderForm"),
+  builderTitle: document.querySelector("#builderTitle"),
+  builderObjective: document.querySelector("#builderObjective"),
+  builderCriterion: document.querySelector("#builderCriterion"),
+  missionBuilderDrafts: document.querySelector("#missionBuilderDrafts"),
 };
 
 let activeAppView = "dashboard";
@@ -2489,6 +2771,7 @@ function getStoredEditorPrefs() {
     return {
       sidebarCollapsed: Boolean(stored.sidebarCollapsed),
       focusMode: Boolean(stored.focusMode),
+      textScale: [100, 112, 125].includes(Number(stored.textScale)) ? Number(stored.textScale) : 100,
     };
   } catch {
     return {};
@@ -2502,6 +2785,9 @@ function saveEditorPrefs() {
       JSON.stringify({
         sidebarCollapsed: Boolean(state.editorPrefs?.sidebarCollapsed),
         focusMode: Boolean(state.editorPrefs?.focusMode),
+        textScale: [100, 112, 125].includes(Number(state.editorPrefs?.textScale))
+          ? Number(state.editorPrefs.textScale)
+          : 100,
       }),
     );
   } catch {
@@ -2578,11 +2864,14 @@ function createDefaultState(language = "es") {
     solutionShown: {},
     attempts: {},
     correctAttempts: {},
+    attemptHistory: [],
     bugChecklist: [createBugChecklistItem()],
     feedbackByMission: {},
+    learning: { snapshots: {}, peerRequests: {}, drafts: [], highContrast: false, reducedMotion: false },
     editorPrefs: {
       sidebarCollapsed: false,
       focusMode: false,
+      textScale: 100,
       ...getStoredEditorPrefs(),
     },
   };
@@ -2640,6 +2929,46 @@ function sanitizeFeedbackByMission(value) {
         createdAt: Number.isFinite(created) ? new Date(created).toISOString() : new Date().toISOString(),
       }];
     });
+  });
+}
+
+function sanitizeLearning(value) {
+  const safe = { snapshots: {}, peerRequests: {}, drafts: [], highContrast: false, reducedMotion: false };
+  if (!value || typeof value !== "object") return safe;
+  safe.highContrast = value.highContrast === true;
+  safe.reducedMotion = value.reducedMotion === true;
+  safe.snapshots = sanitizeMissionMap(value.snapshots, (entries) => Array.isArray(entries) ? entries.slice(-8).flatMap((entry) => {
+    if (!entry || typeof entry.code !== "string") return [];
+    return [{ id: String(entry.id || `snapshot-${Date.now()}`).slice(0, 80), code: entry.code.slice(0, 16000), createdAt: String(entry.createdAt || new Date().toISOString()) }];
+  }) : []);
+  safe.peerRequests = sanitizeMissionMap(value.peerRequests, (entries) => Array.isArray(entries) ? entries.slice(-8).flatMap((entry) => {
+    const focus = typeof entry?.focus === "string" ? entry.focus.trim().slice(0, 140) : "";
+    return focus ? [{ id: String(entry.id || `peer-${Date.now()}`).slice(0, 80), focus, createdAt: String(entry.createdAt || new Date().toISOString()), status: "pending" }] : [];
+  }) : []);
+  safe.drafts = Array.isArray(value.drafts) ? value.drafts.slice(-20).flatMap((draft) => {
+    const title = typeof draft?.title === "string" ? draft.title.trim().slice(0, 120) : "";
+    const objective = typeof draft?.objective === "string" ? draft.objective.trim().slice(0, 240) : "";
+    const criterion = typeof draft?.criterion === "string" ? draft.criterion.trim().slice(0, 160) : "";
+    return title && objective && criterion ? [{ id: String(draft.id || `draft-${Date.now()}`).slice(0, 80), title, objective, criterion, createdAt: String(draft.createdAt || new Date().toISOString()) }] : [];
+  }) : [];
+  return safe;
+}
+
+function sanitizeAttemptHistory(value) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(-100).flatMap((attempt) => {
+    if (!attempt || !missions.some((mission) => mission.id === attempt.missionId)) return [];
+    const timestamp = Date.parse(String(attempt.timestamp || ""));
+    return [{
+      id: String(attempt.id || `attempt-${timestamp || Date.now()}`).slice(0, 80),
+      missionId: String(attempt.missionId),
+      timestamp: Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : new Date().toISOString(),
+      passed: attempt.passed === true,
+      phase: String(attempt.phase || "local").slice(0, 24),
+      feedback: String(attempt.feedback || "").slice(0, 240),
+      diagnosticsCount: Math.max(0, Number(attempt.diagnosticsCount || 0)),
+      durationMs: Math.max(0, Number(attempt.durationMs || 0)),
+    }];
   });
 }
 
@@ -2719,11 +3048,16 @@ function normalizeState(stored, options = {}) {
     solutionShown: sanitizeMissionMap(stored?.solutionShown ?? stored?.solutionsShown, (value) => value === true),
     attempts,
     correctAttempts,
+    attemptHistory: sanitizeAttemptHistory(stored?.attemptHistory),
     bugChecklist: sanitizeBugChecklist(stored?.bugChecklist),
     feedbackByMission: sanitizeFeedbackByMission(stored?.feedbackByMission),
+    learning: sanitizeLearning(stored?.learning),
     editorPrefs: {
       sidebarCollapsed: stored?.editorPrefs?.sidebarCollapsed === true,
       focusMode: stored?.editorPrefs?.focusMode === true,
+      textScale: [100, 112, 125].includes(Number(stored?.editorPrefs?.textScale))
+        ? Number(stored.editorPrefs.textScale)
+        : 100,
       ...getStoredEditorPrefs(),
     },
   };
@@ -2767,7 +3101,16 @@ let cloudSession = {
   classes: [],
   classProgress: null,
   classProgressError: "",
+  activeClassId: "",
+  feedbackCache: {},
+  feedbackErrors: {},
+  assignments: [],
+  submissions: {},
+  notifications: [],
+  collaboration: { drafts: [], peerRequests: [] },
 };
+
+let editorTabIds = [];
 
 async function cloudRequest(path, options = {}) {
   const response = await fetch(path, {
@@ -2778,6 +3121,280 @@ async function cloudRequest(path, options = {}) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok || body.ok === false) throw new Error(body.error || `HTTP ${response.status}`);
   return body;
+}
+
+function assignmentRows(payload) {
+  const rows = payload?.assignments || payload?.items || payload;
+  return Array.isArray(rows) ? rows : [];
+}
+
+function assignmentId(item) {
+  return String(item?.id ?? item?.assignment_id ?? "");
+}
+
+function assignmentMissionId(item) {
+  return String(item?.mission_id ?? item?.missionId ?? "");
+}
+
+function assignmentTitle(item) {
+  return String(item?.title || missionLabel(assignmentMissionId(item)) || t("assignmentsTitle"));
+}
+
+function assignmentDue(item) {
+  const raw = item?.due_at ?? item?.dueAt ?? item?.deadline;
+  if (!raw) return "";
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? String(raw) : date.toLocaleString(state.language === "de" ? "de-DE" : "es-ES");
+}
+
+function assignmentIsArchived(item) {
+  return Boolean(item?.archived_at || item?.archived || item?.status === "archived");
+}
+
+async function loadAssignments() {
+  if (!cloudSession.user || !cloudSession.activeClassId) {
+    cloudSession.assignments = [];
+    renderRoleDashboards();
+    renderAssignments();
+    return;
+  }
+  try {
+    const result = await cloudRequest(`api/assignments.php?action=list&classId=${encodeURIComponent(cloudSession.activeClassId)}`);
+    cloudSession.assignments = assignmentRows(result).filter((item) => !assignmentIsArchived(item));
+  } catch {
+    cloudSession.assignments = [];
+  }
+  renderRoleDashboards();
+  renderAssignments();
+}
+
+async function loadCollaboration() {
+  if (!cloudSession.user || !cloudSession.activeClassId) {
+    cloudSession.collaboration = { drafts: [], peerRequests: [] };
+    renderLearningLab();
+    return;
+  }
+  try {
+    const result = await cloudRequest(`api/collaboration.php?action=list&classId=${encodeURIComponent(cloudSession.activeClassId)}`);
+    cloudSession.collaboration = { drafts: Array.isArray(result.drafts) ? result.drafts : [], peerRequests: Array.isArray(result.peerRequests) ? result.peerRequests : [] };
+  } catch { cloudSession.collaboration = { drafts: [], peerRequests: [] }; }
+  renderLearningLab();
+}
+
+async function loadSubmissions(assignmentIdValue) {
+  if (!cloudSession.user || !assignmentIdValue) return [];
+  try {
+    const result = await cloudRequest(`api/submissions.php?action=list&assignmentId=${encodeURIComponent(assignmentIdValue)}`);
+    const rows = result?.submissions || result?.items || result;
+    const submissions = Array.isArray(rows) ? rows : [];
+    cloudSession.submissions[assignmentIdValue] = submissions;
+    return submissions;
+  } catch {
+    cloudSession.submissions[assignmentIdValue] = [];
+    return [];
+  }
+}
+
+async function loadNotifications() {
+  if (!cloudSession.user) {
+    cloudSession.notifications = [];
+    renderNotifications();
+    return;
+  }
+  try {
+    const result = await cloudRequest("api/notifications.php?action=list");
+    const rows = result?.notifications || result?.items || result;
+    cloudSession.notifications = Array.isArray(rows) ? rows : [];
+  } catch {
+    cloudSession.notifications = [];
+  }
+  renderNotifications();
+}
+
+function renderNotifications() {
+  if (!elements.notificationList) return;
+  elements.notificationList.replaceChildren();
+  if (!cloudSession.notifications.length) {
+    const empty = document.createElement("p");
+    empty.textContent = t("notificationsEmpty");
+    elements.notificationList.append(empty);
+    return;
+  }
+  cloudSession.notifications.forEach((notification) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "notification-item";
+    button.dataset.notificationId = String(notification.id || "");
+    button.dataset.read = String(Boolean(notification.read_at || notification.read));
+    const title = document.createElement("strong");
+    title.textContent = String(notification.title || notification.type || t("notificationsTitle"));
+    const message = document.createElement("span");
+    message.textContent = String(notification.message || notification.body || "");
+    button.append(title, message);
+    elements.notificationList.append(button);
+  });
+}
+
+function renderRoleDashboards() {
+  const teacher = cloudSession.user?.role === "teacher" || cloudSession.user?.role === "admin";
+  if (elements.learnerDashboard) elements.learnerDashboard.hidden = teacher;
+  if (elements.teacherDashboard) elements.teacherDashboard.hidden = !teacher;
+  const mission = missions[state.current];
+  if (elements.learnerPriority) elements.learnerPriority.textContent = `${mission.stage} · ${getMissionText(mission).short} · ${mission.minutes} min`;
+  const feedbackOpen = Object.values(state.feedbackByMission || {}).flat().filter((item) => item.status !== "resolved").length;
+  if (elements.learnerFeedbackSummary) elements.learnerFeedbackSummary.textContent = feedbackOpen ? String(feedbackOpen) : t("notificationsEmpty");
+  const assignments = cloudSession.assignments || [];
+  renderAssignmentCards(elements.learnerAssignments, assignments, "learner");
+  renderAssignmentCards(elements.teacherAssignmentsSummary, assignments, "summary");
+  if (elements.teacherReviewSummary) {
+    const queued = Object.values(cloudSession.submissions).flat().filter((item) => !item.reviewed_at && item.status !== "reviewed").length;
+    elements.teacherReviewSummary.textContent = String(queued);
+  }
+  if (elements.teacherActivitySummary) {
+    const students = cloudSession.classProgress?.students?.length || cloudSession.classProgress?.members?.length || 0;
+    elements.teacherActivitySummary.textContent = cloudSession.activeClassId ? `${students} ${t("teacherCloudStudents").toLowerCase()}` : t("teacherCloudEmpty");
+  }
+}
+
+function renderAssignmentCards(container, assignments, mode) {
+  if (!container) return;
+  container.replaceChildren();
+  if (!cloudSession.user || !cloudSession.activeClassId) {
+    const empty = document.createElement("p");
+    empty.textContent = t("assignmentOffline");
+    container.append(empty);
+    return;
+  }
+  if (!assignments.length) {
+    const empty = document.createElement("p");
+    empty.textContent = t("assignmentEmpty");
+    container.append(empty);
+    return;
+  }
+  assignments.slice(0, mode === "summary" ? 3 : 8).forEach((assignment) => {
+    const card = document.createElement("article");
+    card.className = "assignment-item";
+    card.dataset.assignmentId = assignmentId(assignment);
+    const heading = document.createElement("strong");
+    heading.textContent = assignmentTitle(assignment);
+    const meta = document.createElement("small");
+    meta.textContent = [missionLabel(assignmentMissionId(assignment)), assignmentDue(assignment)].filter(Boolean).join(" · ");
+    card.append(heading, meta);
+    if (mode === "learner") {
+      const noteLabel = document.createElement("label");
+      noteLabel.className = "assignment-note";
+      const noteText = document.createElement("span");
+      noteText.textContent = t("submissionNote");
+      const note = document.createElement("textarea");
+      note.rows = 2;
+      note.maxLength = 1200;
+      note.dataset.assignmentNote = "";
+      noteLabel.append(noteText, note);
+      const submit = document.createElement("button");
+      submit.type = "button";
+      submit.className = "button button-primary button-compact";
+      submit.dataset.assignmentAction = "submit";
+      submit.textContent = t("assignmentSubmit");
+      card.append(noteLabel, submit);
+    }
+    container.append(card);
+  });
+}
+
+function renderAssignments() {
+  const teacher = cloudSession.user?.role === "teacher" || cloudSession.user?.role === "admin";
+  if (elements.assignmentMission && elements.assignmentMission.options.length !== missions.length) {
+    elements.assignmentMission.replaceChildren(...missions.map((mission) => {
+      const option = document.createElement("option");
+      option.value = mission.id;
+      option.textContent = `${mission.stage} · ${getMissionText(mission).short}`;
+      return option;
+    }));
+  }
+  if (elements.createAssignmentForm) elements.createAssignmentForm.hidden = !teacher || !cloudSession.activeClassId;
+  renderAssignmentCards(elements.teacherAssignments, cloudSession.assignments, teacher ? "teacher" : "learner");
+  if (teacher && elements.teacherAssignments) {
+    elements.teacherAssignments.querySelectorAll(".assignment-item").forEach((card) => {
+      const actions = document.createElement("div");
+      actions.className = "assignment-actions";
+      [["submissions", t("assignmentReview")], ["archive", t("assignmentArchive")]].forEach(([action, label]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "button button-text button-compact";
+        button.dataset.assignmentAction = action;
+        button.textContent = label;
+        actions.append(button);
+      });
+      card.append(actions);
+    });
+  }
+}
+
+function renderSubmissionQueue(assignment, submissions) {
+  if (!elements.submissionReviewQueue) return;
+  elements.submissionReviewQueue.replaceChildren();
+  const heading = document.createElement("h5");
+  heading.textContent = `${t("reviewQueueTitle")} · ${assignmentTitle(assignment)}`;
+  elements.submissionReviewQueue.append(heading);
+  if (!submissions.length) {
+    const empty = document.createElement("p");
+    empty.textContent = t("assignmentEmpty");
+    elements.submissionReviewQueue.append(empty);
+    return;
+  }
+  submissions.forEach((submission) => {
+    const card = document.createElement("article");
+    card.className = "submission-card";
+    card.dataset.submissionId = String(submission.id || submission.submission_id || "");
+    const title = document.createElement("strong");
+    title.textContent = String(submission.student_name || submission.author_name || submission.user_name || t("accountStudent"));
+    const code = document.createElement("pre");
+    code.textContent = String(submission.source_code || "");
+    const form = document.createElement("form");
+    form.className = "rubric-form";
+    form.dataset.submissionReview = "";
+    const fieldset = document.createElement("fieldset");
+    const legend = document.createElement("legend");
+    legend.textContent = t("rubricTitle");
+    fieldset.append(legend);
+    [
+      ["functionality", "rubricFunctionality"],
+      ["readability", "rubricReadability"],
+      ["concept", "rubricConcept"],
+      ["explanation", "rubricExplanation"],
+    ].forEach(([name, labelKey]) => {
+      const label = document.createElement("label");
+      const span = document.createElement("span");
+      span.textContent = t(labelKey);
+      const input = document.createElement("input");
+      input.type = "number";
+      input.name = name;
+      input.min = "0";
+      input.max = "4";
+      input.step = "1";
+      input.required = true;
+      input.value = String(submission.rubric?.[name] ?? "");
+      label.append(span, input);
+      fieldset.append(label);
+    });
+    const feedbackLabel = document.createElement("label");
+    const feedbackText = document.createElement("span");
+    feedbackText.textContent = t("rubricFeedback");
+    const feedback = document.createElement("textarea");
+    feedback.name = "feedback";
+    feedback.rows = 3;
+    feedback.maxLength = 2000;
+    feedback.required = true;
+    feedback.value = String(submission.feedback || "");
+    feedbackLabel.append(feedbackText, feedback);
+    const submitReview = document.createElement("button");
+    submitReview.type = "submit";
+    submitReview.className = "button button-primary button-compact";
+    submitReview.textContent = t("rubricSubmit");
+    form.append(fieldset, feedbackLabel, submitReview);
+    card.append(title, code, form);
+    elements.submissionReviewQueue.append(card);
+  });
 }
 
 function queueCloudSync() {
@@ -2805,6 +3422,19 @@ async function syncCloudProgress() {
 }
 
 async function recordAttemptEvent(mission, payload = {}) {
+  const attempt = {
+    id: `attempt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    missionId: mission.id,
+    timestamp: new Date().toISOString(),
+    passed: Boolean(payload.passed),
+    phase: payload.phase || "local",
+    feedback: String(payload.feedback || "").slice(0, 240),
+    diagnosticsCount: Number(payload.diagnosticsCount || 0),
+    durationMs: Number(payload.durationMs || 0),
+  };
+  state.attemptHistory = [...(state.attemptHistory || []), attempt].slice(-100);
+  saveState(false);
+  renderPersonalAttemptHistory();
   if (!cloudSession.user || !cloudSession.csrf) return;
   try {
     await cloudRequest(ATTEMPT_API_URL, {
@@ -2848,7 +3478,9 @@ function mergeCloudProgress(progress) {
 function renderAccount() {
   const user = cloudSession.user;
   elements.authToggleLabel.textContent = user ? user.name : t("accountLogin");
-  elements.authStatus.textContent = user ? `${t("accountConnected")} · ${user.name} (${user.role === "teacher" ? t("accountTeacher") : t("accountStudent")})` : t("accountOffline");
+  elements.authStatus.textContent = user
+    ? `${t("accountConnected")} · ${user.name} (${user.role === "teacher" || user.role === "admin" ? t("accountTeacher") : t("accountStudent")})`
+    : t(cloudSession.configured ? "accountSignedOut" : "accountOffline");
   elements.authName.hidden = !cloudSession.registerMode || Boolean(user);
   elements.loginButton.hidden = Boolean(user);
   elements.registerButton.hidden = Boolean(user);
@@ -2861,11 +3493,16 @@ function renderAccount() {
   elements.className.disabled = !user;
   elements.joinCode.disabled = !user;
   renderClasses();
+  renderRoleDashboards();
+  renderAssignments();
 }
 
 function renderClasses() {
   if (!elements.classSelect) return;
-  const selected = elements.classSelect.value;
+  const availableIds = cloudSession.classes.map((item) => String(item.id));
+  if (!availableIds.includes(String(cloudSession.activeClassId))) {
+    cloudSession.activeClassId = availableIds[0] || "";
+  }
   elements.classSelect.replaceChildren();
   const empty = document.createElement("option");
   empty.value = "";
@@ -2877,8 +3514,17 @@ function renderClasses() {
     option.textContent = `${item.name} · ${item.join_code}`;
     elements.classSelect.append(option);
   });
-  elements.classSelect.value = selected;
+  elements.classSelect.value = cloudSession.activeClassId;
+  const teacher = cloudSession.user?.role === "teacher" || cloudSession.user?.role === "admin";
+  if (elements.classAdminActions) {
+    elements.classAdminActions.hidden = !teacher || !cloudSession.activeClassId;
+    const regenerate = elements.classAdminActions.querySelector('[data-class-action="regenerate-code"]');
+    const archive = elements.classAdminActions.querySelector('[data-class-action="archive"]');
+    if (regenerate) regenerate.textContent = t("classRegenerate");
+    if (archive) archive.textContent = t("classArchive");
+  }
   renderTeacherCloudProgress();
+  renderRoleDashboards();
 }
 
 async function loadClasses() {
@@ -2887,10 +3533,19 @@ async function loadClasses() {
     const result = await cloudRequest("api/classes.php?action=list");
     cloudSession.classes = Array.isArray(result.classes) ? result.classes : [];
     renderClasses();
-    if (elements.classSelect?.value) await loadClassProgress(elements.classSelect.value);
+    if (cloudSession.activeClassId) {
+      if (cloudSession.user.role === "teacher" || cloudSession.user.role === "admin") {
+        await loadClassProgress(cloudSession.activeClassId);
+      }
+      await loadCloudMissionFeedback();
+    }
+    await loadAssignments();
+    await loadNotifications();
   } catch {
     cloudSession.classes = [];
+    cloudSession.assignments = [];
     renderClasses();
+    renderAssignments();
   }
 }
 
@@ -2911,6 +3566,7 @@ async function loadClassProgress(classId) {
     cloudSession.classProgressError = error.message || t("teacherCloudError");
   }
   renderTeacherCloudProgress();
+  renderRoleDashboards();
 }
 
 async function loadStudentAttemptHistory(studentId) {
@@ -2931,8 +3587,11 @@ async function initCloud() {
       const progress = await cloudRequest("api/progress.php");
       mergeCloudProgress(progress.progress);
       await loadClasses();
+      await loadCollaboration();
       renderMission({ silent: true });
       queueCloudSync();
+    } else {
+      renderRoleDashboards();
     }
   } catch {
     cloudSession.configured = false;
@@ -3008,6 +3667,10 @@ function translateInterface() {
     const value = t(element.dataset.i18nPlaceholder);
     if (typeof value === "string") element.placeholder = value;
   });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+    const value = t(element.dataset.i18nAriaLabel);
+    if (typeof value === "string") element.setAttribute("aria-label", value);
+  });
   document.querySelectorAll("[data-i18n-alt]").forEach((element) => {
     const value = t(element.dataset.i18nAlt);
     if (typeof value === "string") element.alt = value;
@@ -3028,8 +3691,18 @@ function applyEditorPrefs() {
     && window.matchMedia("(max-width: 760px)").matches;
   const sidebarCollapsed = mobileWorkspace || Boolean(state.editorPrefs?.sidebarCollapsed);
   const focusMode = Boolean(state.editorPrefs?.focusMode);
+  const textScale = [100, 112, 125].includes(Number(state.editorPrefs?.textScale))
+    ? Number(state.editorPrefs.textScale)
+    : 100;
 
   applySidebarState(sidebarCollapsed);
+  document.documentElement.style.fontSize = `${textScale}%`;
+  if (elements.textScaleValue) elements.textScaleValue.textContent = `${textScale}%`;
+  if (elements.textScaleToggle) {
+    const label = interpolate(t("textScaleAria"), { scale: textScale });
+    elements.textScaleToggle.setAttribute("aria-label", label);
+    elements.textScaleToggle.title = label;
+  }
 
   document.body.classList.toggle("editor-focus-active", focusMode);
   elements.editorPanel?.classList.toggle("is-focus-mode", focusMode);
@@ -3044,6 +3717,17 @@ function applyEditorPrefs() {
       ? t("focusExit")
       : t("focusEnter");
   }
+}
+
+function cycleTextScale() {
+  const scales = [100, 112, 125];
+  const current = scales.indexOf(Number(state.editorPrefs?.textScale));
+  state.editorPrefs = {
+    ...state.editorPrefs,
+    textScale: scales[(current + 1 + scales.length) % scales.length],
+  };
+  applyEditorPrefs();
+  saveEditorPrefs();
 }
 
 function applySidebarState(sidebarCollapsed) {
@@ -3091,6 +3775,39 @@ function setAppView(view, options = {}) {
   } else if (!workspaceOpen && options.focusDashboard !== false) {
     window.requestAnimationFrame(() => elements.commandContinueButton?.focus());
   }
+}
+
+function initAppSplash(onDismiss) {
+  const splash = elements.appSplash;
+  const complete = typeof onDismiss === "function" ? onDismiss : () => {};
+  if (!splash) {
+    complete();
+    return;
+  }
+  if (new URLSearchParams(window.location.search).get("e2e") === "1") {
+    splash.hidden = true;
+    complete();
+    return;
+  }
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let completed = false;
+  let timer;
+  const dismiss = () => {
+    if (completed) return;
+    completed = true;
+    clearTimeout(timer);
+    splash.classList.add("is-leaving");
+    splash.setAttribute("aria-hidden", "true");
+    window.setTimeout(() => {
+      splash.hidden = true;
+      complete();
+    }, reduceMotion ? 0 : 240);
+  };
+
+  elements.appSplashSkip?.addEventListener("click", dismiss, { once: true });
+  window.requestAnimationFrame(() => splash.classList.add("is-visible"));
+  timer = window.setTimeout(dismiss, reduceMotion ? 120 : 1450);
 }
 
 function initOnboarding() {
@@ -3148,6 +3865,221 @@ function activateToolTab(name = "console", options = {}) {
   if (options.focus) {
     elements.toolTabs?.querySelector(`[data-tool-tab="${selected}"]`)?.focus();
   }
+}
+
+function learningState() {
+  state.learning ||= { snapshots: {}, peerRequests: {}, drafts: [], highContrast: false, reducedMotion: false };
+  return state.learning;
+}
+
+function applyLearningPreferences() {
+  const learning = learningState();
+  document.documentElement.toggleAttribute("data-high-contrast", learning.highContrast);
+  document.documentElement.toggleAttribute("data-reduced-motion", learning.reducedMotion);
+  if (elements.highContrastToggle) elements.highContrastToggle.checked = learning.highContrast;
+  if (elements.reducedMotionToggle) elements.reducedMotionToggle.checked = learning.reducedMotion;
+}
+
+function missionLearningChecks(mission, code) {
+  const rules = Array.isArray(mission.required) ? mission.required : [];
+  const visibleRules = rules.slice(0, 4);
+  if (!visibleRules.length) return [{ label: t("learningJavaStructure"), pass: Boolean(clean(code)) }];
+  return visibleRules.map((rule, index) => ({
+    label: `${interpolate(t("learningContract"), { number: index + 1 })}: ${rule.source.replace(/\s\*/g, " ").replace(/\b/g, "").slice(0, 64)}`,
+    pass: rule.test(code),
+  }));
+}
+
+function buildExecutionTrace(code) {
+  const lines = code.split("\n").map((line) => line.trim()).filter(Boolean);
+  const trace = [];
+  lines.slice(0, 8).forEach((line, index) => {
+    const declaration = line.match(/^(?:final\s+)?(int|double|boolean|char|String|var)\s+(\w+)\s*=\s*(.+);$/);
+    if (declaration) trace.push(interpolate(t("learningTraceAssign"), { line: index + 1, name: declaration[2], value: declaration[3].slice(0, 42) }));
+    else if (/^(if|while|for)\s*\(/.test(line)) trace.push(interpolate(t("learningTraceCondition"), { line: index + 1, kind: line.match(/^(if|while|for)/)[1] }));
+    else if (/System\.out\.print/.test(line)) trace.push(interpolate(t("learningTraceOutput"), { line: index + 1 }));
+    else trace.push(interpolate(t("learningTraceProcess"), { line: index + 1, value: line.slice(0, 58) }));
+  });
+  return trace.length ? trace : [t("learningTraceEmpty")];
+}
+
+function renderLearningLab() {
+  const mission = missions[state.current];
+  const code = elements.editor?.value || "";
+  const learning = learningState();
+  const makeItem = (text, className = "") => { const item = document.createElement("li"); item.className = className; item.textContent = text; return item; };
+  if (elements.missionTestResults) {
+    const checks = missionLearningChecks(mission, code);
+    elements.missionTestResults.replaceChildren(...checks.map((check) => makeItem(`${check.pass ? "✓" : "○"} ${check.label}`, check.pass ? "is-pass" : "is-pending")));
+  }
+  if (elements.executionTrace) elements.executionTrace.replaceChildren(...buildExecutionTrace(code).map((line) => makeItem(line)));
+  const snapshots = learning.snapshots[mission.id] || [];
+  if (elements.codeVersionHistory) {
+    elements.codeVersionHistory.replaceChildren(...(snapshots.length ? [...snapshots].reverse().map((snapshot, index) => {
+      const item = document.createElement("li");
+      const restore = document.createElement("button"); restore.type = "button"; restore.className = "button button-text button-compact"; restore.dataset.snapshotId = snapshot.id; restore.textContent = interpolate(t("learningRestore"), { number: snapshots.length - index });
+      item.append(document.createTextNode(`${new Date(snapshot.createdAt).toLocaleString()} · ${snapshot.code.split("\n").length} ${t("learningLines")} `), restore); return item;
+    }) : [makeItem(t("learningNoVersions"))]));
+  }
+  const requests = [...(cloudSession.collaboration?.peerRequests || []).filter((item) => item.mission_id === mission.id), ...(learning.peerRequests[mission.id] || [])];
+  if (elements.peerReviewQueue) elements.peerReviewQueue.replaceChildren(...(requests.length ? [...requests].reverse().map((request) => makeItem(`${t("learningPendingModeration")} · ${request.focus}`)) : [makeItem(t("learningNoRequests"))]));
+  const drafts = [...(cloudSession.collaboration?.drafts || []), ...learning.drafts];
+  if (elements.missionBuilderDrafts) elements.missionBuilderDrafts.replaceChildren(...(drafts.length ? [...drafts].reverse().map((draft) => makeItem(`${draft.title} — ${draft.criterion}`)) : [makeItem(t("learningNoDrafts"))]));
+}
+
+function rememberEditorTab(missionId) {
+  editorTabIds = [missionId, ...editorTabIds.filter((id) => id !== missionId)].slice(0, 6);
+}
+
+function renderEditorTabs() {
+  if (!elements.editorTabs) return;
+  const currentId = missions[state.current].id;
+  rememberEditorTab(currentId);
+  elements.editorTabs.replaceChildren(...editorTabIds.map((id) => {
+    const mission = missions.find((item) => item.id === id);
+    if (!mission) return document.createTextNode("");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.role = "tab";
+    button.dataset.missionId = id;
+    button.setAttribute("aria-selected", String(id === currentId));
+    button.tabIndex = id === currentId ? 0 : -1;
+    button.textContent = `${mission.file} · ${mission.stage}`;
+    return button;
+  }));
+}
+
+function renderProjectFileTree() {
+  if (!elements.projectFileTree) return;
+  elements.projectFileTree.replaceChildren();
+  PROJECTS.forEach((project) => {
+    const group = document.createElement("details");
+    group.open = project.id === missions[state.current].projectId;
+    group.dataset.projectId = project.id;
+    const summary = document.createElement("summary");
+    summary.textContent = `${project.stage} · ${project.text[state.language].name}`;
+    group.append(summary);
+    projectMissions(project.id).forEach((mission) => {
+      const index = missions.indexOf(mission);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.role = "treeitem";
+      button.dataset.missionId = mission.id;
+      button.disabled = !isUnlocked(index);
+      button.setAttribute("aria-current", String(index === state.current));
+      button.textContent = `${mission.file} · ${getMissionText(mission).short}`;
+      group.append(button);
+    });
+    elements.projectFileTree.append(group);
+  });
+}
+
+const ideCommands = [
+  { id: "run", label: { es: "Ejecutar configuración actual", de: "Aktuelle Konfiguration ausführen" }, run: () => runCurrentConfiguration() },
+  { id: "format", label: { es: "Reformatear código", de: "Code neu formatieren" }, run: formatIndentation },
+  { id: "project", label: { es: "Enfocar ventana Proyecto", de: "Projektfenster fokussieren" }, run: () => elements.projectFileTree?.querySelector("button:not(:disabled)")?.focus() },
+  { id: "problems", label: { es: "Abrir ventana Problemas", de: "Probleme öffnen" }, run: () => activateToolTab("problems", { focus: true }) },
+  { id: "console", label: { es: "Abrir ventana Consola", de: "Konsole öffnen" }, run: () => activateToolTab("console", { focus: true }) },
+  { id: "feedback", label: { es: "Abrir ventana Feedback", de: "Feedback öffnen" }, run: () => activateToolTab("feedback", { focus: true }) },
+  { id: "goto", label: { es: "Ir a misión o clase", de: "Zu Mission oder Klasse" }, run: openGotoDialog },
+];
+
+function renderCommandPalette(query = "") {
+  if (!elements.commandPaletteResults) return;
+  const needle = query.trim().toLocaleLowerCase();
+  const matches = ideCommands.filter((command) => command.label[state.language].toLocaleLowerCase().includes(needle));
+  elements.commandPaletteResults.replaceChildren(...matches.map((command, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.role = "option";
+    button.dataset.commandId = command.id;
+    button.tabIndex = index === 0 ? 0 : -1;
+    button.textContent = command.label[state.language];
+    return button;
+  }));
+}
+
+function openCommandPalette() {
+  renderCommandPalette();
+  elements.commandPalette?.showModal();
+  window.requestAnimationFrame(() => elements.commandPaletteSearch?.focus());
+}
+
+function renderGotoResults(query = "") {
+  if (!elements.gotoResults) return;
+  const needle = query.trim().toLocaleLowerCase();
+  const missionItems = missions.filter((mission) => {
+    const haystack = `${mission.stage} ${mission.file} ${getMissionText(mission).short} ${getMissionText(mission).title}`.toLocaleLowerCase();
+    return haystack.includes(needle);
+  }).slice(0, 20).map((mission) => ({ type: "mission", id: mission.id, label: `${mission.stage} · ${mission.file} · ${getMissionText(mission).short}` }));
+  const classItems = cloudSession.classes.filter((item) => String(item.name || "").toLocaleLowerCase().includes(needle)).map((item) => ({ type: "class", id: String(item.id), label: `${t("classSelect")} · ${item.name}` }));
+  elements.gotoResults.replaceChildren(...[...classItems, ...missionItems].map((item, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.role = "option";
+    button.dataset.gotoType = item.type;
+    button.dataset.gotoId = item.id;
+    button.tabIndex = index === 0 ? 0 : -1;
+    button.textContent = item.label;
+    return button;
+  }));
+}
+
+function openGotoDialog() {
+  if (elements.commandPalette?.open) elements.commandPalette.close();
+  renderGotoResults();
+  elements.gotoDialog?.showModal();
+  window.requestAnimationFrame(() => elements.gotoSearch?.focus());
+}
+
+function closeQuickFix() {
+  if (elements.quickFixSurface) elements.quickFixSurface.hidden = true;
+}
+
+function addSemicolonAtCursorLine() {
+  const source = elements.editor.value;
+  const cursor = elements.editor.selectionStart;
+  const lineStart = source.lastIndexOf("\n", cursor - 1) + 1;
+  const lineEndIndex = source.indexOf("\n", cursor);
+  const lineEnd = lineEndIndex < 0 ? source.length : lineEndIndex;
+  const line = source.slice(lineStart, lineEnd);
+  if (!line.trim() || /[;{}:]\s*$/.test(line)) return;
+  elements.editor.setRangeText(";", lineEnd, lineEnd, "end");
+  elements.editor.dispatchEvent(new Event("input"));
+}
+
+function openQuickFix() {
+  if (!elements.quickFixSurface || !elements.quickFixActions) return;
+  const diagnostics = analyzeCode(elements.editor.value);
+  const actions = [
+    { id: "format", label: t("quickFixFormat"), run: formatIndentation },
+    { id: "hint", label: t("quickFixHint"), run: requestHint },
+  ];
+  if (diagnostics.some((item) => /semicolon|punto y coma|Semikolon/i.test(item.message))) {
+    actions.unshift({ id: "semicolon", label: t("quickFixSemicolon"), run: addSemicolonAtCursorLine });
+  }
+  elements.quickFixActions.replaceChildren(...actions.map((action) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button button-text button-compact";
+    button.dataset.quickFix = action.id;
+    button.textContent = action.label;
+    return button;
+  }));
+  elements.quickFixSurface.hidden = false;
+  elements.quickFixActions.querySelector("button")?.focus();
+}
+
+function runLocalDiagnostics() {
+  const diagnostics = mergeDiagnostics(analyzeCode(elements.editor.value));
+  setEditorDiagnostics(diagnostics);
+  activateToolTab("problems", { focus: true });
+  setConsole(t("consoleReady"), diagnostics.length ? diagnostics.map((item) => `L${item.line}: ${item.message}`).join("\n") : "✓ 0 avisos heurísticos");
+}
+
+function runCurrentConfiguration() {
+  if (elements.runConfiguration?.value === "diagnostics") runLocalDiagnostics();
+  else checkAnswer();
 }
 
 function setFreePractice(enabled) {
@@ -3293,6 +4225,7 @@ function renderCommandCenter() {
     solved: currentProjectSolved,
     total: currentRoute.length,
   });
+  renderRoleDashboards();
 
   elements.projectGallery.replaceChildren(...PROJECTS.map((project) => {
     const route = projectMissions(project.id);
@@ -3432,6 +4365,17 @@ function renderMissionList() {
     elements.missionList.append(item);
   });
   renderProjectNavigator();
+  renderMissionQuickNav();
+}
+
+function renderMissionQuickNav() {
+  if (elements.workspaceMissionPosition) {
+    elements.workspaceMissionPosition.textContent = `${state.current + 1} / ${missions.length}`;
+  }
+  if (elements.previousMissionButton) elements.previousMissionButton.disabled = state.current === 0;
+  if (elements.nextMissionNavButton) {
+    elements.nextMissionNavButton.disabled = state.current >= missions.length - 1 || !isUnlocked(state.current + 1);
+  }
 }
 
 let activeEditorLineStart = 1;
@@ -3477,6 +4421,36 @@ function hideMessages() {
   elements.feedbackPanel.hidden = true;
   elements.hintPanel.hidden = true;
   elements.explanation.hidden = true;
+}
+
+function renderPersonalAttemptHistory() {
+  if (!elements.personalAttemptHistory) return;
+  const attempts = [...(state.attemptHistory || [])].reverse().slice(0, 8);
+  elements.personalAttemptHistory.replaceChildren();
+  if (!attempts.length) {
+    const empty = document.createElement("li");
+    empty.className = "attempt-history-empty";
+    empty.textContent = t("attemptHistoryEmpty");
+    elements.personalAttemptHistory.append(empty);
+    return;
+  }
+  attempts.forEach((attempt) => {
+    const mission = missions.find((item) => item.id === attempt.missionId);
+    const item = document.createElement("li");
+    item.className = attempt.passed ? "is-pass" : "is-fail";
+    const status = document.createElement("strong");
+    status.textContent = attempt.passed ? t("attemptPassed") : t("attemptFailed");
+    const label = document.createElement("span");
+    label.textContent = mission ? getMissionText(mission).short : attempt.missionId;
+    const time = document.createElement("time");
+    time.dateTime = attempt.timestamp;
+    time.textContent = new Intl.DateTimeFormat(state.language === "de" ? "de-DE" : "es-ES", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(attempt.timestamp));
+    item.append(status, label, time);
+    elements.personalAttemptHistory.append(item);
+  });
 }
 
 function renderProgress() {
@@ -3533,6 +4507,33 @@ function renderProgress() {
     elements.mentorAction.dataset.missionId = mentorTarget?.id || "";
   }
 
+  const adaptiveKey = hintsOnCurrent >= 2 || attemptsOnCurrent >= 3
+    ? "Guided"
+    : solved.has(currentMission.id) && attemptsOnCurrent <= 1 && hintsOnCurrent === 0
+      ? "Challenge"
+      : "Standard";
+  if (elements.adaptiveLevel) elements.adaptiveLevel.textContent = t(`adaptive${adaptiveKey}`);
+  if (elements.adaptiveAdvice) elements.adaptiveAdvice.textContent = t(`adaptive${adaptiveKey}Advice`);
+
+  if (elements.stageProgress) {
+    const stages = [...new Set(missions.map((mission) => mission.stage))];
+    elements.stageProgress.replaceChildren(...stages.map((stage) => {
+      const stageMissions = missions.filter((mission) => mission.stage === stage);
+      const stageSolved = stageMissions.filter((mission) => solved.has(mission.id)).length;
+      const row = document.createElement("div");
+      const label = document.createElement("span");
+      label.textContent = stage;
+      const progress = document.createElement("progress");
+      progress.max = stageMissions.length;
+      progress.value = stageSolved;
+      progress.setAttribute("aria-label", `${stage}: ${stageSolved}/${stageMissions.length}`);
+      const value = document.createElement("strong");
+      value.textContent = `${stageSolved}/${stageMissions.length}`;
+      row.append(label, progress, value);
+      return row;
+    }));
+  }
+
   const scoreFor = (key, property) => missions.filter((mission) => mission[property]?.includes?.(key) || mission[property] === key)
     .filter((mission) => solved.has(mission.id)).length;
   const competenceScores = Object.keys(COMPETENCE_NAMES).map((key) => [key, scoreFor(key, "competencies")]);
@@ -3553,6 +4554,7 @@ function renderProgress() {
     bars.append(row);
   });
   elements.progressInsights.append(summary, bars);
+  renderPersonalAttemptHistory();
   renderTeacherPanel();
 }
 
@@ -3573,6 +4575,7 @@ function getTeacherRows() {
 function renderTeacherPanel() {
   if (!elements.teacherPanel || !elements.teacherStats || !elements.teacherPracticeList) return;
   renderTeacherCloudProgress();
+  renderPeerModerationQueue();
   const rows = getTeacherRows();
   const allRows = missions.map((mission) => ({
     attempts: Number(state.attempts[mission.id] || 0),
@@ -3610,6 +4613,31 @@ function renderTeacherPanel() {
     const item = document.createElement("li");
     item.innerHTML = `<span>${row.stage} · ${row.mission}</span><small>${row.attempts} ${t("teacherAttempts").toLowerCase()}</small>`;
     elements.teacherPracticeList.append(item);
+  });
+}
+
+function renderPeerModerationQueue() {
+  if (!elements.peerModerationPanel || !elements.peerModerationQueue) return;
+  const educator = ["teacher", "admin"].includes(cloudSession.user?.role);
+  const hasClass = Boolean(cloudSession.activeClassId);
+  elements.peerModerationPanel.hidden = !educator || !hasClass;
+  if (!educator || !hasClass) return;
+  const requests = cloudSession.collaboration?.peerRequests || [];
+  const pending = requests.filter((request) => request.status === "pending");
+  elements.peerModerationCount.textContent = `${pending.length} pendiente${pending.length === 1 ? "" : "s"}`;
+  elements.peerModerationQueue.replaceChildren();
+  if (!pending.length) {
+    const item = document.createElement("li"); item.textContent = "No hay solicitudes pendientes."; elements.peerModerationQueue.append(item); return;
+  }
+  pending.forEach((request) => {
+    const item = document.createElement("li");
+    const details = document.createElement("span");
+    details.textContent = `${request.requester || "Estudiante"} · ${missionLabel(request.mission_id)} · ${request.focus}`;
+    const actions = document.createElement("span"); actions.className = "peer-moderation-actions";
+    [["approved", "Aprobar"], ["declined", "Rechazar"]].forEach(([status, label]) => {
+      const button = document.createElement("button"); button.type = "button"; button.className = `button button-${status === "approved" ? "primary" : "text"} button-compact`; button.dataset.peerModeration = status; button.dataset.requestId = String(request.id); button.textContent = label; actions.append(button);
+    });
+    item.append(details, actions); elements.peerModerationQueue.append(item);
   });
 }
 
@@ -3663,6 +4691,7 @@ function renderTeacherCloudProgress(loading = false) {
       </dl>
       <p class="teacher-recommendation"><b>${t("teacherWeakness")}:</b> <span data-weakest></span><br><b>${t("teacherRecommendation")}:</b> <span data-recommendation></span></p>
       <button class="button button-text button-compact" type="button" data-student-history>${t("teacherHistory")}</button>
+      <button class="button button-text button-compact" type="button" data-remove-member>${t("classRemoveMember")}</button>
       <ol class="student-history" hidden></ol>
       <small></small>
     `;
@@ -3751,7 +4780,63 @@ function feedbackPermissions(role, isOwner = false) {
   };
 }
 
+function feedbackCloudKey(missionId = missions[state.current].id) {
+  return `${cloudSession.activeClassId}:${missionId}`;
+}
+
+function hasCloudFeedbackContext() {
+  return Boolean(cloudSession.user && cloudSession.csrf && cloudSession.activeClassId);
+}
+
+function normalizeCloudFeedback(entry) {
+  const rawDate = String(entry.created_at || "");
+  const parsedDate = Date.parse(rawDate.includes("T") ? rawDate : `${rawDate.replace(" ", "T")}Z`);
+  return {
+    id: String(entry.id),
+    message: String(entry.message || "").slice(0, 1200),
+    author: String(entry.author || "").slice(0, 80),
+    authorId: String(entry.author_id || ""),
+    role: ["student", "teacher", "admin"].includes(entry.role) ? entry.role : "student",
+    status: entry.status === "resolved" ? "resolved" : "open",
+    parentId: entry.parent_id ? String(entry.parent_id) : "",
+    createdAt: new Date(Number.isFinite(parsedDate) ? parsedDate : Date.now()).toISOString(),
+  };
+}
+
+async function loadCloudMissionFeedback(missionId = missions[state.current].id, options = {}) {
+  if (!hasCloudFeedbackContext()) {
+    if (options.render !== false) renderMissionFeedback();
+    return;
+  }
+  const classId = String(cloudSession.activeClassId);
+  const key = `${classId}:${missionId}`;
+  try {
+    const result = await cloudRequest(
+      `${FEEDBACK_API_URL}?action=list&classId=${encodeURIComponent(classId)}&missionId=${encodeURIComponent(missionId)}`,
+    );
+    cloudSession.feedbackCache[key] = Array.isArray(result.feedback)
+      ? result.feedback.map(normalizeCloudFeedback)
+      : [];
+    delete cloudSession.feedbackErrors[key];
+  } catch (error) {
+    cloudSession.feedbackErrors[key] = error.message || "feedback-offline";
+  }
+  if (
+    options.render !== false
+    && classId === String(cloudSession.activeClassId)
+    && missionId === missions[state.current].id
+  ) {
+    renderMissionFeedback();
+  }
+}
+
 function feedbackEntries(missionId = missions[state.current].id) {
+  if (hasCloudFeedbackContext()) {
+    const key = feedbackCloudKey(missionId);
+    if (!cloudSession.feedbackErrors[key] && Object.hasOwn(cloudSession.feedbackCache, key)) {
+      return cloudSession.feedbackCache[key];
+    }
+  }
   return Array.isArray(state.feedbackByMission?.[missionId])
     ? state.feedbackByMission[missionId]
     : [];
@@ -3766,6 +4851,22 @@ function renderMissionFeedback() {
   if (!elements.missionFeedbackList) return;
   const entries = feedbackEntries();
   const actor = feedbackActor();
+  const key = feedbackCloudKey();
+  const cloudMode = hasCloudFeedbackContext()
+    && !cloudSession.feedbackErrors[key]
+    && Object.hasOwn(cloudSession.feedbackCache, key);
+  if (elements.feedbackStorageBadge) {
+    elements.feedbackStorageBadge.textContent = t(cloudMode ? "feedbackCloudBadge" : "feedbackLocalBadge");
+  }
+  if (elements.feedbackStorageNotice) {
+    elements.feedbackStorageNotice.textContent = t(cloudMode ? "feedbackCloudNotice" : "feedbackLocalNotice");
+  }
+  const cloudElevated = cloudMode && (actor.role === "teacher" || actor.role === "admin");
+  const replying = Boolean(elements.missionFeedbackForm?.dataset.parentId);
+  elements.missionFeedbackMessage.disabled = cloudElevated && !replying;
+  elements.missionFeedbackForm
+    ?.querySelector('button[type="submit"]')
+    ?.toggleAttribute("disabled", cloudElevated && !replying);
   if (elements.feedbackAuthor && !elements.feedbackAuthor.matches(":focus")) {
     elements.feedbackAuthor.value = actor.role === "local"
       ? (elements.feedbackAuthor.value || t("feedbackLocalAuthor"))
@@ -3828,6 +4929,8 @@ function clearFeedbackReply() {
   elements.missionFeedbackForm?.removeAttribute("data-parent-id");
   if (elements.feedbackReplyContext) elements.feedbackReplyContext.textContent = "";
   if (elements.feedbackCancelReply) elements.feedbackCancelReply.hidden = true;
+  if (elements.missionFeedbackMessage) elements.missionFeedbackMessage.disabled = false;
+  elements.missionFeedbackForm?.querySelector('button[type="submit"]')?.removeAttribute("disabled");
 }
 
 function renderMission(options = {}) {
@@ -3859,6 +4962,8 @@ function renderMission(options = {}) {
   renderLessonVideo(mission);
   renderDocumentation(mission);
   elements.fileName.textContent = mission.file;
+  renderEditorTabs();
+  renderProjectFileTree();
   const taskLine = renderReadOnlyContext(elements.codeBefore, mission.contextBefore, 1);
   elements.editorTaskLineNumber.textContent = String(taskLine);
   elements.editorTaskLine.setAttribute("aria-label", t("editorTaskAria"));
@@ -3883,7 +4988,12 @@ function renderMission(options = {}) {
   setEditorDiagnostics(mergeDiagnostics(analyzeCode(elements.editor.value)));
   scheduleDiagnostics();
   renderProgress();
+  renderLearningLab();
   renderMissionFeedback();
+  if (hasCloudFeedbackContext()) {
+    const key = feedbackCloudKey(mission.id);
+    if (!Object.hasOwn(cloudSession.feedbackCache, key)) loadCloudMissionFeedback(mission.id);
+  }
   hideMessages();
   setCompileRail("write");
 
@@ -4806,7 +5916,37 @@ function handleShortcut(event) {
   const command = event.metaKey || event.ctrlKey;
   const isEditorFocused = document.activeElement === elements.editor;
 
+  if (command && event.shiftKey && event.key.toLowerCase() === "a") {
+    event.preventDefault();
+    openCommandPalette();
+    return;
+  }
+
+  if (command && !event.shiftKey && event.key.toLowerCase() === "n") {
+    event.preventDefault();
+    openGotoDialog();
+    return;
+  }
+
+  if (command && !event.shiftKey && event.key === "1") {
+    event.preventDefault();
+    elements.projectFileTree?.querySelector("button:not(:disabled)")?.focus();
+    return;
+  }
+
+  if (event.ctrlKey && event.altKey && /^[1-4]$/.test(event.key)) {
+    event.preventDefault();
+    activateToolTab(["console", "problems", "progress", "feedback"][Number(event.key) - 1], { focus: true });
+    return;
+  }
+
   if (event.key === "Escape") {
+    if (elements.quickFixSurface && !elements.quickFixSurface.hidden) {
+      event.preventDefault();
+      closeQuickFix();
+      elements.editor.focus();
+      return;
+    }
     if (!elements.completionPopup.hidden) {
       event.preventDefault();
       closeCompletion();
@@ -4833,7 +5973,7 @@ function handleShortcut(event) {
 
   if (!command && !event.altKey && !event.ctrlKey && event.key === "F5") {
     event.preventDefault();
-    checkAnswer();
+    runCurrentConfiguration();
     return;
   }
 
@@ -4845,7 +5985,7 @@ function handleShortcut(event) {
 
   if (event.altKey && event.key === "Enter") {
     event.preventDefault();
-    requestHint();
+    openQuickFix();
     return;
   }
 
@@ -4901,6 +6041,7 @@ elements.editor.addEventListener("input", () => {
   scheduleDiagnostics();
   renderCompletion();
   setCompileRail("write");
+  renderLearningLab();
   saveState();
 });
 
@@ -5055,9 +6196,61 @@ elements.toolTabs?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-tool-tab]");
   if (button) {
     activateToolTab(button.dataset.toolTab);
-    if (button.dataset.toolTab === "feedback") renderMissionFeedback();
+    if (button.dataset.toolTab === "feedback") {
+      renderMissionFeedback();
+      if (hasCloudFeedbackContext()) loadCloudMissionFeedback();
+    }
+    if (button.dataset.toolTab === "learning") renderLearningLab();
   }
 });
+
+elements.runLearningChecks?.addEventListener("click", renderLearningLab);
+elements.saveCodeSnapshot?.addEventListener("click", () => {
+  const missionId = missions[state.current].id;
+  const code = elements.editor.value.trim();
+  if (!code) return showFeedback("error", "No hay versión para guardar", "Escribí código antes de crear una versión.");
+  const snapshots = learningState().snapshots[missionId] ||= [];
+  snapshots.push({ id: `snapshot-${Date.now()}`, code: elements.editor.value, createdAt: new Date().toISOString() });
+  if (snapshots.length > 8) snapshots.shift();
+  saveState(false); renderLearningLab();
+});
+elements.codeVersionHistory?.addEventListener("click", (event) => {
+  const id = event.target.closest("button[data-snapshot-id]")?.dataset.snapshotId;
+  const snapshot = (learningState().snapshots[missions[state.current].id] || []).find((entry) => entry.id === id);
+  if (!snapshot) return;
+  elements.editor.value = snapshot.code;
+  elements.editor.dispatchEvent(new Event("input"));
+  showFeedback("success", "Versión restaurada", "La versión seleccionada volvió al editor; verificála antes de continuar.");
+});
+elements.peerReviewForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const focus = elements.peerReviewFocus.value.trim();
+  if (!focus) return;
+  const requests = learningState().peerRequests[missions[state.current].id] ||= [];
+  requests.push({ id: `peer-${Date.now()}`, focus, createdAt: new Date().toISOString(), status: "pending" });
+  elements.peerReviewForm.reset(); saveState(false); renderLearningLab();
+  if (cloudSession.user && cloudSession.csrf && cloudSession.activeClassId) {
+    try { await cloudRequest("api/collaboration.php?action=request-peer-review", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: JSON.stringify({ classId: Number(cloudSession.activeClassId), missionId: missions[state.current].id, focus }) }); await loadCollaboration(); } catch { /* La solicitud local sigue disponible. */ }
+  }
+});
+elements.missionBuilderForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const title = elements.builderTitle.value.trim(); const objective = elements.builderObjective.value.trim(); const criterion = elements.builderCriterion.value.trim();
+  if (!title || !objective || !criterion) return;
+  learningState().drafts.push({ id: `draft-${Date.now()}`, title, objective, criterion, createdAt: new Date().toISOString() });
+  elements.missionBuilderForm.reset(); saveState(false); renderLearningLab();
+  if (cloudSession.user && cloudSession.csrf && cloudSession.activeClassId && ["teacher", "admin"].includes(cloudSession.user.role)) {
+    try { await cloudRequest("api/collaboration.php?action=create-draft", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: JSON.stringify({ classId: Number(cloudSession.activeClassId), title, objective, criterion }) }); await loadCollaboration(); } catch { /* El borrador local no se pierde si la nube falla. */ }
+  }
+});
+elements.accessibilityToggle?.addEventListener("click", () => {
+  const opening = elements.accessibilityPanel.hidden;
+  elements.accessibilityPanel.hidden = !opening;
+  elements.accessibilityToggle.setAttribute("aria-expanded", String(opening));
+});
+elements.highContrastToggle?.addEventListener("change", () => { learningState().highContrast = elements.highContrastToggle.checked; applyLearningPreferences(); saveState(false); });
+elements.reducedMotionToggle?.addEventListener("change", () => { learningState().reducedMotion = elements.reducedMotionToggle.checked; applyLearningPreferences(); saveState(false); });
+elements.accessibilityFocusEditor?.addEventListener("click", () => { elements.accessibilityPanel.hidden = true; elements.accessibilityToggle.setAttribute("aria-expanded", "false"); elements.editor.focus(); });
 
 elements.toolTabs?.addEventListener("keydown", (event) => {
   if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
@@ -5072,7 +6265,71 @@ elements.toolTabs?.addEventListener("keydown", (event) => {
   activateToolTab(tabs[next].dataset.toolTab, { focus: true });
 });
 
-elements.missionFeedbackForm?.addEventListener("submit", (event) => {
+elements.editorTabs?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-mission-id]");
+  if (!button) return;
+  const index = missions.findIndex((mission) => mission.id === button.dataset.missionId);
+  if (index >= 0 && isUnlocked(index)) selectMission(index, { focusHeading: true });
+});
+
+elements.projectFileTree?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-mission-id]");
+  if (!button) return;
+  const index = missions.findIndex((mission) => mission.id === button.dataset.missionId);
+  if (index >= 0 && isUnlocked(index)) selectMission(index, { focusHeading: true });
+});
+
+elements.commandPaletteSearch?.addEventListener("input", () => renderCommandPalette(elements.commandPaletteSearch.value));
+elements.commandPaletteResults?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-command-id]");
+  const command = ideCommands.find((item) => item.id === button?.dataset.commandId);
+  if (!command) return;
+  elements.commandPalette.close();
+  command.run();
+});
+elements.gotoSearch?.addEventListener("input", () => renderGotoResults(elements.gotoSearch.value));
+elements.gotoResults?.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-goto-type]");
+  if (!button) return;
+  elements.gotoDialog.close();
+  if (button.dataset.gotoType === "class") {
+    cloudSession.activeClassId = button.dataset.gotoId;
+    renderClasses();
+    loadClassProgress(button.dataset.gotoId);
+    loadAssignments();
+    return;
+  }
+  const index = missions.findIndex((mission) => mission.id === button.dataset.gotoId);
+  if (index >= 0 && isUnlocked(index)) selectMission(index, { focusHeading: true });
+});
+
+elements.quickFixActions?.addEventListener("click", (event) => {
+  const action = event.target.closest("button[data-quick-fix]")?.dataset.quickFix;
+  closeQuickFix();
+  if (action === "semicolon") addSemicolonAtCursorLine();
+  if (action === "format") formatIndentation();
+  if (action === "hint") requestHint();
+  elements.editor.focus();
+});
+
+async function openNotificationsDialog() {
+  await loadNotifications();
+  elements.notificationsDialog?.showModal();
+}
+elements.learnerNotificationsButton?.addEventListener("click", openNotificationsDialog);
+elements.teacherNotificationsButton?.addEventListener("click", openNotificationsDialog);
+elements.notificationList?.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-notification-id]");
+  if (!button || !cloudSession.csrf || button.dataset.read === "true") return;
+  try {
+    await cloudRequest("api/notifications.php?action=read", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: JSON.stringify({ ids: [Number(button.dataset.notificationId)] }) });
+    button.dataset.read = "true";
+  } catch {
+    // Reading notifications is non-blocking.
+  }
+});
+
+elements.missionFeedbackForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const message = elements.missionFeedbackMessage.value.trim();
   const author = elements.feedbackAuthor.value.trim();
@@ -5080,7 +6337,39 @@ elements.missionFeedbackForm?.addEventListener("submit", (event) => {
   const missionId = missions[state.current].id;
   const actor = feedbackActor();
   actor.name = author.slice(0, 80);
-  const entries = feedbackEntries(missionId);
+  const parentId = elements.missionFeedbackForm.dataset.parentId || "";
+  if (hasCloudFeedbackContext()) {
+    const elevated = actor.role === "teacher" || actor.role === "admin";
+    if (elevated && !parentId) return;
+    try {
+      const result = await cloudRequest(`${FEEDBACK_API_URL}?action=create`, {
+        method: "POST",
+        headers: { "X-CSRF-Token": cloudSession.csrf },
+        body: JSON.stringify({
+          classId: Number(cloudSession.activeClassId),
+          missionId,
+          message: message.slice(0, 1200),
+          parentId: parentId ? Number(parentId) : 0,
+        }),
+      });
+      const key = feedbackCloudKey(missionId);
+      const entries = Array.isArray(cloudSession.feedbackCache[key])
+        ? cloudSession.feedbackCache[key]
+        : [];
+      cloudSession.feedbackCache[key] = [...entries, normalizeCloudFeedback(result.feedback)].slice(-200);
+      delete cloudSession.feedbackErrors[key];
+      elements.missionFeedbackMessage.value = "";
+      clearFeedbackReply();
+      renderMissionFeedback();
+      return;
+    } catch (error) {
+      elements.authStatus.textContent = error.message || t("accountOffline");
+      cloudSession.feedbackErrors[feedbackCloudKey(missionId)] = error.message || "feedback-offline";
+    }
+  }
+  const entries = Array.isArray(state.feedbackByMission?.[missionId])
+    ? state.feedbackByMission[missionId]
+    : [];
   const entry = {
     id: `feedback-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     message: message.slice(0, 1200),
@@ -5088,7 +6377,7 @@ elements.missionFeedbackForm?.addEventListener("submit", (event) => {
     authorId: actor.id,
     role: actor.role,
     status: "open",
-    parentId: elements.missionFeedbackForm.dataset.parentId || "",
+    parentId,
     createdAt: new Date().toISOString(),
   };
   state.feedbackByMission = {
@@ -5103,7 +6392,7 @@ elements.missionFeedbackForm?.addEventListener("submit", (event) => {
 
 elements.feedbackCancelReply?.addEventListener("click", clearFeedbackReply);
 
-elements.missionFeedbackList?.addEventListener("click", (event) => {
+elements.missionFeedbackList?.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-feedback-action]");
   const item = button?.closest("[data-feedback-id]");
   if (!button || !item) return;
@@ -5120,13 +6409,35 @@ elements.missionFeedbackList?.addEventListener("click", (event) => {
       author: entry.author || t("feedbackLocalAuthor"),
     });
     elements.feedbackCancelReply.hidden = false;
+    elements.missionFeedbackMessage.disabled = false;
+    elements.missionFeedbackForm.querySelector('button[type="submit"]')?.removeAttribute("disabled");
     elements.missionFeedbackMessage.focus();
     return;
   }
   if (button.dataset.feedbackAction === "toggle-status" && permissions.canResolve) {
+    const nextStatus = entry.status === "resolved" ? "open" : "resolved";
+    if (hasCloudFeedbackContext() && !entry.id.startsWith("feedback-")) {
+      try {
+        const result = await cloudRequest(`${FEEDBACK_API_URL}?action=status`, {
+          method: "POST",
+          headers: { "X-CSRF-Token": cloudSession.csrf },
+          body: JSON.stringify({
+            classId: Number(cloudSession.activeClassId),
+            feedbackId: Number(entry.id),
+            status: nextStatus,
+          }),
+        });
+        entries[index] = normalizeCloudFeedback(result.feedback);
+        cloudSession.feedbackCache[feedbackCloudKey(missionId)] = entries;
+        renderMissionFeedback();
+      } catch (error) {
+        elements.authStatus.textContent = error.message || t("accountOffline");
+      }
+      return;
+    }
     entries[index] = {
       ...entry,
-      status: entry.status === "resolved" ? "open" : "resolved",
+      status: nextStatus,
     };
     state.feedbackByMission = { ...state.feedbackByMission, [missionId]: entries };
     saveState(false);
@@ -5153,7 +6464,7 @@ elements.formatButton?.addEventListener("click", formatIndentation);
 
 document.addEventListener("keydown", handleShortcut);
 
-elements.checkButton.addEventListener("click", checkAnswer);
+elements.checkButton.addEventListener("click", runCurrentConfiguration);
 elements.hintButton.addEventListener("click", requestHint);
 elements.solutionButton.addEventListener("click", revealSolution);
 elements.nextButton.addEventListener("click", moveNext);
@@ -5162,6 +6473,26 @@ elements.resetButton.addEventListener("click", resetProgress);
 elements.missionList.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-index]");
   if (button) selectMission(Number(button.dataset.index), { focusHeading: true });
+});
+elements.missionList.addEventListener("keydown", (event) => {
+  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+  const buttons = [...elements.missionList.querySelectorAll("button[data-index]:not(:disabled)")];
+  if (!buttons.length) return;
+  const current = Math.max(0, buttons.indexOf(document.activeElement));
+  const target = event.key === "Home"
+    ? buttons[0]
+    : event.key === "End"
+      ? buttons.at(-1)
+      : buttons[(current + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length];
+  event.preventDefault();
+  target.focus();
+});
+
+elements.previousMissionButton?.addEventListener("click", () => {
+  if (moveToMission(state.current - 1)) focusMissionHeading();
+});
+elements.nextMissionNavButton?.addEventListener("click", () => {
+  if (moveToMission(state.current + 1)) focusMissionHeading();
 });
 
 elements.projectSelect?.addEventListener("change", (event) => {
@@ -5236,6 +6567,7 @@ elements.themeToggle?.addEventListener("click", () => {
   setTheme(state.theme === "dark" ? "light" : "dark");
   saveState();
 });
+elements.textScaleToggle?.addEventListener("click", cycleTextScale);
 
 elements.sidebarToggle?.addEventListener("click", () => {
   if (window.matchMedia("(max-width: 760px)").matches) {
@@ -5262,13 +6594,43 @@ elements.teacherToggle?.addEventListener("click", () => {
     });
   }
 });
+elements.teacherDashboardOpen?.addEventListener("click", () => {
+  setAppView("workspace");
+  elements.teacherPanel.hidden = false;
+  elements.teacherToggle?.setAttribute("aria-expanded", "true");
+  renderTeacherPanel();
+  window.requestAnimationFrame(() => elements.teacherTitle?.focus());
+});
 elements.teacherStageFilter?.addEventListener("change", renderTeacherPanel);
 elements.classSelect?.addEventListener("change", (event) => {
-  loadClassProgress(event.target.value);
+  cloudSession.activeClassId = event.target.value;
+  cloudSession.feedbackErrors = {};
+  if (cloudSession.user?.role === "teacher" || cloudSession.user?.role === "admin") {
+    loadClassProgress(event.target.value);
+  }
+  loadCloudMissionFeedback();
+  loadAssignments();
+  loadCollaboration();
 });
 elements.teacherExport?.addEventListener("click", exportTeacherCsv);
 elements.teacherExportJson?.addEventListener("click", exportTeacherJson);
 elements.teacherCloudProgress?.addEventListener("click", async (event) => {
+  const removeButton = event.target.closest("[data-remove-member]");
+  if (removeButton) {
+    const removeCard = removeButton.closest(".teacher-student-card");
+    if (!removeCard || !cloudSession.activeClassId || !cloudSession.csrf) return;
+    try {
+      await cloudRequest("api/classes.php?action=remove-member", {
+        method: "POST",
+        headers: { "X-CSRF-Token": cloudSession.csrf },
+        body: JSON.stringify({ classId: Number(cloudSession.activeClassId), memberId: Number(removeCard.dataset.studentId) }),
+      });
+      await loadClassProgress(cloudSession.activeClassId);
+    } catch (error) {
+      elements.authStatus.textContent = error.message;
+    }
+    return;
+  }
   const button = event.target.closest("[data-student-history]");
   if (!button) return;
   const card = button.closest(".teacher-student-card");
@@ -5349,8 +6711,24 @@ elements.logoutButton?.addEventListener("click", async () => {
   } catch {
     // La sesión local se limpia aunque el servidor ya no responda.
   }
-  cloudSession = { configured: cloudSession.configured, user: null, csrf: "", syncTimer: null, registerMode: false, classes: [], classProgress: null, classProgressError: "" };
+  cloudSession = {
+    configured: cloudSession.configured,
+    user: null,
+    csrf: "",
+    syncTimer: null,
+    registerMode: false,
+    classes: [],
+    classProgress: null,
+    classProgressError: "",
+    activeClassId: "",
+    feedbackCache: {},
+    feedbackErrors: {},
+    assignments: [],
+    submissions: {},
+    notifications: [],
+  };
   renderAccount();
+  renderMissionFeedback();
 });
 
 elements.createClassForm?.addEventListener("submit", async (event) => {
@@ -5371,6 +6749,131 @@ elements.joinClassForm?.addEventListener("submit", async (event) => {
     elements.joinCode.value = "";
     await loadClasses();
   } catch (error) {
+    elements.authStatus.textContent = error.message;
+  }
+});
+
+elements.classAdminActions?.addEventListener("click", async (event) => {
+  const action = event.target.closest("button[data-class-action]")?.dataset.classAction;
+  if (!action || !cloudSession.activeClassId || !cloudSession.csrf) return;
+  try {
+    await cloudRequest(`api/classes.php?action=${action}`, {
+      method: "POST",
+      headers: { "X-CSRF-Token": cloudSession.csrf },
+      body: JSON.stringify({ classId: Number(cloudSession.activeClassId) }),
+    });
+    await loadClasses();
+  } catch (error) {
+    elements.authStatus.textContent = error.message;
+  }
+});
+
+elements.createAssignmentForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!cloudSession.activeClassId || !cloudSession.csrf) return;
+  try {
+    await cloudRequest("api/assignments.php?action=create", {
+      method: "POST",
+      headers: { "X-CSRF-Token": cloudSession.csrf },
+      body: JSON.stringify({
+        classId: Number(cloudSession.activeClassId),
+        missionId: elements.assignmentMission.value,
+        title: elements.assignmentTitle.value.trim(),
+        dueAt: elements.assignmentDue.value || null,
+      }),
+    });
+    elements.assignmentTitle.value = "";
+    elements.assignmentDue.value = "";
+    await loadAssignments();
+  } catch (error) {
+    elements.authStatus.textContent = error.message;
+  }
+});
+
+async function handleAssignmentAction(event) {
+  const button = event.target.closest("button[data-assignment-action]");
+  const card = button?.closest("[data-assignment-id]");
+  const id = card?.dataset.assignmentId;
+  if (!button || !id || !cloudSession.csrf) return;
+  const assignment = cloudSession.assignments.find((item) => assignmentId(item) === id);
+  if (button.dataset.assignmentAction === "submit") {
+    const missionId = assignmentMissionId(assignment);
+    const sourceCode = state.answers[missionId] || "";
+    const note = card.querySelector("[data-assignment-note]")?.value.trim() || "";
+    try {
+      await cloudRequest("api/submissions.php?action=submit", {
+        method: "POST",
+        headers: { "X-CSRF-Token": cloudSession.csrf },
+        body: JSON.stringify({ assignmentId: Number(id), sourceCode, note }),
+      });
+      button.disabled = true;
+      button.textContent = "✓";
+      await loadNotifications();
+    } catch (error) {
+      elements.authStatus.textContent = error.message;
+    }
+    return;
+  }
+  if (button.dataset.assignmentAction === "archive") {
+    try {
+      await cloudRequest("api/assignments.php?action=archive", { method: "POST", headers: { "X-CSRF-Token": cloudSession.csrf }, body: JSON.stringify({ assignmentId: Number(id) }) });
+      await loadAssignments();
+    } catch (error) {
+      elements.authStatus.textContent = error.message;
+    }
+    return;
+  }
+  const submissions = await loadSubmissions(id);
+  renderSubmissionQueue(assignment, submissions);
+  renderRoleDashboards();
+}
+
+elements.learnerAssignments?.addEventListener("click", handleAssignmentAction);
+elements.teacherAssignments?.addEventListener("click", handleAssignmentAction);
+elements.refreshAssignments?.addEventListener("click", loadAssignments);
+elements.submissionReviewQueue?.addEventListener("submit", async (event) => {
+  const form = event.target.closest("form[data-submission-review]");
+  const card = form?.closest("[data-submission-id]");
+  if (!form || !card || !cloudSession.csrf) return;
+  event.preventDefault();
+  const data = new FormData(form);
+  const rubric = {
+    functionality: Number(data.get("functionality")),
+    readability: Number(data.get("readability")),
+    concept: Number(data.get("concept")),
+    explanation: Number(data.get("explanation")),
+  };
+  if (Object.values(rubric).some((score) => !Number.isInteger(score) || score < 0 || score > 4)) return;
+  try {
+    await cloudRequest("api/submissions.php?action=review", {
+      method: "POST",
+      headers: { "X-CSRF-Token": cloudSession.csrf },
+      body: JSON.stringify({ submissionId: Number(card.dataset.submissionId), rubric, feedback: String(data.get("feedback") || "").trim() }),
+    });
+    card.remove();
+    await loadNotifications();
+  } catch (error) {
+    elements.authStatus.textContent = error.message;
+  }
+});
+
+elements.peerModerationQueue?.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-peer-moderation]");
+  if (!button || !cloudSession.csrf || !cloudSession.activeClassId) return;
+  const status = button.dataset.peerModeration;
+  const requestId = Number(button.dataset.requestId);
+  if (!requestId || !["approved", "declined"].includes(status)) return;
+  button.disabled = true;
+  try {
+    await cloudRequest("api/collaboration.php?action=moderate-peer-review", {
+      method: "POST",
+      headers: { "X-CSRF-Token": cloudSession.csrf },
+      body: JSON.stringify({ classId: Number(cloudSession.activeClassId), requestId, status }),
+    });
+    await loadCollaboration();
+    renderTeacherPanel();
+  } catch (error) {
+    button.disabled = false;
     elements.authStatus.textContent = error.message;
   }
 });
@@ -5419,13 +6922,14 @@ if (new URLSearchParams(window.location.search).get("e2e") === "1") {
 }
 
 renderLiveTemplates();
+applyLearningPreferences();
 renderMission();
 activateToolTab("console");
 setAppView(
   new URLSearchParams(window.location.search).get("workspace") === "1" ? "workspace" : "dashboard",
   { focusDashboard: false },
 );
-initOnboarding();
+initAppSplash(initOnboarding);
 renderBugChecklist();
 renderAccount();
 initCloud();

@@ -4,16 +4,6 @@ require __DIR__ . '/bootstrap.php';
 
 $user = requireUser();
 $pdo = requireDatabase();
-$allowedMissionIds = [
-    'types', 'condition', 'loop', 'method', 'arrays', 'class', 'list',
-    'debug', 'strings', 'while-input', 'uml-model', 'tests-thinking',
-    'inheritance', 'polymorphism', 'stack', 'queue', 'linked-list',
-    'recursion', 'linear-search', 'binary-search', 'insertion-sort',
-    'efficiency', 'bst', 'graph-bfs', 'dfa', 'grammar', 'parser', 'sql',
-    'normalization', 'network', 'caesar', 'privacy', 'von-neumann',
-    'concurrency-limits', 'halting-limit', 'hash-map',
-    'project-mensa-terminal', 'project-school-library', 'project-safe-chat',
-];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $statement = $pdo->prepare('SELECT mission_id, answer, attempts, correct_attempts, hints_used, solution_shown, solved_at, updated_at FROM progress WHERE user_id = ? ORDER BY mission_id');
@@ -26,7 +16,6 @@ requireCsrf();
 $body = requestJson();
 $missions = $body['missions'] ?? [];
 if (!is_array($missions) || count($missions) > 100) apiResponse(['ok' => false, 'error' => 'Formato de progreso inválido.'], 422);
-$allowed = array_flip($allowedMissionIds);
 $saved = 0;
 
 $pdo->beginTransaction();
@@ -48,7 +37,7 @@ try {
     foreach ($missions as $mission) {
         if (!is_array($mission)) continue;
         $missionId = (string) ($mission['missionId'] ?? '');
-        if (!isset($allowed[$missionId])) continue;
+        if (!isCurrentMissionId($missionId)) continue;
         $attempts = max(0, min(9999, (int) ($mission['attempts'] ?? 0)));
         $correctAttempts = max(0, min($attempts, min(9999, (int) ($mission['correctAttempts'] ?? 0))));
         $statement->execute([

@@ -19,6 +19,15 @@ async function readJson(path, options = {}) {
   return response.json();
 }
 
+async function expectAuthGuard(path) {
+  const response = await fetch(new URL(path, baseUrl), {
+    headers: { Accept: "application/json" },
+  });
+  assert(response.status === 401, `${path} should require authentication, got HTTP ${response.status}`);
+  const body = await response.json();
+  assert(body.ok === false && body.error, `${path} did not return a JSON authentication error`);
+}
+
 const html = await readText();
 [
   "learning-command",
@@ -36,12 +45,21 @@ const html = await readText();
   "bugChecklistTitle",
   "editorTaskComment",
   "toolFeedbackPanel",
-  "styles.css?v=33",
+  "learnerDashboard",
+  "teacherDashboard",
+  "projectFileTree",
+  "commandPalette",
+  "gotoDialog",
+  "runConfiguration",
+  "quickFixSurface",
+  "createAssignmentForm",
+  "notificationsDialog",
+  "styles.css?v=34",
   "js/java-evaluators.js?v=3",
-  "game.js?v=33",
+  "game.js?v=34",
 ].forEach((needle) => assert(html.includes(needle), `missing ${needle}`));
 
-const css = await readText("styles.css?v=33");
+const css = await readText("styles.css?v=34");
 [
   "Focused Classroom",
   "Friendly entry point",
@@ -56,7 +74,7 @@ const css = await readText("styles.css?v=33");
   ".mission-feedback-entry",
 ].forEach((needle) => assert(css.includes(needle), `focused CSS missing ${needle}`));
 
-const game = await readText("game.js?v=33");
+const game = await readText("game.js?v=34");
 [
   "function setAppView",
   "function initOnboarding",
@@ -67,6 +85,11 @@ const game = await readText("game.js?v=33");
   "resourceTutorialTab.hidden = true",
   "function renderReadOnlyContext",
   "function feedbackPermissions",
+  "function renderRoleDashboards",
+  "function renderCommandPalette",
+  "function renderGotoResults",
+  "function renderAssignments",
+  "function runCurrentConfiguration",
 ].forEach((needle) => assert(game.includes(needle), `focused JS missing ${needle}`));
 
 const coverResponse = await fetch(new URL("src/IMG_0198.JPG", baseUrl));
@@ -80,6 +103,14 @@ assert(coverBytes.byteLength > 50_000, "cover payload is unexpectedly small");
 
 const auth = await readJson("api/auth.php?action=me");
 assert(Object.prototype.hasOwnProperty.call(auth, "configured"), "auth endpoint did not return configuration status");
+
+await Promise.all([
+  "api/account.php?action=export",
+  "api/assignments.php?action=list&classId=1",
+  "api/submissions.php?action=list&assignmentId=1",
+  "api/notifications.php?action=list",
+  "api/feedback.php?action=list&classId=1&missionId=types",
+].map(expectAuthGuard));
 
 const compile = await readJson("api/compile.php", {
   method: "POST",
@@ -98,7 +129,7 @@ assert(/worker-no-network|docker-no-network|jvm-limited/.test(String(compile.san
 console.log(JSON.stringify({
   ok: true,
   baseUrl,
-  assets: { styles: "v33", evaluators: "v3", game: "v33", cover: "src/IMG_0198.JPG" },
+  assets: { styles: "v34", evaluators: "v3", game: "v34", cover: "src/IMG_0198.JPG" },
   compiler: compile.compiler,
   runtime: compile.runtime,
   sandbox: compile.sandbox,

@@ -79,6 +79,25 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
+async function reloadWithCloudUser(page, user) {
+  await page.route("**/api/*.php*", async (route) => {
+    const url = new URL(route.request().url());
+    const endpoint = url.pathname.split("/").pop();
+    const payloads = {
+      "auth.php": { ok: true, configured: true, user, csrf: "e2e-csrf" },
+      "progress.php": { ok: true, progress: [] },
+      "classes.php": { ok: true, classes: [] },
+      "notifications.php": { ok: true, notifications: [] },
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(payloads[endpoint] || { ok: true }),
+    });
+  });
+  await page.reload();
+}
+
 test("moves from the clean dashboard into a focused workspace", async ({ page }) => {
   await page.goto("/index.html?e2e=1");
   await expect(page.locator("#dashboard")).toBeVisible();
@@ -89,6 +108,28 @@ test("moves from the clean dashboard into a focused workspace", async ({ page })
   await expect(page.locator("#missionTitle")).toBeFocused();
   await page.locator("#dashboardBackButton").click();
   await expect(page.locator("#dashboard")).toBeVisible();
+});
+
+test("shows a reduced-motion-safe splash without blocking normal app opening", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => localStorage.setItem("java-werkstatt-onboarding-v1", "done"));
+  await page.goto("/index.html", { waitUntil: "domcontentloaded" });
+
+  const splash = page.locator("#appSplash");
+  await expect(splash).toBeVisible({ timeout: 500 });
+  await expect(page.locator("#appSplashLogo")).toBeVisible();
+  await expect(page.locator("#appSplashLogo")).toHaveAccessibleName(/Java Werkstatt/);
+  const reducedMotion = await page.locator(".app-splash-steam").first().evaluate((node) => ({
+    animation: getComputedStyle(node).animationName,
+    transition: getComputedStyle(document.querySelector("#appSplash")).transitionDuration,
+  }));
+  expect(reducedMotion.animation).toBe("none");
+  expect(Number.parseFloat(reducedMotion.transition)).toBeLessThanOrEqual(0.001);
+
+  await expect(splash).toBeHidden({ timeout: 1_000 });
+  await expect(page.locator("#dashboard")).toBeVisible();
+  await page.locator("#commandContinueButton").click();
+  await expect(page.locator("#workspace")).toBeVisible();
 });
 
 test("welcomes learners with three calm steps and clear actions", async ({ page }) => {
@@ -121,6 +162,17 @@ test("translates the complete dashboard welcome to German", async ({ page }) => 
   await expect(page.locator(".welcome-steps")).toHaveAttribute("aria-label", "So startest du");
   await expect(page.locator(".welcome-steps")).toContainText("Mission auswählen");
   await expect(page.locator("#exploreProjectsButton")).toContainText("Projekte erkunden");
+});
+
+test("translates the learning tool tab to German", async ({ page }) => {
+  await page.goto("/index.html?e2e=1&workspace=1");
+  await page.locator('.language-button[data-language="de"]').click();
+  await expect(page.locator("#toolLearningTab")).toHaveText("Lernen");
+  await page.locator("#toolLearningTab").click();
+  await expect(page.locator("#learningLabTitle")).toHaveText("Nachweis, Ablauf und Prozess");
+  await expect(page.locator("#toolLearningPanel")).toContainText("Missions-Tests");
+  await expect(page.locator("#toolLearningPanel")).toContainText("Schrittweise Ablaufspur");
+  await expect(page.locator("#peerReviewFocus")).toHaveAttribute("placeholder", "z. B.: Deckt der Vertrag Grenzfälle ab?");
 });
 
 test("uses a non-interactive vector-like Java mark behind the dashboard", async ({ page }) => {
@@ -610,6 +662,95 @@ test("keeps the desktop project navigator discoverable", async ({ page }) => {
   await expect(page.locator("#projectContinueButton")).toBeVisible();
 });
 
+test("keeps every project route numbered contiguously", async ({ page }) => {
+  await page.locator("#freePracticeToggle").click();
+  const projects = await page.evaluate(() => window.__JAVA_WERKSTATT_E2E__.projects());
+  for (const project of projects) {
+    await page.locator("#projectSelect").selectOption(project.id);
+    const labels = await page.locator("#projectSteps button").evaluateAll((buttons) =>
+      buttons.map((button) => button.getAttribute("aria-label")),
+    );
+    expect(labels).toHaveLength(project.missionIds.length);
+    labels.forEach((label, index) => {
+      expect(label).toMatch(new RegExp(`(?:Paso|Schritt) ${index + 1} (?:de|von) ${labels.length}`, "i"));
+    });
+  }
+});
+
+test("distinguishes an available signed-out backend from offline mode", async ({ page }) => {
+  await page.route("**/api/auth.php?action=me", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ok: true, configured: true, user: null, csrf: "" }),
+  }));
+  await page.reload();
+  await expect(page.locator("#authStatus")).toContainText(/servidor disponible|server verfügbar/i);
+  await expect(page.locator("#authStatus")).not.toContainText(/configurá php|php und mysql.*einrichten/i);
+});
+
+test("shows separate learner and teacher dashboard surfaces", async ({ page }) => {
+  await expect(page.locator("#learnerDashboard")).toHaveJSProperty("hidden", false);
+  await expect(page.locator("#teacherDashboard")).toHaveJSProperty("hidden", true);
+
+  await reloadWithCloudUser(page, { id: 7, name: "Ada", role: "teacher" });
+  await expect(page.locator("#learnerDashboard")).toHaveJSProperty("hidden", true);
+  await expect(page.locator("#teacherDashboard")).toHaveJSProperty("hidden", false);
+  await expect(page.locator("#teacherDashboardTitle")).toContainText(/actividad de la clase|klassenaktivität/i);
+});
+
+test("opens the IntelliJ command palette and focuses the Project tool window", async ({ page }) => {
+  await page.keyboard.press("Control+Shift+A");
+  await expect(page.locator("#commandPalette")).toBeVisible();
+  await expect(page.locator("#commandPaletteSearch")).toBeFocused();
+  await page.locator("#commandPaletteSearch").fill("Proyecto");
+  await page.locator('[data-command-id="project"]').click();
+  await expect(page.locator("#projectFileTree button:not(:disabled)").first()).toBeFocused();
+});
+
+test("navigates to an unlocked class through Go To", async ({ page }) => {
+  await page.locator("#freePracticeToggle").click();
+  await page.keyboard.press("Control+N");
+  await expect(page.locator("#gotoDialog")).toBeVisible();
+  await expect(page.locator("#gotoSearch")).toBeFocused();
+  await page.locator("#gotoSearch").fill("SnakeArena.java");
+  await page.locator('[data-goto-id="project-snake-arena"]').click();
+  await expect(page.locator("#fileName")).toHaveText("SnakeArena.java");
+  await expect(page.locator("#missionTitle")).toBeFocused();
+});
+
+test("runs the diagnostics-only configuration without calling the compiler API", async ({ page }) => {
+  let compileRequests = 0;
+  await page.route("**/api/compile.php", async (route) => {
+    compileRequests += 1;
+    await route.abort();
+  });
+  await page.locator("#runConfiguration").selectOption("diagnostics");
+  await page.locator("#editor").fill("int value = 1");
+  await page.keyboard.press("F5");
+  await expect(page.locator('[data-tool-tab="problems"]')).toHaveAttribute("aria-selected", "true");
+  expect(compileRequests).toBe(0);
+});
+
+test("offers and applies an Alt+Enter semicolon quick fix", async ({ page }) => {
+  await page.locator("#editor").fill("int value = 1");
+  await page.locator("#editor").focus();
+  await page.keyboard.press("Alt+Enter");
+  await expect(page.locator("#quickFixSurface")).toBeVisible();
+  const semicolonFix = page.locator('[data-quick-fix="semicolon"]');
+  await expect(semicolonFix).toBeVisible();
+  await semicolonFix.click();
+  await expect(page.locator("#editor")).toHaveValue("int value = 1;");
+  await expect(page.locator("#quickFixSurface")).toBeHidden();
+});
+
+test("keeps assignments usable as an explicit offline empty state", async ({ page }) => {
+  await page.route("**/api/auth.php?action=me", (route) => route.abort());
+  await page.reload();
+  await expect(page.locator("#learnerAssignments")).toContainText(/iniciá sesión.*elegí una clase|melde dich an.*wähle eine klasse/i);
+  await expect(page.locator("#learnerAssignments button")).toHaveCount(0);
+  await expect(page.locator("#learnerDashboard")).toHaveJSProperty("hidden", false);
+});
+
 test("connects Compile Rail to the real F5 pipeline", async ({ page }) => {
   await expect(page.locator('[data-compile-phase="write"]')).toHaveAttribute("data-state", "active");
   let releaseRequest;
@@ -786,4 +927,23 @@ test("all official solutions pass local rules, javac and their runtime evaluator
   }), contracts.filter((contract) => contract.compileRequest.run).map((contract) => contract.id));
   expect(adversarial.wrongOutputs.filter((result) => result.passed)).toEqual([]);
   expect(adversarial.missingRule.passed).toBeFalsy();
+});
+
+test("keeps the learning lab, local versions and accessibility preferences usable", async ({ page }) => {
+  await page.goto("/index.html?e2e=1&workspace=1");
+  await page.locator("#toolLearningTab").click();
+  await expect(page.locator("#learningLabTitle")).toHaveText("Evidencia, traza y proceso");
+
+  await page.locator("#editor").fill('String name = "Mara";\nSystem.out.println(name);');
+  await expect(page.locator("#executionTrace li").first()).toContainText("name recibe");
+  await page.locator("#saveCodeSnapshot").click();
+  await expect(page.locator("#codeVersionHistory")).toContainText("Restaurar V1");
+
+  await page.locator("#peerReviewFocus").fill("¿El nombre expresa su intención?");
+  await page.locator("#peerReviewForm button").click();
+  await expect(page.locator("#peerReviewQueue")).toContainText("Pendiente de moderación");
+
+  await page.locator("#accessibilityToggle").click();
+  await page.locator("#highContrastToggle").check();
+  await expect(page.locator("html")).toHaveAttribute("data-high-contrast", "");
 });

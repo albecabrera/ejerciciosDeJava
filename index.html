@@ -8,9 +8,29 @@
       content="Laboratorio bilingüe para practicar Java escribiendo código real."
     />
     <title>Java Werkstatt</title>
-    <link rel="stylesheet" href="styles.css?v=33" />
+    <link rel="stylesheet" href="styles.css?v=39" />
   </head>
   <body>
+    <div id="appSplash" class="app-splash" role="region" aria-label="Java Werkstatt, laboratorio de código" data-i18n-aria-label="splashAria">
+      <div class="app-splash-content">
+        <svg id="appSplashLogo" class="app-splash-logo" viewBox="0 0 240 240" role="img" aria-labelledby="appSplashLogoTitle appSplashLogoDescription">
+          <title id="appSplashLogoTitle">Java Werkstatt</title>
+          <desc id="appSplashLogoDescription" data-i18n="splashLogoDescription">Una taza vectorial con vapor representa el laboratorio de programación Java.</desc>
+          <circle class="app-splash-halo" cx="120" cy="124" r="92"></circle>
+          <path class="app-splash-steam app-splash-steam-one" d="M88 94c-22-25 25-31 7-58"></path>
+          <path class="app-splash-steam app-splash-steam-two" d="M124 91c-18-23 23-29 8-52"></path>
+          <path class="app-splash-steam app-splash-steam-three" d="M157 99c-15-20 19-25 7-44"></path>
+          <path class="app-splash-cup" d="M62 108h112v50c0 31-25 56-56 56s-56-25-56-56v-50Z"></path>
+          <path class="app-splash-handle" d="M174 126h14c22 0 31 16 31 30s-11 30-35 30h-14"></path>
+          <path class="app-splash-saucer" d="M40 218c29 12 119 13 158-1"></path>
+        </svg>
+        <div class="app-splash-copy">
+          <strong>Java Werkstatt</strong>
+          <span data-i18n="splashTagline">Laboratorio de código</span>
+        </div>
+      </div>
+      <button id="appSplashSkip" class="app-splash-skip" type="button" data-i18n="splashSkip" data-i18n-aria-label="splashSkip" aria-label="Saltar">Saltar</button>
+    </div>
     <a class="skip-link" href="#editor">Saltar al editor</a>
 
     <header class="site-header">
@@ -23,6 +43,7 @@
       </a>
 
       <div class="header-tools">
+        <a class="teacher-toggle" href="python.html" aria-label="Python Studio · EF NRW">⌘ <span>Python Studio</span></a>
         <div class="language-switch" role="group" aria-label="Idioma / Sprache">
           <button class="language-button" type="button" data-language="es" aria-pressed="true">
             ES
@@ -41,6 +62,27 @@
           <span class="theme-toggle-icon" aria-hidden="true">☾</span>
           <span data-i18n="themeToggle">Modo oscuro</span>
         </button>
+        <button
+          id="textScaleToggle"
+          class="text-scale-toggle"
+          type="button"
+          aria-live="polite"
+          aria-label="Tamaño de texto: 100 %. Activar para aumentar."
+          title="Tamaño de texto: 100 %"
+        >
+          <span aria-hidden="true">Aa</span>
+          <strong id="textScaleValue">100%</strong>
+        </button>
+        <button id="accessibilityToggle" class="text-scale-toggle" type="button" aria-expanded="false" aria-controls="accessibilityPanel" title="Preferencias de accesibilidad">
+          <span aria-hidden="true">◐</span><strong>A11y</strong>
+        </button>
+        <section id="accessibilityPanel" class="accessibility-panel" aria-label="Preferencias de accesibilidad" hidden>
+          <strong>Preferencias de lectura</strong>
+          <p>Aplicá cambios locales sin perder el foco del editor.</p>
+          <label><input id="highContrastToggle" type="checkbox" /> Alto contraste</label>
+          <label><input id="reducedMotionToggle" type="checkbox" /> Reducir movimiento</label>
+          <button id="accessibilityFocusEditor" class="button button-secondary button-compact" type="button">Ir al editor</button>
+        </section>
         <div class="xp-display" aria-label="Experiencia">
           <span>XP</span>
           <strong id="xp">0</strong>
@@ -149,6 +191,28 @@
           <small id="commandProjectMeta">—</small>
         </article>
       </div>
+      <section id="learnerDashboard" class="role-dashboard" aria-labelledby="learnerDashboardTitle">
+        <div class="role-dashboard-heading">
+          <div><p class="eyebrow" data-i18n="learnerDashboardLabel">Vista del alumno</p><h3 id="learnerDashboardTitle" data-i18n="learnerDashboardTitle">Tu jornada de aprendizaje</h3></div>
+          <button id="learnerNotificationsButton" class="button button-text button-compact" type="button" data-i18n="notificationsTitle">Notificaciones</button>
+        </div>
+        <div class="role-dashboard-grid">
+          <article><strong data-i18n="learnerPriorityTitle">Prioridad</strong><p id="learnerPriority">—</p></article>
+          <article><strong data-i18n="assignmentsTitle">Tareas</strong><div id="learnerAssignments" class="assignment-list" aria-live="polite"></div></article>
+          <article><strong data-i18n="feedbackPendingTitle">Feedback pendiente</strong><p id="learnerFeedbackSummary">—</p></article>
+        </div>
+      </section>
+      <section id="teacherDashboard" class="role-dashboard role-dashboard-teacher" aria-labelledby="teacherDashboardTitle" hidden>
+        <div class="role-dashboard-heading">
+          <div><p class="eyebrow" data-i18n="teacherDashboardLabel">Vista docente</p><h3 id="teacherDashboardTitle" data-i18n="teacherDashboardTitle">Actividad de la clase</h3></div>
+          <div><button id="teacherNotificationsButton" class="button button-text button-compact" type="button" data-i18n="notificationsTitle">Notificaciones</button><button id="teacherDashboardOpen" class="button button-secondary button-compact" type="button" data-i18n="teacherOpenPanel">Abrir panel docente</button></div>
+        </div>
+        <div class="role-dashboard-grid">
+          <article><strong data-i18n="reviewQueueTitle">Por revisar</strong><p id="teacherReviewSummary">—</p></article>
+          <article><strong data-i18n="assignmentsTitle">Tareas</strong><div id="teacherAssignmentsSummary" class="assignment-list" aria-live="polite"></div></article>
+          <article><strong data-i18n="classActivityTitle">Actividad</strong><p id="teacherActivitySummary">—</p></article>
+        </div>
+      </section>
       <div id="projectGallery" class="project-gallery" aria-label="Proyectos disponibles"></div>
       <div class="java-signature" aria-hidden="true">
         <svg viewBox="0 0 420 420" focusable="false" role="presentation">
@@ -175,11 +239,33 @@
     </dialog>
 
     <main id="workspace" class="workspace" hidden>
+      <div id="workspaceWatermark" class="workspace-watermark" aria-hidden="true">
+        <svg viewBox="0 0 240 240" focusable="false" role="presentation">
+          <circle class="workspace-watermark-halo" cx="120" cy="124" r="92"></circle>
+          <path class="workspace-watermark-steam" d="M88 94c-22-25 25-31 7-58"></path>
+          <path class="workspace-watermark-steam" d="M124 91c-18-23 23-29 8-52"></path>
+          <path class="workspace-watermark-steam" d="M157 99c-15-20 19-25 7-44"></path>
+          <path class="workspace-watermark-cup" d="M62 108h112v50c0 31-25 56-56 56s-56-25-56-56v-50Z"></path>
+          <path class="workspace-watermark-handle" d="M174 126h14c22 0 31 16 31 30s-11 30-35 30h-14"></path>
+          <path class="workspace-watermark-saucer" d="M40 218c29 12 119 13 158-1"></path>
+        </svg>
+      </div>
       <div class="workspace-topbar">
         <button id="dashboardBackButton" class="editor-tool-button" type="button">
           <span aria-hidden="true">←</span>
           <span data-i18n="dashboardBack">Proyectos</span>
         </button>
+        <div class="mission-quick-nav" role="group" aria-label="Navegación rápida de misiones" data-i18n-aria-label="missionQuickNav">
+          <button id="previousMissionButton" class="editor-tool-button mission-nav-button" type="button" data-i18n-aria-label="previousMission">
+            <span aria-hidden="true">←</span>
+            <span data-i18n="previousMission">Anterior</span>
+          </button>
+          <span id="workspaceMissionPosition" class="mission-position" aria-live="polite">1 / 49</span>
+          <button id="nextMissionNavButton" class="editor-tool-button mission-nav-button" type="button" data-i18n-aria-label="nextMissionNav">
+            <span data-i18n="nextMissionNav">Siguiente</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
         <div class="workspace-location" aria-live="polite">
           <span data-i18n="workspaceLabel">Espacio de trabajo</span>
           <strong data-i18n="workspaceFocus">Tarea · Editor · Validación</strong>
@@ -401,10 +487,18 @@
               <span aria-hidden="true">⛶</span>
               <span data-i18n="focusEnter">Modo enfoque</span>
             </button>
+            <label class="run-configuration"><span data-i18n="runConfiguration">Configuración</span><select id="runConfiguration"><option value="validate" data-i18n="runValidate">Compilar y validar</option><option value="diagnostics" data-i18n="runDiagnostics">Solo diagnósticos locales</option></select></label>
             <span class="editor-toolbar-hint" data-i18n="editorToolbarHint">Esc sale del modo enfoque · los atajos del editor se mantienen</span>
           </div>
 
-          <div class="ide-shell">
+          <div class="ide-workbench">
+            <aside class="project-tool-window" aria-labelledby="projectToolTitle">
+              <div class="project-tool-heading"><strong id="projectToolTitle" data-i18n="projectToolTitle">Proyecto</strong><kbd>⌘1</kbd></div>
+              <div id="projectFileTree" class="project-file-tree" role="tree" aria-label="Archivos del proyecto"></div>
+            </aside>
+            <div class="ide-main">
+              <div id="editorTabs" class="editor-tabs" role="tablist" aria-label="Archivos abiertos"></div>
+              <div class="ide-shell">
             <div class="ide-bar">
             <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
             <span id="fileName">Main.java</span>
@@ -458,6 +552,12 @@
               <span id="editorHelp" data-i18n="shortcut">F5 para comprobar · Tab expande plantillas · ⌥⇧↓ duplica</span>
             </div>
           </div>
+            </div>
+          </div>
+          <div id="quickFixSurface" class="quick-fix-surface" role="dialog" aria-labelledby="quickFixTitle" hidden>
+            <strong id="quickFixTitle" data-i18n="quickFixTitle">Acciones de contexto</strong>
+            <div id="quickFixActions"></div>
+          </div>
           <div class="action-row">
             <button id="checkButton" class="button button-primary" type="button">
               <span data-i18n="check">Compilar y validar</span>
@@ -487,6 +587,7 @@
               <button id="toolConsoleTab" type="button" role="tab" class="tool-tab" data-tool-tab="console" aria-selected="true" aria-controls="toolConsolePanel" data-i18n="toolConsole">Consola</button>
               <button id="toolProblemsTab" type="button" role="tab" class="tool-tab" data-tool-tab="problems" aria-selected="false" aria-controls="toolProblemsPanel" data-i18n="toolProblems">Problemas</button>
               <button id="toolProgressTab" type="button" role="tab" class="tool-tab" data-tool-tab="progress" aria-selected="false" aria-controls="toolProgressPanel" data-i18n="toolProgress">Progreso</button>
+              <button id="toolLearningTab" type="button" role="tab" class="tool-tab" data-tool-tab="learning" aria-selected="false" aria-controls="toolLearningPanel" data-i18n="toolLearning">Aprender</button>
               <button id="toolFeedbackTab" type="button" role="tab" class="tool-tab" data-tool-tab="feedback" aria-selected="false" aria-controls="toolFeedbackPanel" data-i18n="toolFeedback">Feedback</button>
             </div>
           </div>
@@ -528,6 +629,7 @@
             </div>
             <strong id="masteryValue">0%</strong>
           </div>
+
           <p id="masteryExplanation" class="heuristic-note"></p>
           <article class="mentor-card" aria-labelledby="mentorTitle">
             <div>
@@ -540,9 +642,43 @@
               <span aria-hidden="true">→</span>
             </button>
           </article>
+          <section class="adaptive-practice" aria-labelledby="adaptivePracticeTitle">
+            <div>
+              <p class="eyebrow" data-i18n="adaptiveLabel">Ritmo adaptativo</p>
+              <h4 id="adaptivePracticeTitle" data-i18n="adaptiveTitle">Dificultad recomendada</h4>
+            </div>
+            <strong id="adaptiveLevel"></strong>
+            <p id="adaptiveAdvice"></p>
+          </section>
+          <section class="stage-progress-section" aria-labelledby="stageProgressTitle">
+            <h4 id="stageProgressTitle" data-i18n="stageProgressTitle">Progreso por etapa</h4>
+            <div id="stageProgress" class="stage-progress"></div>
+          </section>
           <div id="progressStats" class="progress-stats"></div>
           <div id="progressInsights" class="progress-insights"></div>
+          <section class="attempt-history-section" aria-labelledby="attemptHistoryTitle">
+            <div class="attempt-history-heading">
+              <div>
+                <p class="eyebrow" data-i18n="attemptHistoryLabel">Registro privado</p>
+                <h4 id="attemptHistoryTitle" data-i18n="attemptHistoryTitle">Historial personal de intentos</h4>
+              </div>
+              <span class="feedback-storage-badge" data-i18n="attemptHistoryLocal">Solo local</span>
+            </div>
+            <ol id="personalAttemptHistory" class="personal-attempt-history" aria-live="polite"></ol>
+          </section>
         </section>
+          </div>
+
+          <div id="toolLearningPanel" class="tool-panel" data-tool-panel="learning" role="tabpanel" aria-labelledby="toolLearningTab" hidden>
+            <section class="learning-lab" aria-labelledby="learningLabTitle">
+              <div class="learning-lab-heading"><div><p class="eyebrow" data-i18n="learningLabLabel">Laboratorio de aprendizaje</p><h3 id="learningLabTitle" data-i18n="learningLabTitle">Evidencia, traza y proceso</h3></div><button id="runLearningChecks" class="button button-secondary button-compact" type="button" data-i18n="learningRefresh">Actualizar evidencia</button></div>
+              <div class="learning-grid">
+                <article><h4 data-i18n="learningTestsTitle">Tests de misión</h4><p data-i18n="learningTestsIntro">Contratos visibles que se comprueban contra tu código actual.</p><ol id="missionTestResults" class="learning-list" aria-live="polite"></ol></article>
+                <article><h4 data-i18n="learningTraceTitle">Traza paso a paso</h4><p data-i18n="learningTraceIntro">Lectura estructural local: no inventa una ejecución de JVM.</p><ol id="executionTrace" class="trace-list" aria-live="polite"></ol></article>
+                <article><div class="card-heading"><h4 data-i18n="learningHistoryTitle">Historial de código</h4><button id="saveCodeSnapshot" class="button button-text button-compact" type="button" data-i18n="learningSaveVersion">Guardar versión</button></div><p data-i18n="learningHistoryIntro">Compará y restaurá intentos de este navegador.</p><ol id="codeVersionHistory" class="learning-list" aria-live="polite"></ol></article>
+                <article><h4 data-i18n="learningPeerTitle">Revisión entre pares</h4><p data-i18n="learningPeerIntro">Prepará una revisión moderada: el docente aprueba el intercambio antes de compartirlo.</p><form id="peerReviewForm" class="peer-review-form"><label><span data-i18n="learningPeerFocus">Foco de revisión</span><input id="peerReviewFocus" maxlength="140" data-i18n-placeholder="learningPeerPlaceholder" placeholder="Ej.: ¿el contrato cubre los casos límite?" required /></label><button class="button button-primary button-compact" type="submit" data-i18n="learningRequest">Solicitar revisión</button></form><ol id="peerReviewQueue" class="learning-list" aria-live="polite"></ol></article>
+              </div>
+            </section>
           </div>
 
           <div id="toolFeedbackPanel" class="tool-panel" data-tool-panel="feedback" role="tabpanel" aria-labelledby="toolFeedbackTab" hidden>
@@ -588,7 +724,35 @@
             <label><span data-i18n="classSelect">Clase</span><select id="classSelect"><option value="" data-i18n="classNone">Sin clase seleccionada</option></select></label>
             <form id="createClassForm" class="class-inline"><label class="sr-only" for="className" data-i18n="className">Nombre de clase</label><input id="className" type="text" placeholder="Nombre de clase" data-i18n-placeholder="className" maxlength="120" /><button class="button button-secondary button-compact" type="submit" data-i18n="classCreate">Crear clase</button></form>
             <form id="joinClassForm" class="class-inline"><label class="sr-only" for="joinCode" data-i18n="classCode">Código de acceso</label><input id="joinCode" type="text" placeholder="Código" data-i18n-placeholder="classCode" maxlength="8" /><button class="button button-text button-compact" type="submit" data-i18n="classJoin">Unirse</button></form>
+            <div id="classAdminActions" class="class-admin-actions" hidden><button class="button button-text button-compact" type="button" data-class-action="regenerate-code">Regenerar código</button><button class="button button-text button-compact" type="button" data-class-action="archive">Archivar clase</button></div>
           </div>
+          <section class="assignment-admin" aria-labelledby="assignmentAdminTitle">
+            <div class="teacher-heading"><h4 id="assignmentAdminTitle" data-i18n="assignmentsTitle">Tareas</h4><button id="refreshAssignments" class="button button-text button-compact" type="button" data-i18n="refresh">Actualizar</button></div>
+            <form id="createAssignmentForm" class="assignment-form">
+              <label><span data-i18n="assignmentMission">Misión</span><select id="assignmentMission"></select></label>
+              <label><span data-i18n="assignmentTitle">Título</span><input id="assignmentTitle" maxlength="160" required /></label>
+              <label><span data-i18n="assignmentDue">Fecha límite</span><input id="assignmentDue" type="datetime-local" /></label>
+              <button class="button button-primary button-compact" type="submit" data-i18n="assignmentCreate">Asignar</button>
+            </form>
+            <div id="teacherAssignments" class="assignment-list" aria-live="polite"></div>
+            <div id="submissionReviewQueue" class="submission-review-queue" aria-live="polite"></div>
+          </section>
+          <section id="peerModerationPanel" class="peer-moderation-panel" aria-labelledby="peerModerationTitle" hidden>
+            <div class="teacher-heading"><div><p class="eyebrow">Colaboración segura</p><h4 id="peerModerationTitle">Moderación de revisión entre pares</h4></div><span id="peerModerationCount" class="feedback-storage-badge">0 pendientes</span></div>
+            <p class="heuristic-note">Aprobá sólo solicitudes con un foco concreto. Al rechazar, no se comparte código ni identidad.</p>
+            <ol id="peerModerationQueue" class="learning-list" aria-live="polite"></ol>
+          </section>
+          <details class="mission-builder">
+            <summary>Constructor didáctico</summary>
+            <p>Creá una consigna reutilizable. Se guarda como borrador local hasta que la publiques en una tarea.</p>
+            <form id="missionBuilderForm" class="assignment-form">
+              <label><span>Título</span><input id="builderTitle" maxlength="120" required /></label>
+              <label><span>Objetivo</span><input id="builderObjective" maxlength="240" required /></label>
+              <label><span>Criterio verificable</span><input id="builderCriterion" maxlength="160" placeholder="Ej.: debe declarar un String" required /></label>
+              <button class="button button-secondary button-compact" type="submit">Guardar borrador</button>
+            </form>
+            <ol id="missionBuilderDrafts" class="learning-list" aria-live="polite"></ol>
+          </details>
           <div id="teacherCloudProgress" class="teacher-cloud-progress" aria-live="polite"></div>
           <div id="teacherStats" class="teacher-stats"></div>
           <label class="teacher-filter">
@@ -633,6 +797,9 @@
             <dl class="shortcut-grid">
             <div><dt><kbd>F5</kbd></dt><dd data-i18n="shortcutCheck">Comprobar estructura</dd></div>
             <div><dt><kbd>⌥/Alt</kbd> + <kbd>Enter</kbd></dt><dd data-i18n="shortcutHint">Pedir pista</dd></div>
+            <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>⇧</kbd> + <kbd>A</kbd></dt><dd data-i18n="shortcutActions">Buscar acciones</dd></div>
+            <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>N</kbd></dt><dd data-i18n="shortcutGoto">Ir a misión o clase</dd></div>
+            <div><dt><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>1–4</kbd></dt><dd data-i18n="shortcutToolWindows">Enfocar ventanas de herramientas</dd></div>
             <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>/</kbd></dt><dd data-i18n="shortcutComment">Comentar/descomentar</dd></div>
             <div><dt><kbd>⌘/Ctrl</kbd> + <kbd>D</kbd> / <kbd>⌥/Alt</kbd> + <kbd>⇧</kbd> + <kbd>↓</kbd></dt><dd data-i18n="shortcutDuplicate">Duplicar línea o selección</dd></div>
             <div><dt><kbd>⌥/Alt</kbd> + <kbd>↑/↓</kbd></dt><dd data-i18n="shortcutMoveLine">Subir/bajar línea o bloque</dd></div>
@@ -649,7 +816,17 @@
       </section>
     </main>
 
+    <dialog id="commandPalette" class="ide-dialog" aria-labelledby="commandPaletteTitle">
+      <form method="dialog"><div class="ide-dialog-heading"><strong id="commandPaletteTitle" data-i18n="commandPaletteTitle">Buscar acción</strong><button value="close" aria-label="Cerrar">×</button></div><input id="commandPaletteSearch" type="search" autocomplete="off" data-i18n-placeholder="commandPalettePlaceholder" placeholder="Escribí una acción…" /><div id="commandPaletteResults" class="ide-command-results" role="listbox"></div></form>
+    </dialog>
+    <dialog id="gotoDialog" class="ide-dialog" aria-labelledby="gotoDialogTitle">
+      <form method="dialog"><div class="ide-dialog-heading"><strong id="gotoDialogTitle" data-i18n="gotoDialogTitle">Ir a misión o clase</strong><button value="close" aria-label="Cerrar">×</button></div><input id="gotoSearch" type="search" autocomplete="off" data-i18n-placeholder="gotoPlaceholder" placeholder="Nombre, clase o etapa…" /><div id="gotoResults" class="ide-command-results" role="listbox"></div></form>
+    </dialog>
+    <dialog id="notificationsDialog" class="ide-dialog" aria-labelledby="notificationsDialogTitle">
+      <form method="dialog"><div class="ide-dialog-heading"><strong id="notificationsDialogTitle" data-i18n="notificationsTitle">Notificaciones</strong><button value="close" aria-label="Cerrar">×</button></div><div id="notificationList" class="notification-list" aria-live="polite"></div></form>
+    </dialog>
+
     <script src="js/java-evaluators.js?v=3"></script>
-    <script src="game.js?v=33"></script>
+    <script src="game.js?v=40"></script>
   </body>
 </html>
