@@ -255,6 +255,7 @@ const ideEditor = createIdeEditor({
   lintSource: pythonDiagnostics,
   onChange: rememberEditorChange,
   ariaLabel: "Python Editor",
+  watermark: "assets/python-logo-watermark.svg",
 });
 window.pythonIdeEditor = ideEditor; // Hook de test/depuración (Playwright lee el valor real del editor).
 const TOOL_PANELS = ["console", "problems", "help", "progress", "feedback", "notifications"];

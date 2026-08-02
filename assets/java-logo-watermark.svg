@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Marca de agua para el fondo del editor: mismos paths de la taza del splash
+     (index.html #appSplashLogo), color plano y opacidad baja horneada en el archivo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Java">
+  <g fill="none" stroke="#4a6fa5" stroke-linecap="round" stroke-linejoin="round" opacity="0.1">
+    <path stroke-width="6" d="M88 94c-22-25 25-31 7-58" />
+    <path stroke-width="6" d="M124 91c-18-23 23-29 8-52" />
+    <path stroke-width="6" d="M157 99c-15-20 19-25 7-44" />
+    <path stroke-width="7" fill="#4a6fa5" d="M62 108h112v50c0 31-25 56-56 56s-56-25-56-56v-50Z" />
+    <path stroke-width="7" d="M174 126h14c22 0 31 16 31 30s-11 30-35 30h-14" />
+    <path stroke-width="6" d="M40 218c29 12 119 13 158-1" />
+  </g>
+</svg>

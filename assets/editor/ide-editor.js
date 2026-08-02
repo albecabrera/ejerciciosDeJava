@@ -38,13 +38,22 @@ import {
 // Tema fino: solo tipografía/estructura. Los colores vienen de las variables
 // CSS del sistema de diseño (styles.css / python.css) para que el editor
 // respete el tema claro/oscuro activo sin duplicar la paleta acá.
-const ideTheme = EditorView.theme({
-  "&": {
-    height: "100%",
-    fontSize: "0.86rem",
-    backgroundColor: "var(--code-row, var(--panel))",
-    color: "var(--code-text, var(--ink))",
-  },
+// `watermark` es opcional: un SVG con la opacidad ya horneada en el archivo
+// (background-image no admite opacidad propia), distinto por lenguaje.
+function buildIdeTheme(watermark) {
+  return EditorView.theme({
+    "&": {
+      height: "100%",
+      fontSize: "0.86rem",
+      backgroundColor: "var(--code-row, var(--panel))",
+      color: "var(--code-text, var(--ink))",
+      ...(watermark ? {
+        backgroundImage: `url(${watermark})`,
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        backgroundSize: "220px",
+      } : {}),
+    },
   ".cm-content": {
     fontFamily: "var(--mono)",
     caretColor: "var(--java-blue, var(--blue-soft))",
@@ -72,7 +81,8 @@ const ideTheme = EditorView.theme({
     color: "var(--button-ink, #fff)",
   },
   ".cm-diagnostic": { fontFamily: "var(--sans)" },
-});
+  });
+}
 
 function indentSnippet(snippet, indent) {
   return snippet.replace(/\n/g, `\n${indent}`);
@@ -125,7 +135,7 @@ const languages = { java: () => java(), python: () => python() };
  * Java Werkstatt y Python Studio. Reemplaza el patrón textarea + <ol> de
  * números de línea + popup de autocompletado hecho a mano.
  */
-export function createIdeEditor({ parent, lang, doc = "", completions = [], onChange, onSave, lintSource, ariaLabel, extraKeymap = [] }) {
+export function createIdeEditor({ parent, lang, doc = "", completions = [], onChange, onSave, lintSource, ariaLabel, watermark, extraKeymap = [] }) {
   const langExtension = languages[lang]?.() ?? [];
   const completionCompartment = new Compartment();
   const tabKeymap = [{
@@ -163,7 +173,7 @@ export function createIdeEditor({ parent, lang, doc = "", completions = [], onCh
     lintGutter(),
     EditorView.contentAttributes.of(ariaLabel ? { "aria-label": ariaLabel } : {}),
     langExtension,
-    ideTheme,
+    buildIdeTheme(watermark),
     keymap.of([...tabKeymap, ...saveKeymap, ...extraKeymap, ...closeBracketsKeymap, ...completionKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...lintKeymap, ...defaultKeymap]),
   ];
   if (lintSource) {
