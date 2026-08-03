@@ -5166,7 +5166,7 @@ summary:focus-visible {
 #editor {
   min-height: 15rem;
   padding: 0.85rem;
-  background: url("assets/java-logo-watermark.svg") center/220px no-repeat, var(--code-row);
+  background: url("assets/java-logo-watermark.svg?v=2") center/180px no-repeat, var(--code-row);
   color: var(--code-text);
   caret-color: #557ecf;
   font-family: var(--mono);
@@ -5201,7 +5201,7 @@ summary:focus-visible {
   background: #2c323c;
 }
 :root[data-theme="dark"] #editor {
-  background: url("assets/java-logo-watermark.svg") center/220px no-repeat, #2c323c;
+  background: url("assets/java-logo-watermark.svg?v=2") center/180px no-repeat, #2c323c;
 }
 
 :root[data-theme="dark"] .readonly-code-line,

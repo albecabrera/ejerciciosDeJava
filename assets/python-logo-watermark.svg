@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Marca de agua para el fondo del editor: mismo ícono de Python, opacidad baja horneada
      en el archivo (no vía CSS) para que funcione como background-image plano. -->
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 130 135" role="img" aria-label="Python">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="130" height="135" viewBox="0 0 130 135" role="img" aria-label="Python">
   <defs>
     <linearGradient id="pyWmYellow">
       <stop style="stop-color:#ffd43b;stop-opacity:1" offset="0" />
