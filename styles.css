@@ -2786,6 +2786,20 @@ kbd {
   position: relative;
   min-width: 0;
   flex: 1;
+  background: var(--code-row);
+}
+
+/* Marca de agua del logo Java: PNG real de alta resolución (nítido al escalar),
+   la opacidad va en el pseudo-elemento (no en la imagen) y queda detrás del
+   texto sin interceptar clics. El textarea es transparente para dejarlo ver. */
+.editor-input-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url("assets/java-logo-transparent.png?v=1") center / clamp(140px, 30%, 210px) no-repeat;
+  opacity: 0.06;
+  pointer-events: none;
 }
 
 .editor-diagnostics-overlay {
@@ -5166,7 +5180,7 @@ summary:focus-visible {
 #editor {
   min-height: 15rem;
   padding: 0.85rem;
-  background: var(--code-row);
+  background: transparent;
   color: var(--code-text);
   caret-color: #557ecf;
   font-family: var(--mono);
@@ -5197,10 +5211,11 @@ summary:focus-visible {
   background: #303845;
 }
 
-:root[data-theme="dark"] .editor-row,
-:root[data-theme="dark"] #editor {
+:root[data-theme="dark"] .editor-row {
   background: #2c323c;
 }
+/* #editor queda transparente para dejar ver la marca de agua del wrap;
+   el fondo del área lo aporta .editor-input-wrap (var --code-row = #2c323c en oscuro). */
 
 :root[data-theme="dark"] .readonly-code-line,
 :root[data-theme="dark"] .editor-task-line {

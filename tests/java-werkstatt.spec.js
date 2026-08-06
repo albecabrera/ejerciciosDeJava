@@ -459,10 +459,13 @@ test("enforces feedback role permissions and Atom One Dark editor tokens", async
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   const palette = await page.evaluate(() => {
     const editor = getComputedStyle(document.querySelector("#editor"));
+    // El fondo del área de edición vive en el wrap (el textarea es transparente
+    // para dejar ver la marca de agua del logo Java detrás del código).
+    const wrap = getComputedStyle(document.querySelector(".editor-input-wrap"));
     const gutter = getComputedStyle(document.querySelector("#lineNumbers"));
     const task = getComputedStyle(document.querySelector("#editorTaskLine"));
     return {
-      editorBackground: editor.backgroundColor,
+      editorBackground: wrap.backgroundColor,
       editorColor: editor.color,
       caret: editor.caretColor,
       lineHeight: editor.lineHeight,
