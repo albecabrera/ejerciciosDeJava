@@ -84,6 +84,9 @@ const ui = {
   missionsAriaLabel: { de: "Python-Missionen", es: "Misiones de Python" },
   crumbLabel: { de: "PYCHARM-INSPIRED · WORKBENCH", es: "INSPIRADO EN PYCHARM · BANCO DE TRABAJO" },
   commandEyebrow: { de: "WERKBANK", es: "BANCO DE TRABAJO" },
+  pyWelcomeGreeting: { de: "Willkommen im Python Studio", es: "Bienvenido a Python Studio" },
+  pyOpenMission: { de: "Mission öffnen", es: "Abrir misión" },
+  pyBrowseMissions: { de: "Missionen erkunden", es: "Explorar misiones" },
   commandTitle: { de: "Dein Python-Pfad ist klar", es: "Tu camino en Python está claro" },
   commandIntro: { de: "EF Klasse 11: erst denken, dann implementieren. Mission, Editor und Nachweis bleiben in einem sichtbaren Lernfluss.", es: "11.º grado: primero pensar, después implementar. Misión, editor y evidencia en un mismo flujo de aprendizaje visible." },
   coverEyebrow: { de: "PYTHON-ARBEITSBEREICH", es: "ESPACIO DE TRABAJO PYTHON" },
@@ -493,6 +496,10 @@ async function initCloud() {
   } catch { cloud.configured = false; renderCloud(); }
 }
 
+// Botones de bienvenida, en paralelo a los de Java (commandContinue / exploreProjects):
+// primario salta al editor de la misión actual, secundario a la lista de misiones.
+$("#pyOpenMission").onclick = () => { $(".ide").scrollIntoView({ behavior: "smooth", block: "start" }); ideEditor.focusEnd(); };
+$("#pyBrowseMissions").onclick = () => { $(".mission-rail").scrollIntoView({ behavior: "smooth", block: "start" }); $("#missions button")?.focus(); };
 $("#videoPreview").onclick = playVideo;
 $("#check").onclick = runCode;
 $("#trace").onclick = showTrace;

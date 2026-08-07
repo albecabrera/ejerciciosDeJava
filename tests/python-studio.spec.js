@@ -203,4 +203,15 @@ test.describe("Python Studio", () => {
     await expect(page.locator("#panel-problems")).toBeVisible();
     await expect(page.locator('[data-tool="problems"]')).toBeFocused();
   });
+
+  test("ofrece los botones de bienvenida estilo Java: abrir misión enfoca el editor, explorar enfoca la lista", async ({ page }) => {
+    await expect(page.locator("#pyOpenMission")).toContainText(/Mission öffnen/);
+    await expect(page.locator("#pyBrowseMissions")).toContainText(/Missionen erkunden/);
+
+    await page.locator("#pyOpenMission").click();
+    await expect.poll(() => page.evaluate(() => document.activeElement?.classList.contains("cm-content") || document.querySelector(".cm-editor")?.classList.contains("cm-focused"))).toBe(true);
+
+    await page.locator("#pyBrowseMissions").click();
+    await expect.poll(() => page.evaluate(() => document.activeElement?.closest("#missions") !== null)).toBe(true);
+  });
 });
