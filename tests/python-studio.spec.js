@@ -272,4 +272,41 @@ test.describe("Python Studio", () => {
     await expect(page.locator("#pyRail")).toBeHidden();
     await expect(page.locator("#pyEditorPanel")).toHaveClass(/is-focus-mode/);
   });
+
+  test("la ruta se redimensiona arrastrando con el mouse, respeta límites, y persiste", async ({ page }) => {
+    const rail = page.locator("#pyRail");
+    const resizer = page.locator("#pyRailResizer");
+    const railWidth = async () => rail.evaluate((el) => el.getBoundingClientRect().width);
+
+    await expect.poll(railWidth).toBe(330);
+
+    const box = await resizer.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 150, box.y + box.height / 2, { steps: 10 });
+    await page.mouse.up();
+    await expect.poll(railWidth).toBeGreaterThan(400);
+
+    // arrastrar mucho más allá del máximo permitido: se clampea
+    const box2 = await resizer.boundingBox();
+    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box2.x + 2000, box2.y + box2.height / 2, { steps: 5 });
+    await page.mouse.up();
+    await expect.poll(railWidth).toBe(520);
+
+    await page.reload();
+    await expect.poll(railWidth).toBe(520);
+
+    // teclado sobre el separador (accesibilidad, sin mouse)
+    await resizer.focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect.poll(railWidth).toBe(504);
+    await resizer.press("Home");
+    await expect.poll(railWidth).toBe(240);
+
+    // doble clic restaura el ancho por defecto
+    await resizer.dblclick();
+    await expect.poll(railWidth).toBe(330);
+  });
 });

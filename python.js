@@ -200,6 +200,7 @@ const state = {
   xp: Number.isFinite(stored.xp) ? stored.xp : 0,
   railCollapsed: Boolean(stored.railCollapsed),
   focusMode: Boolean(stored.focusMode),
+  railWidth: Number.isFinite(stored.railWidth) ? stored.railWidth : 330,
 };
 let cloud = { configured: false, user: null, csrf: "", classes: [], activeClassId: localStorage.getItem("python-studio-class") || "", assignments: [], syncTimer: null, feedback: [], notifications: [], unreadNotifications: 0 };
 
@@ -332,6 +333,57 @@ function setRailCollapsed(collapsed) {
   state.railCollapsed = Boolean(collapsed);
   saveLocal();
   applyRailState();
+}
+// Ancho de la ruta ajustable con el mouse (arrastrar #pyRailResizer), touch/pen
+// (Pointer Events cubre los tres) y teclado (flechas, Home/End) sobre el separador.
+const RAIL_MIN = 240;
+const RAIL_MAX = 520;
+const RAIL_DEFAULT = 330;
+function clampRailWidth(px) { return Math.min(RAIL_MAX, Math.max(RAIL_MIN, Math.round(px))); }
+function applyRailWidth() {
+  const width = clampRailWidth(state.railWidth);
+  document.documentElement.style.setProperty("--rail-width", `${width}px`);
+  const resizer = $("#pyRailResizer");
+  resizer.setAttribute("aria-valuenow", String(width));
+  resizer.setAttribute("aria-valuemin", String(RAIL_MIN));
+  resizer.setAttribute("aria-valuemax", String(RAIL_MAX));
+}
+function setRailWidth(px, { persist = true } = {}) {
+  state.railWidth = clampRailWidth(px);
+  applyRailWidth();
+  if (persist) saveLocal();
+}
+function initRailResizer() {
+  const resizer = $("#pyRailResizer");
+  let dragStartX = 0;
+  let dragStartWidth = RAIL_DEFAULT;
+  const onPointerMove = (event) => setRailWidth(dragStartWidth + (event.clientX - dragStartX), { persist: false });
+  const onPointerUp = (event) => {
+    resizer.classList.remove("is-dragging");
+    resizer.releasePointerCapture(event.pointerId);
+    document.removeEventListener("pointermove", onPointerMove);
+    document.removeEventListener("pointerup", onPointerUp);
+    saveLocal();
+    ideEditor.refresh();
+  };
+  resizer.addEventListener("pointerdown", (event) => {
+    if (state.railCollapsed) return;
+    dragStartX = event.clientX;
+    dragStartWidth = clampRailWidth(state.railWidth);
+    resizer.classList.add("is-dragging");
+    resizer.setPointerCapture(event.pointerId);
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+  });
+  resizer.addEventListener("dblclick", () => setRailWidth(RAIL_DEFAULT));
+  resizer.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 40 : 16;
+    if (event.key === "ArrowLeft") { event.preventDefault(); setRailWidth(state.railWidth - step); }
+    else if (event.key === "ArrowRight") { event.preventDefault(); setRailWidth(state.railWidth + step); }
+    else if (event.key === "Home") { event.preventDefault(); setRailWidth(RAIL_MIN); }
+    else if (event.key === "End") { event.preventDefault(); setRailWidth(RAIL_MAX); }
+    else if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setRailWidth(RAIL_DEFAULT); }
+  });
 }
 function applyFocusMode() {
   const active = state.focusMode;
@@ -602,4 +654,4 @@ document.addEventListener("keydown", (event) => {
 const storedTheme = localStorage.getItem("python-studio-theme");
 if (storedTheme === "light" || (!storedTheme && window.matchMedia?.("(prefers-color-scheme: light)").matches)) document.body.classList.add("light");
 
-applyI18n(); render(); applyRailState(); applyFocusMode(); initCloud();
+applyI18n(); render(); applyRailState(); applyRailWidth(); applyFocusMode(); initRailResizer(); initCloud();
