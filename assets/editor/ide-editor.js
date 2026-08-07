@@ -205,5 +205,8 @@ export function createIdeEditor({ parent, lang, doc = "", completions = [], onCh
     setCompletions(newCompletions) {
       view.dispatch({ effects: completionCompartment.reconfigure(autocompletion({ override: [createCompletionSource(newCompletions)] })) });
     },
+    // Re-mide el editor tras pasar de oculto a visible (CodeMirror necesita
+    // recalcular geometría si se creó dentro de un contenedor display:none).
+    refresh() { view.requestMeasure(); },
   };
 }

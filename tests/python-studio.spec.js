@@ -6,6 +6,12 @@ async function editorValue(page) {
 async function focusEditorEnd(page) {
   await page.evaluate(() => window.pythonIdeEditor.focusEnd());
 }
+// Java-style dashboard ↔ workspace split: el editor y sus herramientas viven
+// dentro de #pyWorkspace, oculto hasta hacer clic en "Mission öffnen".
+async function openWorkspace(page) {
+  await page.locator("#pyOpenMission").click();
+  await expect(page.locator("#pyWorkspace")).toBeVisible();
+}
 
 async function reloadWithCloudUser(page, { user, feedback = [], notifications = [], unread = 0 } = {}) {
   let read = false;
@@ -35,6 +41,7 @@ test.describe("Python Studio", () => {
   });
 
   test("permite resolver, conserva el feedback y registra progreso", async ({ page }) => {
+    await openWorkspace(page);
     await expect.poll(() => editorValue(page)).toMatch(/# Aufgabe:/);
     await focusEditorEnd(page);
     await page.keyboard.type('print("Ada")');
@@ -61,6 +68,7 @@ test.describe("Python Studio", () => {
   });
 
   test("ofrece autocompletado estilo PyCharm sin resolver la misión", async ({ page }) => {
+    await openWorkspace(page);
     await focusEditorEnd(page);
     await page.keyboard.type("pri", { delay: 20 });
     const tooltip = page.locator(".cm-tooltip-autocomplete");
@@ -82,6 +90,7 @@ test.describe("Python Studio", () => {
   });
 
   test("marca diagnósticos en línea (lint) además del panel Problems", async ({ page }) => {
+    await openWorkspace(page);
     await page.evaluate(() => window.pythonIdeEditor.setValue(""));
     await focusEditorEnd(page);
     await page.keyboard.type("x\t= 1");
@@ -96,6 +105,7 @@ test.describe("Python Studio", () => {
   });
 
   test("ofrece una traza didáctica transparente y el estado cloud local", async ({ page }) => {
+    await openWorkspace(page);
     await focusEditorEnd(page);
     await page.keyboard.type("zahl = 1\nwhile zahl <= 3:\n    zahl += 1");
     await page.locator("#trace").click();
@@ -117,6 +127,7 @@ test.describe("Python Studio", () => {
   });
 
   test("no borra la salida real de la consola al cambiar de idioma", async ({ page }) => {
+    await openWorkspace(page);
     await focusEditorEnd(page);
     await page.keyboard.type('print("Ada")');
     await page.locator("#check").click();
@@ -137,6 +148,7 @@ test.describe("Python Studio", () => {
 
   test("otorga XP al resolver una misión y descuenta XP al usar una pista", async ({ page }) => {
     await expect(page.locator("#xp")).toHaveText("0");
+    await openWorkspace(page);
     await focusEditorEnd(page);
     await page.keyboard.type('print("Ada")');
     await page.locator("#check").click();
@@ -169,6 +181,7 @@ test.describe("Python Studio", () => {
       user: { id: 5, name: "Mara", role: "student" },
       feedback: [{ id: 1, parent_id: null, message: "¿Cómo imprimo un texto?", status: "open", created_at: "2026-01-10T10:00:00Z", author: "Mara", author_id: 5, role: "student" }],
     });
+    await openWorkspace(page);
     await expect(page.locator("#feedbackThread")).toContainText("¿Cómo imprimo un texto?");
     await page.locator('[data-tool="feedback"]').click();
     await page.locator("#feedbackForm textarea").fill("¿Puede darme otra pista?");
@@ -182,6 +195,7 @@ test.describe("Python Studio", () => {
       notifications: [{ id: 1, type: "feedback", title: "Neue Antwort", message: "Deine Lehrkraft hat geantwortet.", entity_type: "mission_feedback", entity_id: 1, read_at: null, created_at: "2026-01-10T10:00:00Z" }],
       unread: 1,
     });
+    await openWorkspace(page);
     await expect(page.locator("#notifBadge")).toHaveText("1");
     await page.locator('[data-tool="notifications"]').click();
     await expect(page.locator("#notificationList")).toContainText("Neue Antwort");
@@ -204,14 +218,58 @@ test.describe("Python Studio", () => {
     await expect(page.locator('[data-tool="problems"]')).toBeFocused();
   });
 
-  test("ofrece los botones de bienvenida estilo Java: abrir misión enfoca el editor, explorar enfoca la lista", async ({ page }) => {
+  test("ofrece los botones de bienvenida estilo Java: abrir misión enfoca el editor", async ({ page }) => {
     await expect(page.locator("#pyOpenMission")).toContainText(/Mission öffnen/);
-    await expect(page.locator("#pyBrowseMissions")).toContainText(/Missionen erkunden/);
+    await expect(page.locator("#pyDashboard")).toBeVisible();
+    await expect(page.locator("#pyWorkspace")).toBeHidden();
 
     await page.locator("#pyOpenMission").click();
+    await expect(page.locator("#pyDashboard")).toBeHidden();
+    await expect(page.locator("#pyWorkspace")).toBeVisible();
     await expect.poll(() => page.evaluate(() => document.activeElement?.classList.contains("cm-content") || document.querySelector(".cm-editor")?.classList.contains("cm-focused"))).toBe(true);
 
+    await page.locator("#pyBackOverview").click();
+    await expect(page.locator("#pyDashboard")).toBeVisible();
+  });
+
+  test("ofrece los botones de bienvenida estilo Java: explorar enfoca la lista de misiones", async ({ page }) => {
+    await expect(page.locator("#pyBrowseMissions")).toContainText(/Missionen erkunden/);
     await page.locator("#pyBrowseMissions").click();
     await expect.poll(() => page.evaluate(() => document.activeElement?.closest("#missions") !== null)).toBe(true);
+    // el dashboard sigue visible: explorar misiones no abre el workspace.
+    await expect(page.locator("#pyDashboard")).toBeVisible();
+  });
+
+  test("Pfad ausblenden oculta/muestra la ruta, y Fokusmodus expande el editor con Esc para salir", async ({ page }) => {
+    await openWorkspace(page);
+
+    await expect(page.locator("#pyRail")).toBeVisible();
+    await page.locator("#pyRailToggle").click();
+    await expect(page.locator("#pyRail")).toBeHidden();
+    await expect(page.locator("#pyRailToggle")).toContainText(/Pfad anzeigen/);
+    await page.locator("#pyRailToggle").click();
+    await expect(page.locator("#pyRail")).toBeVisible();
+
+    await page.locator("#pyFocusToggle").click();
+    await expect(page.locator("#pyEditorPanel")).toHaveClass(/is-focus-mode/);
+    await expect(page.locator("#pyFocusToggle")).toContainText(/Fokusmodus beenden/);
+    await focusEditorEnd(page);
+    await page.keyboard.type("42");
+    await expect.poll(() => editorValue(page)).toMatch(/42$/);
+
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#pyEditorPanel")).not.toHaveClass(/is-focus-mode/);
+  });
+
+  test("recuerda ruta oculta y modo enfoque entre recargas", async ({ page }) => {
+    await openWorkspace(page);
+    await page.locator("#pyRailToggle").click();
+    await page.locator("#pyFocusToggle").click();
+    await expect(page.locator("#pyRail")).toBeHidden();
+    await expect(page.locator("#pyEditorPanel")).toHaveClass(/is-focus-mode/);
+
+    await page.reload();
+    await expect(page.locator("#pyRail")).toBeHidden();
+    await expect(page.locator("#pyEditorPanel")).toHaveClass(/is-focus-mode/);
   });
 });

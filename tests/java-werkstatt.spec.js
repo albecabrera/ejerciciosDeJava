@@ -155,6 +155,9 @@ test("navigates to Python Studio when chosen from the language gate", async ({ p
   await page.goto("/index.html", { waitUntil: "domcontentloaded" });
   await page.locator("#languageGatePython").click();
   await expect(page).toHaveURL(/python\.html$/);
+  // Python Studio ahora separa dashboard/workspace como Java: el editor vive
+  // detrás de "Mission öffnen".
+  await page.locator("#pyOpenMission").click();
   await expect(page.locator("#editorHost .cm-editor")).toBeVisible();
 });
 

@@ -87,6 +87,14 @@ const ui = {
   pyWelcomeGreeting: { de: "Willkommen im Python Studio", es: "Bienvenido a Python Studio" },
   pyOpenMission: { de: "Mission öffnen", es: "Abrir misión" },
   pyBrowseMissions: { de: "Missionen erkunden", es: "Explorar misiones" },
+  pyBackOverview: { de: "Überblick", es: "Resumen" },
+  pyWorkspaceLoc: { de: "Aufgabe · Editor · Nachweis", es: "Tarea · Editor · Evidencia" },
+  pyBriefLabel: { de: "Deine Aufgabe", es: "Tu tarea" },
+  pyRailHide: { de: "Pfad ausblenden", es: "Ocultar ruta" },
+  pyRailShow: { de: "Pfad anzeigen", es: "Mostrar ruta" },
+  pyFocusEnter: { de: "Fokusmodus", es: "Modo enfoque" },
+  pyFocusExit: { de: "Fokusmodus beenden", es: "Salir del modo enfoque" },
+  pyEditorToolbarHint: { de: "Esc beendet den Fokusmodus · Editor-Kürzel bleiben aktiv", es: "Esc sale del modo enfoque · los atajos del editor se mantienen" },
   commandTitle: { de: "Dein Python-Pfad ist klar", es: "Tu camino en Python está claro" },
   commandIntro: { de: "EF Klasse 11: erst denken, dann implementieren. Mission, Editor und Nachweis bleiben in einem sichtbaren Lernfluss.", es: "11.º grado: primero pensar, después implementar. Misión, editor y evidencia en un mismo flujo de aprendizaje visible." },
   coverEyebrow: { de: "PYTHON-ARBEITSBEREICH", es: "ESPACIO DE TRABAJO PYTHON" },
@@ -190,6 +198,8 @@ const state = {
   hints: stored.hints && typeof stored.hints === "object" ? stored.hints : {},
   language: stored.language === "es" ? "es" : "de",
   xp: Number.isFinite(stored.xp) ? stored.xp : 0,
+  railCollapsed: Boolean(stored.railCollapsed),
+  focusMode: Boolean(stored.focusMode),
 };
 let cloud = { configured: false, user: null, csrf: "", classes: [], activeClassId: localStorage.getItem("python-studio-class") || "", assignments: [], syncTimer: null, feedback: [], notifications: [], unreadNotifications: 0 };
 
@@ -293,9 +303,50 @@ function renderMissions() {
     button.className = index === state.current ? "active" : "";
     button.setAttribute("aria-current", index === state.current ? "step" : "false");
     button.innerHTML = `<small>${String(index + 1).padStart(2, "0")}</small> ${localized(item.title)}`;
-    button.onclick = () => { state.current = index; saveLocal(); render(); $("#title").focus(); };
+    button.onclick = () => { state.current = index; saveLocal(); render(); openWorkspace(); $("#title").focus(); };
     return button;
   }));
+}
+// Vista de dos paneles como Java: dashboard (command-center) ↔ workspace (misión).
+function openWorkspace() {
+  $("#pyDashboard").hidden = true;
+  $("#pyWorkspace").hidden = false;
+  requestAnimationFrame(() => ideEditor.refresh());
+}
+function showDashboard() {
+  $("#pyWorkspace").hidden = true;
+  $("#pyDashboard").hidden = false;
+  $("#pyDashboard").scrollIntoView({ block: "start" });
+}
+// Ruta oculta y modo enfoque: mismo par de controles que Java (sidebarToggle /
+// focusToggle), adaptado al layout de Python (main de 2 columnas + editor-panel).
+function applyRailState() {
+  const collapsed = state.railCollapsed;
+  $("#pyMain").classList.toggle("is-rail-collapsed", collapsed);
+  $("#pyRail").hidden = collapsed;
+  $("#pyRailToggle").setAttribute("aria-expanded", String(!collapsed));
+  $("#pyRailToggle").querySelector("[data-i18n]").textContent = collapsed ? t("pyRailShow") : t("pyRailHide");
+  $("#pyRailToggle").querySelector("[data-i18n]").dataset.i18n = collapsed ? "pyRailShow" : "pyRailHide";
+}
+function setRailCollapsed(collapsed) {
+  state.railCollapsed = Boolean(collapsed);
+  saveLocal();
+  applyRailState();
+}
+function applyFocusMode() {
+  const active = state.focusMode;
+  document.body.classList.toggle("py-focus-active", active);
+  $("#pyEditorPanel").classList.toggle("is-focus-mode", active);
+  $("#pyFocusToggle").setAttribute("aria-pressed", String(active));
+  const label = $("#pyFocusToggle").querySelector("[data-i18n]");
+  label.textContent = active ? t("pyFocusExit") : t("pyFocusEnter");
+  label.dataset.i18n = active ? "pyFocusExit" : "pyFocusEnter";
+}
+function setFocusMode(active) {
+  state.focusMode = Boolean(active);
+  saveLocal();
+  applyFocusMode();
+  if (state.focusMode) ideEditor.focus();
 }
 function renderCloud() {
   const signedIn = Boolean(cloud.user);
@@ -497,9 +548,12 @@ async function initCloud() {
 }
 
 // Botones de bienvenida, en paralelo a los de Java (commandContinue / exploreProjects):
-// primario salta al editor de la misión actual, secundario a la lista de misiones.
-$("#pyOpenMission").onclick = () => { $(".ide").scrollIntoView({ behavior: "smooth", block: "start" }); ideEditor.focusEnd(); };
+// primario abre la vista de misión (workspace) como Java; secundario enfoca la lista.
+$("#pyOpenMission").onclick = () => { openWorkspace(); ideEditor.focusEnd(); };
 $("#pyBrowseMissions").onclick = () => { $(".mission-rail").scrollIntoView({ behavior: "smooth", block: "start" }); $("#missions button")?.focus(); };
+$("#pyBackOverview").onclick = showDashboard;
+$("#pyRailToggle").onclick = () => setRailCollapsed(!state.railCollapsed);
+$("#pyFocusToggle").onclick = () => setFocusMode(!state.focusMode);
 $("#videoPreview").onclick = playVideo;
 $("#check").onclick = runCode;
 $("#trace").onclick = showTrace;
@@ -538,6 +592,7 @@ $(".tool-tabs").addEventListener("keydown", (event) => {
 });
 document.addEventListener("keydown", (event) => {
   if (event.key === "F5") { event.preventDefault(); runCode(); return; }
+  if (event.key === "Escape" && state.focusMode) { event.preventDefault(); setFocusMode(false); return; }
   if ((event.ctrlKey || event.altKey) && /^[1-6]$/.test(event.key)) {
     const panel = TOOL_PANELS[Number(event.key) - 1];
     if (panel) { event.preventDefault(); setPanel(panel); if (panel === "notifications") loadNotifications(); document.querySelector(`[data-tool="${panel}"]`)?.focus(); }
@@ -547,4 +602,4 @@ document.addEventListener("keydown", (event) => {
 const storedTheme = localStorage.getItem("python-studio-theme");
 if (storedTheme === "light" || (!storedTheme && window.matchMedia?.("(prefers-color-scheme: light)").matches)) document.body.classList.add("light");
 
-applyI18n(); render(); initCloud();
+applyI18n(); render(); applyRailState(); applyFocusMode(); initCloud();
